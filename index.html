@@ -450,6 +450,21 @@ body.tablemode .seat>.row .btn{flex:1;padding:12px 10px}
 body.tablemode .reacts button{padding:4px 8px;font-size:17px}
 :root[data-nohints] .need,:root[data-nohints] .hint{display:none!important}
 @media (max-width:560px){body.tablemode .center{grid-template-columns:auto minmax(0,1fr) auto}}
+
+/* ---------- растягивание под любое окно ---------- */
+:root{--cwb:clamp(38px,min(11.5vw,8.2vh),118px)}
+:root[data-big]{--cwb:clamp(44px,min(14vw,9.6vh),132px)}
+body.tablemode .wrap{max-width:min(1200px,100%)}
+body.tablemode .mini{--cw:clamp(22px,calc(var(--cwb)*.5),56px)}
+body.tablemode .ohand b,body.tablemode .name span{font-size:clamp(13px,calc(var(--cwb)*.24),20px)}
+body.tablemode .status{font-size:clamp(15px,calc(var(--cwb)*.3),28px)}
+body.tablemode .need,body.tablemode .side{font-size:clamp(11px,calc(var(--cwb)*.19),16px)}
+body.tablemode .seat>.row .btn{font-size:clamp(14px,calc(var(--cwb)*.22),20px)}
+body.tablemode .seat>.row{max-width:640px;width:100%;margin-inline:auto}
+body.tablemode .reacts{justify-content:center}
+/* в полноэкранном режиме Telegram кладёт свои кнопки поверх: отодвигаемся */
+body.fs .hdr{padding-top:calc(8px + var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px))}
+body.fs.tablemode .wrap.app{min-height:calc(100dvh - 54px - var(--tg-safe-area-inset-top,0px) - var(--tg-content-safe-area-inset-top,0px))}
 </style>
 </head>
 <body>
@@ -460,6 +475,7 @@ body.tablemode .reacts button{padding:4px 8px;font-size:17px}
     <button id="casinoBtn" class="btn ghost" type="button" aria-label="Казино">🎰</button>
     <button id="shopBtn" class="btn ghost" type="button" aria-label="Магазин">🛒</button>
     <button id="setBtn" class="btn ghost" type="button" aria-label="Настройки">⚙</button>
+    <button id="fsBtn" class="btn ghost" type="button" aria-label="На весь экран" title="На весь экран" hidden>⛶</button>
   </nav>
 </header>
 <div class="wrap app" id="app"></div>
@@ -1579,6 +1595,21 @@ document.getElementById("casinoBtn").addEventListener("click",()=>{ if(casinoLoc
 document.getElementById("shopBtn").addEventListener("click",()=>{ if(casinoLock) return toast("Дождись конца раунда"); view=view==="shop"?"main":"shop"; Sound.fx("pick"); render(); scrollTo(0,0); });
 document.getElementById("coinsBtn").addEventListener("click",()=>{ if(casinoLock) return; view="shop"; Sound.fx("pick"); render(); scrollTo(0,0); });
 document.getElementById("setBtn").addEventListener("click",()=>{ if(casinoLock) return toast("Дождись конца раунда"); view=view==="settings"?"main":"settings"; Sound.fx("pick"); render(); scrollTo(0,0); });
+/* ---------- полный экран: официальный режим Telegram (Bot API 8.0+), иначе браузерный ---------- */
+(function setupFullscreen(){
+  const b=document.getElementById("fsBtn"); if(!b) return;
+  const tgFS=!!(TG&&typeof TG.requestFullscreen==="function"&&TG.isVersionAtLeast&&TG.isVersionAtLeast("8.0"));
+  const brFS=!TG||!TG.initData ? !!(document.fullscreenEnabled&&document.documentElement.requestFullscreen) : false;
+  if(!tgFS&&!brFS) return;
+  b.hidden=false;
+  const isOn=()=>tgFS?!!TG.isFullscreen:!!document.fullscreenElement;
+  const sync=()=>{ const on=isOn(); b.setAttribute("aria-pressed",String(on)); b.textContent=on?"⤡":"⛶"; b.title=on?"Выйти из полного экрана":"На весь экран"; document.body.classList.toggle("fs",on); };
+  b.addEventListener("click",()=>{ Sound.fx("pick");
+    try{ if(tgFS){ isOn()?TG.exitFullscreen():TG.requestFullscreen(); } else { isOn()?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>toast("Браузер не дал открыть на весь экран")); } }catch(e){ toast("Не получилось открыть на весь экран"); } });
+  if(tgFS){ TG.onEvent("fullscreenChanged",sync); TG.onEvent("fullscreenFailed",()=>toast("Telegram не дал открыть на весь экран")); }
+  else document.addEventListener("fullscreenchange",sync);
+  sync();
+})();
 applyPrefs(); applyCosmetics();
 render();
 connect();
