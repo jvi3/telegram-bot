@@ -571,9 +571,9 @@ function handle(ws, msg) {
     let r;
     try { r = casino.play(myTg, msg); } catch (e) { console.error(e); r = { err: "Что-то пошло не так" }; }
     if (r.err) return send(ws, { t: "error", msg: r.err });
-    { const bet = r.bet || r.stake || 0, win = r.win || 0, mult = bet ? win / bet : (r.mult || (r.prizes ? r.prizes[r.i] : 0));
-      const NM = { slots: "Кащей Слотс", lucky: "Лаки 7", chest: "Сундук Кащея", roulette: "Рулетке", hilo: "Выше/ниже" };
-      if (win > 0 && (mult >= 10 || win >= 100)) setTimeout(() => pushFeed({ kind: "casino", name: feedName(myTg), avatar: avatarUrl(myTg), game: NM[r.game] || r.game, win, mult: Math.round(mult * 10) / 10 }), 3500); }
+    { const bet = r.paid || r.bet || r.stake || 0, win = r.win || 0, mult = bet ? win / bet : (r.mult || (r.prizes ? r.prizes[r.i] : 0));
+      const NM = { slots: "Кащей Слотс", lucky: "Лаки 7", chest: "Сундук Кащея", roulette: "Рулетке", hilo: "Выше/ниже", xmult: "Бурмалде" };
+      if (win > bet && (mult >= 10 || win >= 100)) setTimeout(() => pushFeed({ kind: "casino", name: feedName(myTg), avatar: avatarUrl(myTg), game: NM[r.game] || r.game, win, mult: Math.round(mult * 10) / 10 }), 3500); }
     if (profileCoins(myTg) !== null) for (const s of wsOf(myTg)) if (s !== ws) send(s, { t: "profile", ...fullProfile(myTg) });
     return send(ws, { t: "casinoRes", ...r });
   }

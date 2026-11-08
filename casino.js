@@ -55,6 +55,14 @@ const MACHINES = {
     wild: "wild", scatter: "chest", prizes: { 3: [5, 10, 20], 4: [10, 20, 40], 5: [25, 50, 100] },
   },
 };
+// «Бурмалда»: 3+ ключа — 8 бесплатных вращений; в них падают иксы ×2/×3/×5, они копятся до конца бонуса
+const XM = {
+  name: "Бурмалда",
+  weights: { coin: 60, clover: 52, gem: 40, crown: 28, bar: 20, seven: 12, wild: 12, key: 5 },
+  freeWeights: { coin: 15, clover: 13, gem: 10, crown: 7, bar: 5, seven: 3, wild: 5 },
+  pay: { coin: [2, 6, 18], clover: [3, 8, 25], gem: [6, 15, 45], crown: [10, 30, 100], bar: [15, 50, 150], seven: [30, 120, 600], wild: [30, 120, 600] },
+  wild: "wild", scatter: "key", spins: 8, xChance: 0.13, xVals: [[2, 60], [3, 30], [5, 10]], buy: 100,
+};
 function pickW(weights) { const tot = Object.values(weights).reduce((a, b) => a + b, 0); let r = rnd(tot); for (const [s, w] of Object.entries(weights)) { r -= w; if (r < 0) return s; } return Object.keys(weights)[0]; }
 function spinGrid(m) { return [0, 1, 2, 3, 4].map(() => [pickW(m.weights), pickW(m.weights), pickW(m.weights)]); }
 function evalGrid(m, grid, lineBet) {
@@ -73,6 +81,19 @@ function evalGrid(m, grid, lineBet) {
   return { win, lines, scat };
 }
 
+function xBonus(lineBet, rndf = rnd) {
+  const spins = []; let total = 0, win = 0;
+  for (let k = 0; k < XM.spins; k++) {
+    const grid = spinGrid({ weights: XM.freeWeights }); const xs = [];
+    for (let r = 0; r < 5; r++) for (let row = 0; row < 3; row++) if (rnd(10000) < XM.xChance * 10000) {
+      let t = rnd(100), v = 2; for (const [val, w] of XM.xVals) { t -= w; if (t < 0) { v = val; break; } }
+      grid[r][row] = "x" + v; xs.push({ r, row, v }); total += v;
+    }
+    const e = evalGrid(XM, grid, lineBet); const m = Math.max(1, total); const w = Math.floor(e.win * m);
+    spins.push({ grid, lines: e.lines, base: Math.floor(e.win), xs, total, mult: m, win: w }); win += w;
+  }
+  return { spins, win, total };
+}
 module.exports = function createCasino({ data, save, users }) {
   const bonuses = new Map(); // tgId -> { prizes, bet }
   const sessions = new Map(); // tgId -> { stake, mult, card, steps }
@@ -127,6 +148,19 @@ module.exports = function createCasino({ data, save, users }) {
       u.coins += win; stat(game, b.bet, win); save();
       return { ...res, baseWin: Math.floor(ev.win), win, coins: u.coins };
     }
+    if (game === "xmult") {
+      const buying = msg.action === "buy";
+      const b0 = Math.floor(Number(msg.bet));
+      if (buying && !(b0 >= 1)) return { err: "Ставка — от $1" };
+      const b = takeBet(u, buying ? b0 * XM.buy : msg.bet); if (b.err) return b;
+      const bet = buying ? b0 : b.bet, lineBet = bet / LINES.length;
+      const res = { game, bet, paid: b.bet, bought: buying };
+      let win = 0;
+      if (!buying) { const grid = spinGrid(XM), ev = evalGrid(XM, grid, lineBet); res.grid = grid; res.lines = ev.lines; res.scat = ev.scat; res.baseWin = Math.floor(ev.win); win += ev.win; if (ev.scat >= 3) res.bonus = true; }
+      if (buying || res.bonus) { const bo = xBonus(lineBet); res.free = bo.spins; res.freeWin = bo.win; res.total = bo.total; win += bo.win; }
+      win = Math.floor(win); u.coins += win; stat(game, b.bet, win); save();
+      return { ...res, win, coins: u.coins };
+    }
     if (game === "roulette") {
       const pick = ["red", "black", "green"].includes(msg.pick) ? msg.pick : null;
       if (!pick) return { err: "Выбери цвет" };
@@ -172,9 +206,9 @@ module.exports = function createCasino({ data, save, users }) {
     }
     return { err: "Такой игры нет" };
   }
-  return { play, ROUL, PAY3, MACHINES: Object.fromEntries(Object.entries(MACHINES).map(([k, m]) => [k, { name: m.name, pay: m.pay, free: m.free, prizes: m.prizes }])) };
+  return { play, ROUL, PAY3, MACHINES: { ...Object.fromEntries(Object.entries(MACHINES).map(([k, m]) => [k, { name: m.name, pay: m.pay, free: m.free, prizes: m.prizes }])), xmult: { name: XM.name, pay: XM.pay, spins: XM.spins, buy: XM.buy, xVals: XM.xVals } } };
 };
 module.exports.slotPay = slotPay;
-module.exports._eng = { MACHINES, spinGrid, evalGrid, LINES };
+module.exports._eng = { MACHINES, spinGrid, evalGrid, LINES, XM, xBonus };
 module.exports.W = W;
 module.exports.hiloChance = hiloChance;

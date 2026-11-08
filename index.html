@@ -657,6 +657,40 @@ body.tense .chatbar{display:none}
 .dmtoast{position:fixed;left:50%;top:calc(58px + var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px));transform:translateX(-50%);width:min(400px,calc(100% - 20px));display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:14px;background:rgba(10,24,20,.96);border:1px solid rgba(126,224,181,.5);color:var(--text,#e9efe9);text-align:left;z-index:41;box-shadow:0 10px 26px rgba(0,0,0,.5);animation:navdown .35s cubic-bezier(.2,.9,.3,1.15)}
 .dmtt{display:flex;flex-direction:column;min-width:0;font-size:13px}
 .dmtt span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- анимации за столом ---------- */
+.thinking{position:absolute;left:34px;top:-12px;display:flex;gap:3px;background:#f7f1e1;border-radius:10px 10px 10px 3px;padding:5px 7px;z-index:3;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.thinking i{width:5px;height:5px;border-radius:50%;background:#5f5e5a;animation:tbob 1.2s infinite}
+.thinking i:nth-child(2){animation-delay:.15s}.thinking i:nth-child(3){animation-delay:.3s}
+@keyframes tbob{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-3px);opacity:1}}
+.ntag{position:relative}
+.tring{position:absolute;left:-4px;top:-4px;width:34px;height:34px;border-radius:50%;pointer-events:none;z-index:2;--p:100;background:conic-gradient(var(--rc,#7ee0b5) calc(var(--p)*1%),transparent 0);-webkit-mask:radial-gradient(circle,transparent 14px,#000 15px);mask:radial-gradient(circle,transparent 14px,#000 15px);animation-name:tring,tcol;animation-timing-function:linear,steps(1);animation-fill-mode:forwards}
+@property --p{syntax:"<number>";inherits:false;initial-value:100}
+@keyframes tring{from{--p:100}to{--p:0}}
+@keyframes tcol{0%{--rc:#7ee0b5}90%{--rc:#e24b4a}}
+.opp.lastcard .name .av{animation:lshake 1.6s infinite}
+@keyframes lshake{0%,70%,100%{transform:none}75%{transform:translateX(-3px) rotate(-6deg)}80%{transform:translateX(3px) rotate(6deg)}85%{transform:translateX(-2px)}90%{transform:translateX(2px)}}
+.lastbadge{position:absolute;right:8px;top:-9px;background:#e24b4a;color:#fff;font:600 10px/1 var(--body);padding:3px 7px;border-radius:999px;z-index:3;animation:lpop 1.6s infinite}
+@keyframes lpop{0%,70%,100%{transform:scale(1)}78%{transform:scale(1.25)}}
+.combotxt{position:fixed;transform:translate(-50%,-50%);font-family:var(--display);font-weight:800;font-size:34px;color:#ffd27a;text-shadow:0 0 14px rgba(255,140,40,.9),0 3px 0 #7a2a08;z-index:47;pointer-events:none;animation:combo 1.4s ease-out forwards}
+@keyframes combo{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.3)}35%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-90%)}}
+.flame{position:fixed;width:8px;height:12px;border-radius:50% 50% 40% 40%;background:#ef9f27;box-shadow:0 0 8px #ff8a1e;z-index:46;pointer-events:none}
+#dust{position:fixed;inset:0;pointer-events:none;z-index:0;display:none}
+body.tablemode #dust{display:block}
+#dust i{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;opacity:0;animation:dust linear infinite}
+@keyframes dust{0%{transform:translate(0,0);opacity:0}30%{opacity:.4}100%{transform:translate(var(--dx),var(--dy));opacity:0}}
+:root[data-anim="off"] #dust,:root[data-anim="off"] .thinking i,:root[data-anim="off"] .lastbadge,:root[data-anim="off"] .opp.lastcard .name .av{animation:none}
+:root[data-anim="off"] #dust{display:none}
+/* ---------- «Бурмалда» ---------- */
+.xmeter{background:rgba(10,8,30,.85);border:2px solid #7f77dd;border-radius:10px;padding:2px 10px;display:flex;align-items:center;gap:8px;line-height:1.2}
+.xml{font-size:10px;color:#cecbf6;text-transform:uppercase;letter-spacing:.08em}
+.xmv{font-family:"Press Start 2P",var(--display);font-size:15px;color:#ffe6a0}
+.xmv.bump{animation:xbump .45s cubic-bezier(.2,.9,.3,1.5)}
+@keyframes xbump{0%{transform:scale(1)}40%{transform:scale(1.6);color:#fff}100%{transform:scale(1)}}
+.cellc.xhit{animation:xhit .6s ease-out;background:rgba(127,119,221,.35);border-radius:6px}
+@keyframes xhit{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+.buyrow{display:flex;justify-content:center}
+.btn.buyx{background:linear-gradient(#7f77dd,#534ab7);color:#fff;border:0}
 </style>
 </head>
 <body>
@@ -722,15 +756,42 @@ const Sound=(()=>{
   let ctx=null, noiseBuf=null, sfxGain=null, musGain=null, musLp=null, p12=null, p25=null;
   const num=(k,d)=>{ const v=parseInt(ls.get(k),10); return Number.isFinite(v)?Math.min(100,Math.max(0,v)):d; };
   let sfxVol=num("durak.sfxvol",70), musVol=num("durak.musvol",40), musOn=ls.get("durak.music")==="1";
-  let track=ls.get("durak.track")==="up"?"up":"calm", timer=null, step=0, next=0, tz=null;
+  let track=ls.get("durak.track")||"calm", timer=null, step=0, next=0, tz=null, ambStop=null;
   const TRACKS={
     calm:{name:"Таверна",bpm:84,chords:[[57,60,64],[53,57,60],[52,55,60],[55,59,62]],hat:false,
       mel:[76,0,74,72,0,69,72,0, 72,0,69,67,0,65,67,69, 67,0,72,0,74,72,0,67, 71,0,74,0,71,67,0,0,
            76,0,79,76,0,74,72,0, 72,0,74,72,0,69,67,0, 67,0,64,67,0,72,74,0, 71,0,67,0,62,0,0,0]},
     up:{name:"Ставки сделаны",bpm:112,chords:[[62,65,69],[58,62,65],[57,60,65],[55,60,64]],hat:true,
       mel:[74,77,0,74,72,0,69,0, 70,0,74,0,77,74,72,70, 69,0,72,0,77,0,76,72, 72,74,76,0,79,0,76,0,
-           77,0,76,74,0,72,74,0, 74,0,70,0,74,77,0,74, 72,0,69,72,0,77,76,0, 76,0,72,0,67,0,0,0]}
+           77,0,76,74,0,72,74,0, 74,0,70,0,74,77,0,74, 72,0,69,72,0,77,76,0, 76,0,72,0,67,0,0,0]},
+    // спокойные «живые» треки: гул, эхо и случайные ноты из подходящего лада
+    fog:{name:"Туман",amb:{drone:{root:45,cut:230,g:.16},pulse:{every:1.25,g:.35},pluck:{scale:[69,72,74,76,79,81,84],every:.625,prob:.33,type:"sine",g:.07,dec:2.2},delay:.47}},
+    tav:{name:"Ночная таверна",amb:{drone:{root:38,cut:300,g:.07},pad:{chords:[[50,57,62,65],[46,53,58,62],[41,53,57,60],[48,55,60,64]],sec:6,g:.035},pluck:{chordArp:true,every:.5,prob:.6,type:"triangle",g:.06,dec:1.2},delay:.375}},
+    forest:{name:"Лес Кащея",amb:{drone:{root:28,cut:170,g:.15},wind:true,bell:{scale:[76,79,83,88,91],every:1,prob:.22},pulse:{every:1.6,g:.18},delay:.6}},
+    stars:{name:"Звёздная ночь",amb:{pad:{chords:[[60,64,67,71],[62,66,69,74],[57,64,67,71],[59,62,66,71]],sec:7,g:.03,oct:12},pluck:{scale:[72,74,76,78,79,83,84,86],every:.4,prob:.45,type:"sine",g:.05,dec:2.6},delay:.5}}
   };
+  if(!TRACKS[track]) track="calm";
+  const mt=n=>440*Math.pow(2,(n-69)/12);
+  function amb(c){
+    const out=musGain, t0=ctx.currentTime, M=ctx.createGain(); M.gain.setValueAtTime(0,t0); M.gain.linearRampToValueAtTime(.9,t0+2.5); M.connect(out);
+    const dl=ctx.createDelay(2); dl.delayTime.value=c.delay||.45; const fb=ctx.createGain(); fb.gain.value=.42; const wet=ctx.createGain(); wet.gain.value=.4; dl.connect(fb).connect(dl); dl.connect(wet).connect(M);
+    const live=[];
+    if(c.drone){ const lp=ctx.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=c.drone.cut; lp.Q.value=3; const g=ctx.createGain(); g.gain.value=c.drone.g; lp.connect(g).connect(M);
+      const f=mt(c.drone.root); [[f,"sawtooth"],[f*1.005,"sawtooth"],[f/2,"sine"]].forEach(([fr,ty])=>{ const o=ctx.createOscillator(); o.type=ty; o.frequency.value=fr; o.connect(lp); o.start(); live.push(o); });
+      const l=ctx.createOscillator(); l.frequency.value=.07; const lg=ctx.createGain(); lg.gain.value=c.drone.cut*.45; l.connect(lg).connect(lp.frequency); l.start(); live.push(l); }
+    if(c.wind){ const n=ctx.createBufferSource(); n.buffer=noiseBuf; n.loop=true; const bp=ctx.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=600; bp.Q.value=1.2; const g=ctx.createGain(); g.gain.value=.05; n.connect(bp).connect(g).connect(M); n.start(); live.push(n);
+      const l=ctx.createOscillator(); l.frequency.value=.05; const lg=ctx.createGain(); lg.gain.value=400; l.connect(lg).connect(bp.frequency); l.start(); live.push(l); }
+    const note=(t,fr,dur,ty,g)=>{ const o=ctx.createOscillator(); o.type=ty; o.frequency.value=fr; const a=ctx.createGain(); a.gain.setValueAtTime(0,t); a.gain.linearRampToValueAtTime(g,t+.01); a.gain.exponentialRampToValueAtTime(.0004,t+dur); o.connect(a).connect(M); a.connect(dl); o.start(t); o.stop(t+dur+.05); };
+    const padNote=(t,fr,dur,g)=>{ const o=ctx.createOscillator(); o.type="triangle"; o.frequency.value=fr; const a=ctx.createGain(); a.gain.setValueAtTime(0,t); a.gain.linearRampToValueAtTime(g,t+dur*.35); a.gain.linearRampToValueAtTime(0,t+dur); const lp=ctx.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=1400; o.connect(lp).connect(a).connect(M); a.connect(dl); o.start(t); o.stop(t+dur+.1); };
+    let nP=t0+.3,nL=t0+.8,nB=t0+1,nC=t0+.1,ci=0,stopped=false;
+    const tick=()=>{ if(stopped) return; const ah=ctx.currentTime+.3;
+      if(c.pulse) while(nP<ah){ const t=nP,o=ctx.createOscillator(); o.frequency.setValueAtTime(70,t); o.frequency.exponentialRampToValueAtTime(42,t+.25); const a=ctx.createGain(); a.gain.setValueAtTime(0,t); a.gain.linearRampToValueAtTime(c.pulse.g,t+.02); a.gain.exponentialRampToValueAtTime(.001,t+.35); o.connect(a).connect(M); o.start(t); o.stop(t+.4); nP+=c.pulse.every; }
+      if(c.pad) while(nC<ah){ c.pad.chords[ci%c.pad.chords.length].forEach(n=>padNote(nC,mt(n+(c.pad.oct||0)),c.pad.sec+1.5,c.pad.g)); ci++; nC+=c.pad.sec; }
+      if(c.pluck) while(nL<ah){ if(Math.random()<c.pluck.prob){ let n; if(c.pluck.chordArp){ const ch=c.pad.chords[(ci-1+c.pad.chords.length)%c.pad.chords.length]; n=ch[Math.random()*ch.length|0]+12; } else n=c.pluck.scale[Math.random()*c.pluck.scale.length|0]; note(nL,mt(n),c.pluck.dec,c.pluck.type,c.pluck.g); } nL+=c.pluck.every; }
+      if(c.bell) while(nB<ah){ if(Math.random()<c.bell.prob){ const f=mt(c.bell.scale[Math.random()*c.bell.scale.length|0]); note(nB,f,3,"sine",.05); note(nB,f*2.76,1.2,"sine",.015); } nB+=c.bell.every; } };
+    const iv=setInterval(tick,60); tick();
+    return ()=>{ stopped=true; clearInterval(iv); const t=ctx.currentTime; M.gain.cancelScheduledValues(t); M.gain.setValueAtTime(M.gain.value,t); M.gain.linearRampToValueAtTime(0,t+.6); setTimeout(()=>{ live.forEach(o=>{ try{ o.stop(); }catch(_){ } }); M.disconnect(); },700); };
+  }
   function ensure(){
     try{
       if(!ctx){
@@ -812,8 +873,8 @@ const Sound=(()=>{
       next+=e; step++;
     }
   }
-  function startMusic(){ if(!ensure()||timer) return; step=0; next=ctx.currentTime+.05; timer=setInterval(tick,25); }
-  function stopMusic(){ clearInterval(timer); timer=null; }
+  function startMusic(){ if(!ensure()||timer) return; const tr=TRACKS[track]; if(tr.amb){ ambStop=amb(tr.amb); timer=setInterval(()=>{},60000); return; } step=0; next=ctx.currentTime+.05; timer=setInterval(tick,25); }
+  function stopMusic(){ clearInterval(timer); timer=null; if(ambStop){ ambStop(); ambStop=null; } }
   document.addEventListener("visibilitychange",()=>{ if(document.hidden) stopMusic(); else if(musOn&&ctx) startMusic(); });
   return {
     TRACKS,
@@ -1003,7 +1064,14 @@ const Fx=(()=>{
   function sparks(x,y,col){ if(Prefs.get("anim")==="off") return; for(let i=0;i<26;i++){ const s=el("div",{class:"spark"}); s.style.left=x+"px"; s.style.top=y+"px"; s.style.background=col; s.style.boxShadow=`0 0 6px ${col}`; document.body.append(s);
       const a=Math.random()*Math.PI*2, d=50+Math.random()*100; s.animate([{transform:"translate(0,0) scale(1)",opacity:1},{transform:`translate(${Math.cos(a)*d}px,${Math.sin(a)*d+30}px) scale(.3)`,opacity:0}],{duration:900+Math.random()*400,easing:"cubic-bezier(.2,.8,.3,1)"}).onfinish=()=>s.remove(); }
     const r=el("div",{class:"sring"}); r.style.left=x+"px"; r.style.top=y+"px"; r.style.borderColor=col; document.body.append(r); setTimeout(()=>r.remove(),1000); }
-  return {run,shake,bigText,emoji,coinPop,sparks};
+  function combo(n,at){ if(Prefs.get("anim")==="off") return; const r=at?at.getBoundingClientRect():{left:innerWidth/2-40,top:innerHeight/2-40,width:80,height:80};
+    const t=el("div",{class:"combotxt",text:`Сжёг ×${n}!`}); t.style.left=(r.left+r.width/2)+"px"; t.style.top=(r.top+r.height/2)+"px"; document.body.append(t); setTimeout(()=>t.remove(),1500);
+    for(let i=0;i<10+n*5;i++){ const f=el("div",{class:"flame"}); f.style.left=(r.left+r.width*(.1+Math.random()*.8))+"px"; f.style.top=(r.top+r.height*.8)+"px"; document.body.append(f);
+      f.animate([{transform:"translateY(0) scale(1)",opacity:1},{transform:`translate(${Math.random()*20-10}px,-${60+Math.random()*70}px) scale(.3)`,opacity:0}],{duration:700+Math.random()*500,easing:"ease-out"}).onfinish=()=>f.remove(); }
+    Sound.fx("burn"); haptic("heavy"); }
+  function trail(x,y){ if(Prefs.get("anim")==="off") return; const s=el("div",{class:"spark"}); s.style.left=(x+Math.random()*16-8)+"px"; s.style.top=(y+Math.random()*16-8)+"px"; s.style.background="#ffe6a0"; s.style.boxShadow="0 0 6px #ffd27a"; document.body.append(s);
+    s.animate([{opacity:1,transform:"scale(1)"},{opacity:0,transform:`translate(${Math.random()*20-10}px,${10+Math.random()*14}px) scale(.2)`}],{duration:600}).onfinish=()=>s.remove(); }
+  return {run,shake,bigText,emoji,coinPop,sparks,combo,trail};
 })();
 
 const HAT='<svg viewBox="0 0 16 12" width="22" height="16" shape-rendering="crispEdges" aria-label="дурацкий колпак"><rect x="2" y="8" width="12" height="3" fill="#f2c14e"/><rect x="2" y="5" width="4" height="3" fill="#c23a2b"/><rect x="1" y="3" width="3" height="2" fill="#c23a2b"/><rect x="0" y="2" width="2" height="1" fill="#c23a2b"/><rect x="6" y="3" width="4" height="5" fill="#2e9e6e"/><rect x="7" y="1" width="2" height="2" fill="#2e9e6e"/><rect x="10" y="5" width="4" height="3" fill="#c23a2b"/><rect x="12" y="3" width="3" height="2" fill="#c23a2b"/><rect x="14" y="2" width="2" height="1" fill="#c23a2b"/><rect x="0" y="0" width="2" height="2" fill="#f2c14e"/><rect x="7" y="0" width="2" height="1" fill="#f2c14e"/><rect x="14" y="0" width="2" height="2" fill="#f2c14e"/></svg>';
@@ -1025,6 +1093,10 @@ function nameTag(p,{you=false}={}){
   if(anonOn()&&room&&room.status!=="lobby") return el("div",{class:"ntag gone","aria-label":p.id===me.id?"Ты":"Соперник"});
   const wrap=el("div",{class:"ntag"});
   const isFool=room&&(p.id===room.loser||(room.status!=="over"&&p.id===room.prevLoser));
+  if(room&&room.status==="play"&&deadlineAt&&room.players[room.turn]&&room.players[room.turn].id===p.id){
+    const total=(room.status==="swap"?45:30)*1000, left=Math.max(0,deadlineAt-Date.now());
+    wrap.append(el("div",{class:"tring",style:`animation-duration:${total}ms,${total}ms;animation-delay:-${total-left}ms,-${total-left}ms`}));
+  }
   wrap.append(el("div",{class:"name",style:`--pc:${p.color||"#f2c14e"}`},avatarEl(p,26),isFool?hatEl():null,el("span",{text:anonOn()?shownName(p):p.name+(you?" (ты)":"")})));
   if(p.title&&!anonOn()) wrap.append(el("div",{class:"ptitle",style:"padding-left:32px",text:p.title}));
   return wrap;
@@ -1145,7 +1217,7 @@ const SPR=(()=>{
   function mk(draw){ const c=document.createElement("canvas"); c.width=16; c.height=16; const g=c.getContext("2d"); const P=(x,y,w,h,col)=>{ g.fillStyle=col; g.fillRect(x,y,w||1,h||1); };
     const disc=(cx,cy,r,col)=>{ for(let y=-r;y<=r;y++) for(let x=-r;x<=r;x++) if(x*x+y*y<=r*r+r*.6) P(Math.round(cx+x),Math.round(cy+y),1,1,col); };
     draw(P,disc); return c.toDataURL(); }
-  const F3={B:["110","101","110","101","110"],A:["010","101","111","101","101"],R:["110","101","110","101","101"],W:["10001","10001","10101","10101","01010"],I:["1","1","1","1","1"],L:["100","100","100","100","111"],D:["110","101","101","101","110"]};
+  const F3={X:["101","101","010","101","101"],"2":["110","001","010","100","111"],"3":["110","001","010","001","110"],"5":["111","100","110","001","110"],B:["110","101","110","101","110"],A:["010","101","111","101","101"],R:["110","101","110","101","101"],W:["10001","10001","10101","10101","01010"],I:["1","1","1","1","1"],L:["100","100","100","100","111"],D:["110","101","101","101","110"]};
   const txt=(P,s,x0,y0,col)=>{ let x=x0; for(const ch of s){ F3[ch].forEach((row,y)=>[...row].forEach((v,i)=>{ if(v==="1") P(x+i,y0+y,1,1,col); })); x+=F3[ch][0].length+1; } };
   return {
     cherry:mk((P,disc)=>{ P(8,1,1,1,"#3c7a2a"); P(7,2,1,2,"#3c7a2a"); P(9,2,1,1,"#3c7a2a"); P(10,3,1,2,"#3c7a2a"); P(6,4,1,3,"#3c7a2a"); P(11,5,1,3,"#3c7a2a"); P(9,1,3,1,"#5fae3c"); disc(5,10,3,"#a3172a"); disc(11,11,3,"#a3172a"); disc(5,10,2,"#d8283c"); disc(11,11,2,"#d8283c"); P(4,8,1,1,"#ff9aa6"); P(10,9,1,1,"#ff9aa6"); }),
@@ -1153,6 +1225,10 @@ const SPR=(()=>{
     orange:mk((P,disc)=>{ disc(8,9,5,"#d9741c"); disc(8,9,4,"#f29a2e"); P(6,7,2,1,"#ffc77a"); P(8,3,1,2,"#5a3a1a"); P(9,3,3,2,"#4f9a34"); P(10,2,2,1,"#4f9a34"); }),
     grape:mk((P,disc)=>{ const pts=[[5,6],[8,6],[11,6],[6.5,9],[9.5,9],[8,12],[5,9.5],[11,9.5]]; pts.forEach(([x,y])=>disc(x,y,2,"#5b2d8a")); pts.forEach(([x,y])=>P(Math.round(x)-1,Math.round(y)-1,1,1,"#a37be0")); P(8,2,1,2,"#5a3a1a"); P(9,2,3,1,"#4f9a34"); }),
     bell:mk((P,disc)=>{ P(7,2,2,1,"#b9862c"); for(let y=3;y<=11;y++){ const w=Math.min(6,2+Math.floor((y-3)*0.7)); P(8-w,y,w*2,1,"#f2c14e"); } P(2,12,12,1,"#b9862c"); disc(8,13,1,"#7a5418"); P(5,5,1,4,"#fff0b0"); }),
+    key:mk((P,disc)=>{ disc(5,8,4,"#b9862c"); disc(5,8,2,"#1c1b19"); P(8,7,7,3,"#f2c14e"); P(12,10,1,3,"#f2c14e"); P(14,10,1,2,"#f2c14e"); P(8,7,7,1,"#fff0b0"); disc(5,8,1,"#3a2a10"); P(3,5,2,1,"#fff0b0"); }),
+    x2:mk((P,disc)=>{ disc(8,8,7,"#3c3489"); disc(8,8,6,"#7f77dd"); txt(P,"X2",4,6,"#ffffff"); }),
+    x3:mk((P,disc)=>{ disc(8,8,7,"#0f6e56"); disc(8,8,6,"#1d9e75"); txt(P,"X3",4,6,"#ffffff"); }),
+    x5:mk((P,disc)=>{ disc(8,8,7,"#993c1d"); disc(8,8,6,"#e24b4a"); txt(P,"X5",4,6,"#fff3a0"); }),
     bar:mk((P)=>{ P(1,4,14,8,"#1c1b19"); P(1,4,14,1,"#f2c14e"); P(1,11,14,1,"#f2c14e"); txt(P,"BAR",2,6,"#ffffff"); }),
     seven:mk((P)=>{ P(3,2,10,3,"#a3172a"); P(4,3,8,1,"#d8283c"); for(let y=5;y<=13;y++){ const x=10-Math.floor((y-5)*0.55); P(x,y,3,1,"#a3172a"); P(x+1,y,1,1,"#d8283c"); } P(2,2,1,3,"#f2c14e"); P(13,2,1,3,"#f2c14e"); }),
     wild:mk((P)=>{ P(0,3,16,10,"#5b2d8a"); P(0,3,16,1,"#ff8b7b"); P(0,4,16,1,"#f2c14e"); P(0,11,16,1,"#c7e86a"); P(0,12,16,1,"#7cc4ff"); txt(P,"WILD",1,6,"#ffffff"); }),
@@ -1165,12 +1241,12 @@ const SPR=(()=>{
     chest:mk((P)=>{ P(1,6,14,8,"#7a4a22"); P(1,3,14,4,"#8f5a2a"); P(1,6,14,1,"#f2c14e"); P(1,13,14,1,"#4a2a12"); P(3,3,1,11,"#f2c14e"); P(12,3,1,11,"#f2c14e"); P(7,5,2,4,"#f2c14e"); P(7,7,2,1,"#1c1b19"); P(2,4,8,1,"#a8703a"); })
   };
 })();
-const SYMNAME={cherry:"Вишни",lemon:"Лимоны",orange:"Апельсины",grape:"Виноград",bell:"Колокола",bar:"BAR",seven:"Семёрки",wild:"WILD",star:"Звезда",coin:"Монеты",clover:"Клевер",gem:"Камни",crown:"Короны",chest:"Сундук"};
+const SYMNAME={key:"Ключ",x2:"Икс 2",x3:"Икс 3",x5:"Икс 5",cherry:"Вишни",lemon:"Лимоны",orange:"Апельсины",grape:"Виноград",bell:"Колокола",bar:"BAR",seven:"Семёрки",wild:"WILD",star:"Звезда",coin:"Монеты",clover:"Клевер",gem:"Камни",crown:"Короны",chest:"Сундук"};
 const symImg=(s,cls)=>el("img",{src:SPR[s]||SPR.cherry,alt:SYMNAME[s]||s,class:cls||"sym",draggable:"false"});
 
 /* ---------- казино: общее ---------- */
-let casinoTab="slots", casinoLock=false; const casinoNodes={};
-const CAS_TABS=[["slots","🍒 Кащей Слотс"],["lucky","⭐ Лаки 7"],["chest","🧰 Сундук Кащея"],["roulette","🎡 Рулетка"],["hilo","🃏 Выше/ниже"]];
+let casinoTab="xmult", casinoLock=false; const casinoNodes={};
+const CAS_TABS=[["xmult","💥 Бурмалда"],["slots","🍒 Кащей Слотс"],["lucky","⭐ Лаки 7"],["chest","🧰 Сундук Кащея"],["roulette","🎡 Рулетка"],["hilo","🃏 Выше/ниже"]];
 function betRow(id,onGo,label){
   const inp=el("input",{type:"number",id,min:"1",step:"1",value:String(Math.max(1,Math.min(10,profile?profile.coins:10))),"aria-label":"Ставка",inputmode:"numeric"});
   const clamp=v=>Math.max(1,Math.min(profile?profile.coins:1,Math.floor(v)||1));
@@ -1287,6 +1363,60 @@ function bigNode(key){
     el("div",{class:"mwin"},R.wrap,banner),chestBox,B.row,out,el("details",{class:"pdet"},el("summary",{},"Таблица выплат"),pt));
 }
 const wait=ms=>new Promise(r=>setTimeout(r,Prefs.get("anim")==="fast"?ms*.6:ms));
+/* ---------- «Бурмалда»: бесплатные вращения с копящимися иксами ---------- */
+function xmultNode(){
+  const cfg=(casinoCfg.machines||{}).xmult||{pay:{},spins:8,buy:100};
+  const pool=["coin","coin","coin","clover","clover","gem","gem","crown","bar","seven","wild","key"], fpool=["coin","coin","clover","clover","gem","crown","bar","seven","wild","x2","x3","x5"];
+  const R=makeReels(5); R.show([0,1,2,3,4].map(()=>[0,1,2].map(()=>pool[Math.random()*pool.length|0])));
+  const out=el("div",{class:"cout",text:`3 ключа — ${cfg.spins} бесплатных вращений. В них падают иксы и копятся до конца бонуса`});
+  const banner=el("div",{class:"mbanner",hidden:true});
+  const meter=el("div",{class:"xmeter",hidden:true},el("span",{class:"xml",text:"Множитель"}),el("b",{class:"xmv",text:"×1"}));
+  const sub=el("span",{class:"muted small",text:`5 линий · ${cfg.spins} фриспинов · иксы копятся`});
+  const order=["seven","bar","crown","gem","clover","coin"];
+  const pt=el("div",{class:"paytab five"},el("div",{class:"phead"},el("span",{},""),el("span",{text:"×3"}),el("span",{text:"×4"}),el("span",{text:"×5"})),
+    ...order.map(s=>el("div",{class:"prow"},symImg(s,"psym"),...((cfg.pay&&cfg.pay[s])||[0,0,0]).map(v=>el("b",{text:String(v)})))),
+    el("p",{class:"muted small"},"Выплаты — во сколько раз больше ставки на одну линию (линий 5). WILD заменяет любой символ, кроме ключа."),
+    el("p",{class:"muted small"},"3+ ",symImg("key","psym inl")," в любом месте — "+cfg.spins+" бесплатных вращений. В них падают ",symImg("x2","psym inl"),symImg("x3","psym inl"),symImg("x5","psym inl")," — каждый прибавляется к множителю, и он держится до конца бонуса. Выигрыш каждого вращения умножается на текущий множитель."),
+    el("p",{class:"muted small"},"Купить бонус сразу — за ×"+cfg.buy+" от ставки."));
+  const linesCells=lines=>lines.flatMap(l=>LINES5[l.li].slice(0,l.count).map((row,r)=>[r,row]));
+  const keyCells=grid=>grid.flatMap((col,r)=>col.map((s,row)=>s==="key"?[r,row]:null).filter(Boolean));
+  const cellEl=(r,row)=>{ const c=R.wrap.children[r]; return c&&c.querySelector(".strip").children[row]; };
+  let buyArm=null;
+  const buyBtn=el("button",{class:"btn buyx",type:"button"},"Купить бонус");
+  const updBuy=()=>{ const b=Math.max(1,Math.floor(+B.inp.value||1)); buyBtn.textContent=buyArm?`Точно? $${b*cfg.buy}`:`Купить бонус · $${b*cfg.buy}`; };
+  async function bonus(r,bet,startAcc){
+    banner.hidden=false; banner.textContent=`🔑 ${r.free.length} БЕСПЛАТНЫХ ВРАЩЕНИЙ`; banner.className="mbanner pop"; Sound.fx("bigwin"); await wait(1500);
+    meter.hidden=false; sub.hidden=true; meter.querySelector(".xmv").textContent="×1"; let acc=startAcc, shown=0;
+    for(let i=0;i<r.free.length;i++){ const f=r.free[i]; R.mark([]); banner.textContent=`🔑 Вращение ${i+1} из ${r.free.length} · бонус $${acc-startAcc}`;
+      await R.spin(f.grid,fpool,true);
+      if(f.xs.length){ for(const x of f.xs){ const c=cellEl(x.r,x.row); if(c){ c.classList.add("xhit"); } shown+=x.v; const mv=meter.querySelector(".xmv"); mv.textContent="×"+shown; mv.classList.remove("bump"); void mv.offsetWidth; mv.classList.add("bump"); Sound.fx("coin"); haptic(); await wait(420); } }
+      R.mark(linesCells(f.lines));
+      if(f.win>0){ acc+=f.win; Sound.fx(f.mult>1?"bigwin":"win"); Fx.coinPop(f.win); out.textContent=f.mult>1?`$${f.base} × ${f.mult} = +$${f.win}`:`+$${f.win}`; out.className="cout win"; }
+      await wait(f.win>0?900:350); }
+    banner.textContent=`🔑 Бонус: +$${r.freeWin} · множитель ×${Math.max(1,r.total)}`;
+  }
+  async function run(bet,buying){
+    const cost=buying?bet*cfg.buy:bet; if(!profile||cost>profile.coins) return toast("Не хватает денег");
+    casinoLock=true; B.set(true); buyBtn.disabled=true; R.mark([]); banner.hidden=true; meter.hidden=true; sub.hidden=false; buyArm=null; updBuy(); out.textContent=buying?"Покупаем бонус…":"Крутим…"; out.className="cout"; spend(cost);
+    try{
+      const r=await casinoSend(buying?{game:"xmult",action:"buy",bet}:{game:"xmult",bet});
+      if(!buying){ await R.spin(r.grid,pool); R.mark(linesCells(r.lines).concat(r.scat>=3?keyCells(r.grid):[]));
+        out.textContent=r.baseWin>0?`Линии: +$${r.baseWin}`:(r.bonus?"Бонус!":`Мимо: −$${bet}`); out.className="cout "+(r.baseWin>0||r.bonus?"win":"lose"); if(r.bonus) await wait(800); }
+      if(r.free) await bonus(r,bet,r.baseWin||0);
+      if(r.free){ out.textContent=`Итого: +$${r.win}`+(buying?` (купил за $${cost})`:""); out.className="cout "+(r.win>=cost?"win":"lose"); }
+      settle(r.coins,r.win,cost);
+    }catch(e){ toast(e.message); }
+    casinoLock=false; B.set(false); buyBtn.disabled=false; buyArm=null; updBuy();
+  }
+  const B=betRow("bet-xmult",bet=>run(bet,false));
+  B.inp.addEventListener("input",updBuy);
+  B.row.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>setTimeout(updBuy,0)));
+  buyBtn.addEventListener("click",()=>{ if(casinoLock) return; const bet=Math.max(1,Math.floor(+B.inp.value||1));
+    if(!buyArm){ buyArm=setTimeout(()=>{ buyArm=null; updBuy(); },3000); Sound.fx("pick"); return updBuy(); } clearTimeout(buyArm); buyArm=null; run(bet,true); });
+  updBuy();
+  return el("div",{class:"machine five xmult"},el("div",{class:"mtitle"},el("b",{text:"БУРМАЛДА"}),sub,meter),
+    el("div",{class:"mwin"},R.wrap,banner),B.row,el("div",{class:"buyrow"},buyBtn),out,el("details",{class:"pdet"},el("summary",{},"Таблица выплат"),pt));
+}
 function pickChest(box){
   return new Promise(resolve=>{
     box.hidden=false; box.replaceChildren();
@@ -1391,7 +1521,7 @@ function renderCasino(){
   app.append(el("div",{class:"panel wallet"},el("div",{class:"bal"},el("span",{class:"muted small",text:"Баланс"}),el("b",{text:`💰 $${profile.coins}`})),
     el("p",{class:"muted small",style:"flex-basis:100%;margin:0"},"Только игровая валюта. Все броски делает сервер, шансы честные и чуть в пользу казино.")));
   app.append(el("div",{class:"tabs",role:"tablist"},CAS_TABS.map(([k,n])=>el("button",{type:"button",role:"tab","aria-selected":String(casinoTab===k),class:casinoTab===k?"on":"",onclick:()=>{ if(casinoLock) return toast("Дождись конца раунда"); casinoTab=k; Sound.fx("pick"); render(); }},n))));
-  if(!casinoNodes[casinoTab]) casinoNodes[casinoTab]=casinoTab==="slots"?slotsNode():casinoTab==="roulette"?rouletteNode():casinoTab==="hilo"?hiloNode():bigNode(casinoTab);
+  if(!casinoNodes[casinoTab]) casinoNodes[casinoTab]=casinoTab==="xmult"?xmultNode():casinoTab==="slots"?slotsNode():casinoTab==="roulette"?rouletteNode():casinoTab==="hilo"?hiloNode():bigNode(casinoTab);
   app.append(el("div",{class:"panel casino"},casinoNodes[casinoTab]));
 }
 
@@ -1961,8 +2091,11 @@ function renderTable(){
   for(let k=1;k<=n;k++){
     const p=st.players[((seated?myIdx:-1)+k+n)%n]; if(p.id===me.id) continue;
     const done=st.finished.includes(p.id), ups=st.up[p.id]||[], downs=st.down[p.id]||0;
-    opps.append(el("div",{class:"opp"+(p.id===turnId?" turn":""),"data-pid":p.id,style:`--pc:${p.color||"#f2c14e"}`},
+    const total=cnt(st.hands[p.id])+ups.length+downs, isLast=st.status==="play"&&!done&&total===1;
+    opps.append(el("div",{class:"opp"+(p.id===turnId?" turn":"")+(isLast?" lastcard":""),"data-pid":p.id,style:`--pc:${p.color||"#f2c14e"}`},
       nameTag(p),
+      st.status==="play"&&p.id===turnId?el("div",{class:"thinking","aria-label":"думает"},el("i"),el("i"),el("i")):null,
+      isLast?el("div",{class:"lastbadge",text:"Последняя!"}):null,
       done?el("span",{class:"chip"},`Вышел ${st.finished.indexOf(p.id)+1}-м`):st.status==="swap"?el("span",{class:"chip"},st.ready[p.id]?"Готов":"Меняет карты"):null,
       el("div",{class:"otab mini"},Array.from({length:Math.max(downs,ups.length)},(_,i)=>el("div",{class:"slot"},i<downs?backEl():null,ups[i]!==undefined?cardEl(ups[i],{extra:"upc"}):null))),
       el("div",{class:"ohand",title:"Карт в руке"},el("div",{class:"ofan mini"},Array.from({length:Math.min(5,cnt(st.hands[p.id]))},()=>backEl())),el("b",{text:String(cnt(st.hands[p.id]))}))));
@@ -1983,7 +2116,7 @@ function renderTable(){
     post.push(()=>{ const c=document.querySelector(".center"); if(c){ c.classList.remove("jolt"); void c.offsetWidth; c.classList.add("jolt"); } });
     if(top==="2"||top==="8"){ pile.classList.add("flash",top==="2"?"f2":"f8"); pile.append(el("div",{class:"spop "+(top==="2"?"s2":"s8"),text:top==="2"?"Старшая!":"Прозрачная!"})); }
   }
-  if(F.burned){ pile.classList.add("burning"); pile.append(el("div",{class:"burnfx"}),el("div",{class:"burntxt",text:"🔥 Сгорело!"})); if((st.burnStreak||0)>=2) setTimeout(()=>Fx.bigText(st.burnStreak>=3?"Тройное сжигание!":"Двойное сжигание!","hot"),150); }
+  if(F.burned){ pile.classList.add("burning"); pile.append(el("div",{class:"burnfx"}),el("div",{class:"burntxt",text:"🔥 Сгорело!"})); if((st.burnStreak||0)>=2) setTimeout(()=>Fx.combo(st.burnStreak,document.querySelector(".pile")),150); }
   if(F.same&&anim.pile>=8&&st.pile.length===0&&!F.burned&&st.lastTake){ setTimeout(()=>{ Fx.shake(); Fx.bigText("Ой! +"+st.lastTake.n); },60); }
   const eff=effectiveTop(st.pile);
   let statusText, need="";
@@ -2023,6 +2156,7 @@ function handGestures(box,step,st){
   function ghostAt(x,y){ if(!g.ghost){ const src=g.btn.cloneNode(true); src.classList.remove("drawin","dealin","tilt"); src.removeAttribute("style"); src.querySelectorAll(".gbadge").forEach(x=>x.remove()); const r=g.btn.getBoundingClientRect();
       g.ghost=el("div",{class:"dragghost"},src); g.ghost.style.width=g.btn.offsetWidth+"px"; document.body.append(g.ghost); g.btn.classList.add("dragsrc"); }
     const c=sel.length>1?`×${sel.length}`:""; let b=g.ghost.querySelector(".gcount"); if(c){ if(!b){ b=el("span",{class:"gcount"}); g.ghost.append(b); } b.textContent=c; } else if(b) b.remove();
+    Fx.trail(x,y);
     g.ghost.style.transform=`translate(${x-g.btn.offsetWidth/2}px,${y-g.btn.offsetWidth*.7}px) rotate(${Math.max(-12,Math.min(12,(x-g.x)/12))}deg)`;
     const p=document.querySelector(".pile"); if(p) p.classList.toggle("dropok",y<box.getBoundingClientRect().top-20); }
   function end(cancel){
@@ -2170,6 +2304,10 @@ document.getElementById("setBtn").addEventListener("click",()=>{ if(casinoLock) 
   else document.addEventListener("fullscreenchange",sync);
   sync();
 })();
+/* ---------- пылинки над столом ---------- */
+(()=>{ const d=el("div",{id:"dust","aria-hidden":"true"}); for(let i=0;i<22;i++){ const p=el("i"); p.style.left=Math.random()*100+"%"; p.style.top=Math.random()*100+"%";
+    p.style.setProperty("--dx",(Math.random()*60-30).toFixed(0)+"px"); p.style.setProperty("--dy",(-30-Math.random()*50).toFixed(0)+"px"); p.style.animationDuration=(6+Math.random()*6).toFixed(1)+"s"; p.style.animationDelay=(-Math.random()*10).toFixed(1)+"s"; d.append(p); }
+  document.body.append(d); })();
 /* ---------- баланс и кнопки едут вместе с экраном ---------- */
 (()=>{
   const nav=document.querySelector(".hdr .nav"), hdr=document.querySelector(".hdr");
