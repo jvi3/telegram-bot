@@ -107,6 +107,9 @@ function afterPlay(st, pid, r) {
 }
 
 function deal(st) {
+  // реванш: остаются боты и те, кто нажал «Играть ещё»
+  if (st.rematch) { st.players = st.players.filter(p => p.bot || st.rematch[p.id]); if (!st.players.some(p => p.id === st.host)) { const h = st.players.find(p => !p.bot); if (h) st.host = h.id; } }
+  st.rematch = null; st.countdownAt = null;
   const d = newDeck();
   st.hands = {}; st.up = {}; st.down = {}; st.ready = {};
   for (const p of st.players) {
@@ -241,10 +244,18 @@ const A = {
     log(st, `${nameOf(st, pid)} забрал стопку (${n} ${plural(n)})`);
     advance(st);
   },
-  again(st, pid) {
-    if (st.host !== pid) return "Новую партию начинает создатель комнаты";
-    if (st.status !== "over") return false;
-    deal(st);
+  again(st, pid) { return A.vote(st, pid, true); },
+  // «Играть ещё» после партии
+  vote(st, pid, yes) {
+    if (st.status !== "over" || !st.players.some(p => p.id === pid)) return false;
+    st.rematch = st.rematch || {};
+    st.rematch[pid] = yes !== false;
+  },
+  // открытый стол: виден всем в меню
+  setOpen(st, pid, open) {
+    if (st.host !== pid) return "Это решает создатель стола";
+    if (st.practice) return false;
+    st.open = !!open;
   },
   // Выбор трёх карт, которые лягут сверху на закрытые (из шести: рука + открытые)
   arrange(st, pid, upCards) {

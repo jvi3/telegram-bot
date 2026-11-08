@@ -225,7 +225,7 @@ function newRoom(host, practice) {
     code, status: "lobby", host: host.id, practice: !!practice,
     players: [{ id: host.id, name: host.name }],
     hands: {}, up: {}, down: {}, ready: {}, deck: [], pile: [], burned: 0,
-    finished: [], loser: null, turn: 0, log: [], updated: Date.now(),
+    finished: [], loser: null, turn: 0, log: [], updated: Date.now(), waitSince: Date.now(), open: false,
   };
   const room = { st, subs: new Set(), timer: null };
   rooms.set(code, room);
@@ -284,6 +284,8 @@ function rewardGame(st) {
     return;
   }
   if (humans.length < 2) return;
+  const w = humans.find(p => st.finished[0] === p.id), fool = st.players.find(p => p.id === st.loser);
+  if (w) pushFeed({ kind: "game", name: feedName(w.id.slice(2)), avatar: avatarUrl(w.id.slice(2)), vs: fool ? fool.name : "", win: SHOP.ECONOMY.win });
   for (const p of humans) {
     const place = st.finished.indexOf(p.id);
     if (p.id === st.loser) giveCoins(p.id.slice(2), E.fool, "Ты дурак");
@@ -331,10 +333,62 @@ function viewFor(st, uid) {
   // Неподошедшую закрытую карту видит только тот, кто её открыл: она ушла ему в руку
   const lb = st.lastBlind && !st.lastBlind.ok && st.lastBlind.pid !== uid ? { ...st.lastBlind, card: null } : st.lastBlind;
   return { ...st, lastBlind: lb, players: decorate(st), hands, down, deck: st.deck.length, pileBy: st.pileBy || [],
-    turnLeft: st.deadline ? Math.max(0, st.deadline - Date.now()) : 0 };
+    turnLeft: st.deadline ? Math.max(0, st.deadline - Date.now()) : 0,
+    countLeft: st.countdownAt ? Math.max(0, st.countdownAt - Date.now()) : 0,
+    waitedMs: st.waitSince ? Date.now() - st.waitSince : 0,
+    online: [...new Set([...(rooms.get(st.code) || { subs: [] }).subs].map(w => w.user && w.user.id).filter(Boolean))] };
 }
 
 function send(ws, msg) { if (ws.readyState === 1) ws.send(JSON.stringify(msg)); }
+/* ---------- лайв-лента: большие выигрыши и победы ---------- */
+function pushFeed(ev) {
+  data.feed = [{ ...ev, ts: Date.now() }, ...(data.feed || [])].slice(0, 30);
+  save();
+  for (const w of wss.clients) if (w.user) send(w, { t: "feed", items: data.feed.slice(0, 12) });
+}
+function feedName(tgId) { const u = data.users[tgId]; return displayName(u); }
+
+/* ---------- реванш и автостарт ---------- */
+const subIds = room => new Set([...room.subs].map(w => w.user && w.user.id).filter(Boolean));
+function startDeal(room) {
+  const st = room.st;
+  const keep = st.rematch ? st.players.filter(p => p.bot || st.rematch[p.id]) : st.players;
+  if (keep.length < 2) { // не набралось — назад в ожидание
+    st.players = keep; st.rematch = null; st.countdownAt = null; st.status = "lobby"; st.waitSince = Date.now();
+    if (!st.players.some(p => p.id === st.host)) { const h = st.players.find(p => !p.bot); if (h) st.host = h.id; }
+  } else R.deal(st);
+  broadcast(room); scheduleBots(room); sendOpenTables();
+}
+function cancelCountdown(room) { if (room.cdT) { clearTimeout(room.cdT); room.cdT = null; } room.st.countdownAt = null; }
+function checkCountdown(room) {
+  const st = room.st;
+  let want = 0;
+  if (st.status === "over") {
+    const online = subIds(room);
+    const voters = st.players.filter(p => !p.bot && online.has(p.id));
+    st.rematch = st.rematch || {};
+    for (const p of st.players) if (p.bot) st.rematch[p.id] = true;
+    const yes = st.players.filter(p => p.bot || st.rematch[p.id]);
+    if (voters.length && voters.every(p => st.rematch[p.id]) && yes.some(p => !p.bot)) want = st.practice ? 1200 : 10000;
+  } else if (st.status === "lobby" && st.open && st.players.length >= 2) want = 30000;
+  if (!want) { if (room.cdT) cancelCountdown(room); return; }
+  if (room.cdT) return;
+  st.countdownAt = Date.now() + want;
+  room.cdT = setTimeout(() => { room.cdT = null; st.countdownAt = null; if (rooms.has(st.code)) startDeal(room); }, want);
+}
+// список открытых столов для тех, кто в меню
+function openList() {
+  return [...rooms.values()].filter(r => r.st.open && r.st.status === "lobby" && !r.st.practice && r.st.players.length < 5)
+    .map(r => ({ code: r.st.code, n: r.st.players.length, names: r.st.players.map(p => p.name).slice(0, 5), avatars: decorate(r.st).map(p => p.avatar || ""), since: r.st.waitSince }))
+    .sort((a, b) => b.n - a.n || a.since - b.since).slice(0, 15);
+}
+let openT = null;
+function sendOpenTables(ws) {
+  if (ws) return send(ws, { t: "openTables", list: openList() });
+  if (openT) return; openT = setTimeout(() => { openT = null; const list = openList(); for (const w of wss.clients) if (w.user && !w.room) send(w, { t: "openTables", list }); }, 300);
+}
+setInterval(() => sendOpenTables(), 15000);
+
 function broadcast(room) {
   room.st.updated = Date.now();
   if (room.lastStatus !== room.st.status) {
@@ -357,10 +411,12 @@ function broadcast(room) {
       const board = boardRows();
       for (const ws of wss.clients) if (ws.user) send(ws, { t: "board", rows: board });
     }
-    if (room.st.status === "over") rewardGame(room.st);
+    if (room.st.status === "over") { rewardGame(room.st); room.st.rematch = {}; }
     room.lastStatus = room.st.status;
   }
   armTimer(room);
+  checkCountdown(room);
+  if (room.st.open || room.lastOpen) { room.lastOpen = room.st.open; sendOpenTables(); }
   for (const ws of room.subs) send(ws, { t: "state", room: viewFor(room.st, ws.user && ws.user.id) });
 }
 
@@ -384,7 +440,7 @@ function subscribe(ws, room) {
   room.subs.add(ws);
 }
 
-const ACTIONS = new Set(["start", "leave", "swap", "arrange", "ready", "play", "blind", "take", "again", "addBot", "kick", "setTimer"]);
+const ACTIONS = new Set(["start", "leave", "swap", "arrange", "ready", "play", "blind", "take", "again", "vote", "setOpen", "addBot", "kick", "setTimer"]);
 
 function handle(ws, msg) {
   if (!msg || typeof msg !== "object") return;
@@ -402,6 +458,8 @@ function handle(ws, msg) {
     send(ws, { t: "board", rows: boardRows() });
     send(ws, { t: "catalog", items: SHOP.ITEMS, eco: SHOP.ECONOMY, casino: { roul: casino.ROUL, classic: casino.PAY3, machines: casino.MACHINES } });
     if (tgId && data.users[tgId]) send(ws, { t: "profile", ...fullProfile(tgId) });
+    sendOpenTables(ws);
+    send(ws, { t: "feed", items: (data.feed || []).slice(0, 12) });
     return send(ws, { t: "me", me: { id: user.id, name: user.name }, bot: botUsername });
   }
   if (!ws.user) return;
@@ -477,6 +535,9 @@ function handle(ws, msg) {
     let r;
     try { r = casino.play(myTg, msg); } catch (e) { console.error(e); r = { err: "Что-то пошло не так" }; }
     if (r.err) return send(ws, { t: "error", msg: r.err });
+    { const bet = r.bet || r.stake || 0, win = r.win || 0, mult = bet ? win / bet : (r.mult || (r.prizes ? r.prizes[r.i] : 0));
+      const NM = { slots: "Кащей Слотс", lucky: "Лаки 7", chest: "Сундук Кащея", roulette: "Рулетке", hilo: "Выше/ниже" };
+      if (win > 0 && (mult >= 10 || win >= 100)) setTimeout(() => pushFeed({ kind: "casino", name: feedName(myTg), avatar: avatarUrl(myTg), game: NM[r.game] || r.game, win, mult: Math.round(mult * 10) / 10 }), 3500); }
     if (profileCoins(myTg) !== null) for (const s of wsOf(myTg)) if (s !== ws) send(s, { t: "profile", ...fullProfile(myTg) });
     return send(ws, { t: "casinoRes", ...r });
   }
@@ -505,7 +566,9 @@ function handle(ws, msg) {
       room.subs.delete(ws);
       ws.room = null;
       if (room.st.practice) { clearTimeout(room.timer); rooms.delete(room.st.code); }
+      else { checkCountdown(room); broadcast(room); }
     }
+    sendOpenTables(ws);
     return;
   }
   if (msg.t === "close") {
@@ -513,6 +576,27 @@ function handle(ws, msg) {
     if (!room || room.st.host !== me.id) return;
     closeRoom(room.st.code);
     return;
+  }
+  if (msg.t === "leaveTable") {
+    const room = ws.room;
+    if (!room) return sendOpenTables(ws);
+    const st = room.st;
+    room.subs.delete(ws); ws.room = null;
+    if (st.status === "lobby" || st.status === "over") {
+      st.players = st.players.filter(p => p.id !== me.id);
+      if (st.rematch) delete st.rematch[me.id];
+      if (!st.players.some(p => !p.bot)) { closeRoom(st.code); sendOpenTables(); return sendOpenTables(ws); }
+      if (st.host === me.id) st.host = st.players.find(p => !p.bot).id;
+      if (st.status === "over" && st.players.length < 2) { st.status = "lobby"; st.waitSince = Date.now(); st.rematch = null; }
+    }
+    broadcast(room); sendOpenTables(); sendOpenTables(ws);
+    return;
+  }
+  if (DEV && msg.t === "devPatch" && ws.room) { // только для локальной проверки: подставить карты
+    const st = ws.room.st, P = msg.patch || {};
+    for (const k of ["hands", "up", "down", "pile", "deck", "turn"]) if (P[k] !== undefined) st[k] = P[k];
+    if (P.turnMe) st.turn = st.players.findIndex(p => p.id === me.id);
+    broadcast(ws.room); return scheduleBots(ws.room);
   }
   if (msg.t === "act") {
     const room = ws.room;
@@ -534,6 +618,7 @@ function closeRoom(code) {
   for (const s of room.subs) { send(s, { t: "gone", code }); s.room = null; }
   clearTimeout(room.timer);
   clearTimeout(room.turnT);
+  clearTimeout(room.cdT);
   rooms.delete(code);
   return true;
 }
@@ -555,7 +640,7 @@ setInterval(() => {
   const now = Date.now();
   for (const [code, room] of rooms) {
     const idle = now - room.st.updated;
-    if (idle > 6 * 3600e3 || (room.subs.size === 0 && idle > 30 * 60e3)) { clearTimeout(room.timer); clearTimeout(room.turnT); rooms.delete(code); }
+    if (idle > 6 * 3600e3 || (room.subs.size === 0 && idle > 30 * 60e3)) { clearTimeout(room.timer); clearTimeout(room.turnT); clearTimeout(room.cdT); rooms.delete(code); }
   }
 }, 10 * 60e3);
 

@@ -490,6 +490,82 @@ body.fs.tablemode .wrap.app{min-height:calc(100dvh - 54px - var(--tg-safe-area-i
 @keyframes swfly{0%{transform:translateY(60vh) rotate(18deg) scale(.6);opacity:0}100%{opacity:1}}
 .btn.big.swgo{margin:4px auto 0}
 :root[data-anim="off"] .swdowns .card.myst{animation:none}
+
+/* ---------- одинаковые слоты ---------- */
+.machine{max-width:460px;width:100%;margin-inline:auto}
+.panel.casino{display:flex;justify-content:center}
+/* один размер клетки для всех автоматов: по ширине телефона, но не выше ~четверти экрана */
+.reels{--cs:min(72px,8.6vh,calc((100vw - 104px) / 5))}
+.reels.r3,.reels.r5{display:flex;justify-content:center;gap:6px;max-width:none;margin:0 auto}
+.reels .reelc{width:var(--cs);aspect-ratio:1/3;flex:none}
+/* ---------- напряжённый момент ---------- */
+body.tense #bgcanvas{filter:grayscale(1) brightness(.35) contrast(1.1);transition:filter 1.6s}
+#bgcanvas{transition:filter .8s}
+body.flash #bgcanvas{filter:brightness(1.6) saturate(1.4);transition:filter .25s}
+body.tense::after{content:"";position:fixed;inset:0;background:radial-gradient(circle at 50% 50%,rgba(0,0,0,0) 25%,rgba(0,0,0,.85) 85%);pointer-events:none;z-index:2;animation:tbreath 2.4s ease-in-out infinite}
+@keyframes tbreath{50%{opacity:.8}}
+body.tense .tbar-top,body.tense .hdr{opacity:.25;transition:opacity 1s}
+.tensestage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,22px);text-align:center;position:relative;z-index:3}
+.tpile{font-size:13px;color:#cfd8d4;text-shadow:0 1px 3px #000}
+.tttl{font-family:var(--display);font-weight:700;font-size:clamp(20px,calc(var(--cwb)*.34),34px);color:#e9e3d0;letter-spacing:.04em;text-shadow:0 2px 10px #000;animation:fadein 1s ease-out .4s both;margin-bottom:clamp(18px,4vh,40px)}
+.tsub{font-size:12px;color:#b9b4a6;text-shadow:0 1px 3px #000;max-width:26em;animation:fadein 1s ease-out .8s both}
+.trow{display:flex;gap:clamp(12px,4vw,24px);perspective:700px;--cw:calc(var(--cwb)*1.3)}
+.tcard{width:var(--cw);aspect-ratio:5/7;position:relative;transform-style:preserve-3d;transition:transform 1.4s cubic-bezier(.3,.6,.25,1),filter .6s,opacity .5s;cursor:pointer;animation:thover 3s ease-in-out infinite}
+.tcard:nth-child(2){animation-delay:-1s}.tcard:nth-child(3){animation-delay:-2s}
+@keyframes thover{50%{translate:0 -6px}}
+.tcard .tb,.tcard .tf{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.tcard .tb>.card,.tcard .tf>.card{width:100%;height:100%}
+.tcard .tf{transform:rotateY(180deg)}
+.tcard.picked{transform:translateY(-10px) scale(1.18);z-index:3;animation:none}
+.tcard.picked.open{transform:translateY(-10px) scale(1.18) rotateY(180deg)}
+.tcard.dimmed{filter:brightness(.35);animation:none}
+.tcard.red .tf>.card{background:#1a1a1c;color:#ff4a3a;text-shadow:0 0 8px #ff2a1a,0 0 18px rgba(255,40,20,.8);box-shadow:0 0 0 2px rgba(255,60,40,.6),0 0 30px rgba(255,40,20,.55)}
+.tcard.blk .tf>.card{background:#1a1a1c;color:#e6f4ff;text-shadow:0 0 8px #9fd8ff,0 0 18px rgba(160,220,255,.8);box-shadow:0 0 0 2px rgba(160,220,255,.6),0 0 30px rgba(160,220,255,.5)}
+.tcard.daylight .tf>.card{background:var(--c-bg);text-shadow:none;box-shadow:0 0 0 3px #7ee0b5,0 0 26px rgba(126,224,181,.8);transition:all .4s}
+.tcard.daylight.red .tf>.card{color:var(--c-red)}.tcard.daylight.blk .tf>.card{color:var(--c-ink)}
+.tcard.away{transform:translateY(-55vh) scale(.6) rotateY(180deg);opacity:0;transition:transform .5s cubic-bezier(.5,0,.8,.4),opacity .5s}
+.tres{font-family:var(--display);font-weight:700;font-size:clamp(17px,calc(var(--cwb)*.28),26px);min-height:30px;opacity:0;transform:scale(.6);transition:opacity .3s,transform .45s cubic-bezier(.2,.9,.3,1.5)}
+.tres.on{opacity:1;transform:none}.tres.good{color:#7ee0b5;text-shadow:0 0 12px rgba(126,224,181,.9)}.tres.bad{color:#ff8b7b;text-shadow:0 0 12px rgba(255,100,80,.8);font-size:clamp(14px,calc(var(--cwb)*.22),20px)}
+.spark{position:fixed;width:5px;height:5px;z-index:46;pointer-events:none}
+.sring{position:fixed;width:20px;height:20px;border-radius:50%;border:3px solid;transform:translate(-50%,-50%) scale(.2);z-index:46;pointer-events:none;animation:sring .9s ease-out forwards}
+@keyframes sring{to{transform:translate(-50%,-50%) scale(9);opacity:0;border-width:1px}}
+/* ---------- шторки: выход и конец партии ---------- */
+body:has(.sheet) .toast{bottom:calc(var(--sheeth,230px) + 24px);z-index:31}
+.sheet{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(440px,calc(100% - 24px));background:rgba(10,20,18,.94);border:1px solid rgba(242,193,78,.5);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px;text-align:center;z-index:30;box-shadow:0 12px 40px rgba(0,0,0,.6);animation:sheetup .5s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes sheetup{from{transform:translate(-50%,120%)}to{transform:translate(-50%,0)}}
+.sheet b{font-family:var(--display);font-size:16px;color:#ffe6a0}
+.sheet .row{gap:8px}.sheet .row .btn{flex:1}
+.votes{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.vote{display:inline-flex;align-items:center;gap:5px}
+.tag{font-size:10px;padding:2px 7px;border-radius:999px}
+.tag.ok{background:#2e9e6e;color:#fff}.tag.wait{background:rgba(255,255,255,.18);color:#e9efe9}.tag.gone{background:#5a2222;color:#ffb3a8}
+/* ---------- ожидание игроков ---------- */
+.waitstage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:10px 0;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.wttl{font-family:var(--display);font-weight:700;font-size:clamp(19px,5vw,28px);color:#ffe6a0}
+.dots::after{content:"";animation:dots 1.4s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+.wtimer{font-family:"Press Start 2P",var(--display);font-size:clamp(20px,6vw,30px);color:#e9efe9}
+.wseats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:min(460px,100%)}
+.wseat{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:0;color:var(--text);padding:0}
+.wseat .wn{font-size:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wseat.empty .wplus{width:46px;height:46px;border-radius:50%;border:2px dashed rgba(255,255,255,.45);display:grid;place-items:center;font-size:20px;color:rgba(255,255,255,.6);animation:wpulse 1.6s ease-in-out infinite}
+@keyframes wpulse{50%{border-color:rgba(242,193,78,.95);color:#f2c14e}}
+.wkick{position:absolute;top:-4px;right:6px;width:20px;height:20px;border-radius:50%;border:0;background:#5a2222;color:#fff;font-size:12px;line-height:1;padding:0}
+.wcount{font-weight:600;color:#7ee0b5}
+.wopts{display:flex;flex-direction:column;gap:8px;align-items:center;background:rgba(0,0,0,.3);padding:10px 14px;border-radius:14px;max-width:460px}
+.wbtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+/* ---------- открытые столы и лента ---------- */
+.otables{display:flex;flex-direction:column;gap:6px}
+.otrow{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:rgba(0,0,0,.25)}
+.otav{display:flex;gap:2px;flex:1;min-width:0}
+.feed{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.45);border:1px solid rgba(242,193,78,.35);border-radius:999px;padding:6px 10px;overflow:hidden}
+.flabel{font-family:"Press Start 2P",var(--display);font-size:9px;background:#e8664e;color:#fff;padding:4px 6px;border-radius:6px;flex:none;animation:livepulse 1.6s ease-in-out infinite}
+@keyframes livepulse{50%{opacity:.55}}
+.fwin{overflow:hidden;flex:1;min-width:0;mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.ftrack{display:inline-flex;gap:28px;white-space:nowrap;animation:marquee 30s linear infinite;font-size:13px}
+.fitem{display:inline-flex;align-items:center;gap:6px}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+:root[data-anim="off"] .ftrack{animation-duration:90s}
 </style>
 </head>
 <body>
@@ -554,7 +630,7 @@ const Sound=(()=>{
   let ctx=null, noiseBuf=null, sfxGain=null, musGain=null, musLp=null, p12=null, p25=null;
   const num=(k,d)=>{ const v=parseInt(ls.get(k),10); return Number.isFinite(v)?Math.min(100,Math.max(0,v)):d; };
   let sfxVol=num("durak.sfxvol",70), musVol=num("durak.musvol",40), musOn=ls.get("durak.music")==="1";
-  let track=ls.get("durak.track")==="up"?"up":"calm", timer=null, step=0, next=0;
+  let track=ls.get("durak.track")==="up"?"up":"calm", timer=null, step=0, next=0, tz=null;
   const TRACKS={
     calm:{name:"Таверна",bpm:84,chords:[[57,60,64],[53,57,60],[52,55,60],[55,59,62]],hat:false,
       mel:[76,0,74,72,0,69,72,0, 72,0,69,67,0,65,67,69, 67,0,72,0,74,72,0,67, 71,0,74,0,71,67,0,0,
@@ -609,6 +685,8 @@ const Sound=(()=>{
     mystery(){ const t=ctx.currentTime; [220,277,330].forEach((f,i)=>tone(t+i*.12,f,1.1,{type:"triangle",gain:.05})); tone(t+.36,415,1.2,{gain:.04}); noise(t,1.4,{type:"lowpass",freq:600,sweepTo:2400,q:.5,gain:.05}); },
     whoosh(){ noise(ctx.currentTime,.22,{freq:500,sweepTo:3500,q:.8,gain:.18}); },
     thud(){ const t=ctx.currentTime; noise(t,.09,{freq:900,q:1,gain:.3}); tone(t,120,.12,{type:"triangle",gain:.18,slideTo:65}); },
+    fits(){ const t=ctx.currentTime; tone(t,392,.15,{type:"square",gain:.06}); [523,659,784,1046].forEach((f,i)=>tone(t+.08+i*.09,f,.5,{type:"triangle",gain:.12})); noise(t,.5,{freq:3000,sweepTo:8000,gain:.08}); },
+    nofit(){ const t=ctx.currentTime; tone(t,196,1.2,{type:"sawtooth",gain:.08,slideTo:98}); tone(t,185,1.2,{type:"sawtooth",gain:.06,slideTo:92}); },
     sparkle(){ const t=ctx.currentTime; [1568,2093,2637].forEach((f,i)=>tone(t+i*.06,f,.25,{gain:.05})); },
     done(){ const t=ctx.currentTime; [523,659,784,1046].forEach((f,i)=>tone(t+i*.09,f,.3,{type:"triangle",gain:.07})); },
     tick(){ tone(ctx.currentTime,1760+Math.random()*200,.03,{type:"square",gain:.025}); },
@@ -653,7 +731,23 @@ const Sound=(()=>{
     setSfx(v){ sfxVol=v; ls.set("durak.sfxvol",String(v)); applyVol(); },
     setMus(v){ musVol=v; ls.set("durak.musvol",String(v)); applyVol(); },
     toggleMusic(){ musOn=!musOn; ls.set("durak.music",musOn?"1":"0"); if(musOn) startMusic(); else stopMusic(); return musOn; },
-    setTrack(t){ track=t; ls.set("durak.track",t); if(timer){ stopMusic(); startMusic(); } }
+    setTrack(t){ track=t; ls.set("durak.track",t); if(timer){ stopMusic(); startMusic(); } },
+    // тревожная мелодия: идёт через громкость музыки, обычная музыка на это время замолкает
+    tense(on){
+      if(!ensure()) return;
+      if(on){ if(tz) return; const wasMusic=!!timer; if(wasMusic) stopMusic();
+        const lp=ctx.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=180; lp.Q.value=6;
+        const g=ctx.createGain(); g.gain.value=0; g.gain.linearRampToValueAtTime(.24,ctx.currentTime+2); lp.connect(g).connect(musGain);
+        const o1=ctx.createOscillator(), o2=ctx.createOscillator(); o1.type=o2.type="sawtooth"; o1.frequency.value=55; o2.frequency.value=58.3; o1.connect(lp); o2.connect(lp); o1.start(); o2.start();
+        const lfo=ctx.createOscillator(); lfo.frequency.value=.15; const lg=ctx.createGain(); lg.gain.value=120; lfo.connect(lg).connect(lp.frequency); lfo.start();
+        const hi=ctx.createOscillator(); hi.frequency.value=1244; const hg=ctx.createGain(); hg.gain.value=0; const tr=ctx.createOscillator(); tr.frequency.value=7; const tg=ctx.createGain(); tg.gain.value=.02; tr.connect(tg).connect(hg.gain); hg.gain.linearRampToValueAtTime(.02,ctx.currentTime+3); hi.connect(hg).connect(musGain); hi.start(); tr.start();
+        const beat=()=>{ const t=ctx.currentTime+.05; const h=(f,d,gg)=>{ const o=ctx.createOscillator(); o.frequency.setValueAtTime(f,t+d); o.frequency.exponentialRampToValueAtTime(f*.65,t+d+.22); const a=ctx.createGain(); a.gain.setValueAtTime(0,t+d); a.gain.linearRampToValueAtTime(gg,t+d+.03); a.gain.exponentialRampToValueAtTime(.001,t+d+.24); o.connect(a).connect(musGain); o.start(t+d); o.stop(t+d+.3); }; h(62,0,.9); h(58,.28,.6); };
+        beat(); const iv=setInterval(beat,940);
+        tz={o:[o1,o2,lfo,hi,tr],g,hg,iv,wasMusic};
+      } else { if(!tz) return; const z=tz; tz=null; clearInterval(z.iv); const t=ctx.currentTime;
+        [z.g,z.hg].forEach(x=>{ x.gain.cancelScheduledValues(t); x.gain.setValueAtTime(x.gain.value,t); x.gain.linearRampToValueAtTime(0,t+.5); });
+        setTimeout(()=>z.o.forEach(o=>{ try{ o.stop(); }catch(_){ } }),600); if(z.wasMusic&&musOn) setTimeout(startMusic,700); }
+    }
   };
 })();
 document.addEventListener("pointerdown",()=>Sound.unlock(),{once:true});
@@ -683,7 +777,7 @@ const equippedId=t=>(profile&&profile.equipped&&profile.equipped[t])||DEF_EQUIP[
 const equippedKey=t=>{ const it=itemById(equippedId(t)); return it?it.key:null; };
 
 const Prefs=(()=>{
-  const d={liveBg:true,anim:"normal",big:false,hlPlayable:true,hlPile:true,hlTurn:true,hints:true,showLog:false};
+  const d={liveBg:true,anim:"normal",big:false,hlPlayable:true,hlPile:true,hlTurn:true,hints:true,showLog:false,tense:true};
   let p; try{ p=Object.assign({},d,JSON.parse(ls.get("durak.prefs")||"{}")); }catch(e){ p={...d}; }
   return { get:k=>p[k], set(k,v){ p[k]=v; ls.set("durak.prefs",JSON.stringify(p)); applyPrefs(); } };
 })();
@@ -814,7 +908,10 @@ const Fx=(()=>{
   }
   function coinPop(delta){ const b=document.getElementById("coinsBtn"); const r=b&&!b.hidden?b.getBoundingClientRect():{left:innerWidth-90,top:20,width:60,height:20};
     const f=el("div",{class:"coinpop"+(delta<0?" neg":""),text:(delta>=0?"+":"−")+"$"+Math.abs(delta)}); f.style.left=(r.left+r.width/2-24)+"px"; f.style.top=(r.top+r.height)+"px"; document.body.append(f); setTimeout(()=>f.remove(),1700); }
-  return {run,shake,bigText,emoji,coinPop};
+  function sparks(x,y,col){ if(Prefs.get("anim")==="off") return; for(let i=0;i<26;i++){ const s=el("div",{class:"spark"}); s.style.left=x+"px"; s.style.top=y+"px"; s.style.background=col; s.style.boxShadow=`0 0 6px ${col}`; document.body.append(s);
+      const a=Math.random()*Math.PI*2, d=50+Math.random()*100; s.animate([{transform:"translate(0,0) scale(1)",opacity:1},{transform:`translate(${Math.cos(a)*d}px,${Math.sin(a)*d+30}px) scale(.3)`,opacity:0}],{duration:900+Math.random()*400,easing:"cubic-bezier(.2,.8,.3,1)"}).onfinish=()=>s.remove(); }
+    const r=el("div",{class:"sring"}); r.style.left=x+"px"; r.style.top=y+"px"; r.style.borderColor=col; document.body.append(r); setTimeout(()=>r.remove(),1000); }
+  return {run,shake,bigText,emoji,coinPop,sparks};
 })();
 
 const HAT='<svg viewBox="0 0 16 12" width="22" height="16" shape-rendering="crispEdges" aria-label="дурацкий колпак"><rect x="2" y="8" width="12" height="3" fill="#f2c14e"/><rect x="2" y="5" width="4" height="3" fill="#c23a2b"/><rect x="1" y="3" width="3" height="2" fill="#c23a2b"/><rect x="0" y="2" width="2" height="1" fill="#c23a2b"/><rect x="6" y="3" width="4" height="5" fill="#2e9e6e"/><rect x="7" y="1" width="2" height="2" fill="#2e9e6e"/><rect x="10" y="5" width="4" height="3" fill="#c23a2b"/><rect x="12" y="3" width="3" height="2" fill="#c23a2b"/><rect x="14" y="2" width="2" height="1" fill="#c23a2b"/><rect x="0" y="0" width="2" height="2" fill="#f2c14e"/><rect x="7" y="0" width="2" height="1" fill="#f2c14e"/><rect x="14" y="0" width="2" height="2" fill="#f2c14e"/></svg>';
@@ -1191,6 +1288,7 @@ let casinoCfg={};
 function renderCasino(){
   app.append(viewHead("🎰 Казино"));
   if(!profile){ app.append(el("div",{class:"panel"},el("p",{class:"muted"},catalog.length?"Казино работает, когда игра открыта через Telegram.":"Подключаюсь к серверу…"))); return; }
+  app.append(feedPanel());
   app.append(el("div",{class:"panel wallet"},el("div",{class:"bal"},el("span",{class:"muted small",text:"Баланс"}),el("b",{text:`💰 $${profile.coins}`})),
     el("p",{class:"muted small",style:"flex-basis:100%;margin:0"},"Только игровая валюта. Все броски делает сервер, шансы честные и чуть в пользу казино.")));
   app.append(el("div",{class:"tabs",role:"tablist"},CAS_TABS.map(([k,n])=>el("button",{type:"button",role:"tab","aria-selected":String(casinoTab===k),class:casinoTab===k?"on":"",onclick:()=>{ if(casinoLock) return toast("Дождись конца раунда"); casinoTab=k; Sound.fx("pick"); render(); }},n))));
@@ -1218,7 +1316,7 @@ function renderSettings(){
     check("hints","Подсказки на столе («Бей 7 или старше» и т.п.)")));
   app.append(el("div",{class:"panel"},el("h2",{},"Анимации"),seg("anim",[["normal","Обычные"],["fast","Быстрые"],["off","Выкл"]]),
     el("h2",{},"Размер карт"),seg("big",[[false,"Обычные"],[true,"Крупные"]])));
-  const audioPanel=el("div",{class:"panel"},el("h2",{},"Звук и музыка")); audioPanel.append(audioBox); app.append(audioPanel);
+  const audioPanel=el("div",{class:"panel"},el("h2",{},"Звук и музыка")); audioPanel.append(audioBox,check("tense","Напряжённый момент: затемнение и тревожная мелодия, когда открываешь закрытую карту (громкость — как у музыки)")); app.append(audioPanel);
   app.append(ytPanel());
 }
 
@@ -1265,7 +1363,7 @@ function buildAudioBar(){
 
 
 /* ---------- очередь состояний: даём доиграть перевороту закрытой карты ---------- */
-let holding=false; const stateQ=[]; let blindSeen=null;
+let holding=false; const stateQ=[]; let blindSeen=null, celebrated=null, exitSheet=false, countAt=null, waitAt=null, openTables=[], feed=[];
 function queueState(nr,at){ stateQ.push([nr,at]); if(!holding) pumpStates(); }
 function pumpStates(){
   while(stateQ.length&&!holding){
@@ -1273,7 +1371,8 @@ function pumpStates(){
     const lb=nr.lastBlind;
     if(lb&&room&&room.code===nr.code&&lb.seq!==blindSeen&&(room.status==="play")&&Prefs.get("anim")!=="off"){
       blindSeen=lb.seq; holding=true;
-      flipReveal(lb,nr,()=>{ holding=false; applyState(nr,at); pumpStates(); });
+      const fin=()=>{ holding=false; applyState(nr,at); pumpStates(); };
+      if(lb.pid===me.id&&tenseLock&&tensePick!==null) tenseReveal(lb,fin); else flipReveal(lb,nr,fin);
       return;
     }
     if(lb) blindSeen=lb.seq;
@@ -1284,10 +1383,17 @@ function applyState(nr,at){
       const prevTurn=room&&room.status==="play"&&room.players[room.turn]&&room.players[room.turn].id;
       const prevR=room; room=nr; soundsFor(prevR,room);
       deadlineAt=room.turnLeft>0?at+room.turnLeft:null;
+      const iFinishedNow=prevR&&prevR.code===room.code&&!prevR.finished.includes(me.id)&&room.finished.includes(me.id);
+      if(iFinishedNow){ const place=room.finished.indexOf(me.id); celebrated=room.code+":"+place;
+        setTimeout(()=>{ Fx.run(equippedKey("winfx")||"fireworks"); Fx.bigText(place===0?"Ты вышел первым!":"Ты не дурак!"); Sound.fx("bigwin"); },300);
+        if(room.status==="play") exitSheet=true; }
       if(prevR&&prevR.code===room.code&&prevR.status!=="over"&&room.status==="over"&&room.players.some(p=>p.id===me.id)){
+        exitSheet=false;
         if(room.loser===me.id){ setTimeout(()=>{ Fx.shake(); Fx.bigText("Ты дурак 🤡"); },300); }
-        else setTimeout(()=>{ Fx.run(equippedKey("winfx")||"fireworks"); Fx.bigText(room.finished[0]===me.id?"Победа!":"Не дурак!"); },300);
+        else if(!iFinishedNow) setTimeout(()=>{ Fx.run(equippedKey("winfx")||"fireworks"); Fx.bigText(room.finished[0]===me.id?"Победа!":"Не дурак!"); },300);
       }
+      if(room.status!=="play") exitSheet=false;
+      countAt=room.countLeft>0?at+room.countLeft:null; waitAt=at-(room.waitedMs||0);
       if(!room.practice) store.set("durak.room",room.code);
       const nowTurn=room.status==="play"&&room.players[room.turn].id;
       if(nowTurn===me.id&&prevTurn!==me.id) haptic("medium");
@@ -1319,6 +1425,8 @@ function connect(){
     } else if(m.t==="toast"){ toast(m.msg);
     } else if(m.t==="react"){
       const box=document.querySelector(`[data-pid="${CSS.escape(m.from)}"]`); Fx.emoji(m.e,box); if(m.from!==me.id) Sound.fx("pick");
+    } else if(m.t==="openTables"){ openTables=m.list||[]; if(!room&&view==="main") render();
+    } else if(m.t==="feed"){ feed=m.items||[]; if((!room&&view==="main")||view==="casino"){ const old=document.querySelector(".feed"); if(old) old.replaceWith(feedPanel()); else if(!room&&view==="main") render(); }
     } else if(m.t==="board"){
       board=m.rows||[]; if(!room) render();
     } else if(m.t==="state"){
@@ -1347,17 +1455,29 @@ function cardEl(c,{onclick,disabled,selected,dim,extra=""}={}){
   const r=rk(c),s=su(c),red=s==="h"||s==="d",tag=TAGS[r];
   const cls=`card ${red?"red":""} ${tag?"special":""} ${r==="8"?"glass":""} ${selected?"sel":""} ${dim?"dim":""} ${extra}`;
   const kids=[el("span",{class:"r",text:r}),el("span",{class:"s",text:SUITS[s]}),el("span",{class:"r2",text:r})];
-  if(onclick) return el("button",{class:cls,"data-tag":tag||"",onclick,disabled:!!disabled,type:"button","aria-label":`${r} ${SUITS[s]}`},kids);
-  return el("div",{class:cls,"data-tag":tag||""},kids);
+  if(onclick) return el("button",{class:cls,"data-tag":tag||"","data-card":c,onclick,disabled:!!disabled,type:"button","aria-label":`${r} ${SUITS[s]}`},kids);
+  return el("div",{class:cls,"data-tag":tag||"","data-card":c},kids);
 }
-const backEl=(onclick,disabled)=>onclick?el("button",{class:"card back",onclick,disabled:!!disabled,type:"button","aria-label":"Закрытая карта"}):el("div",{class:"card back"});
+const backEl=(onclick,disabled,id)=>onclick?el("button",{class:"card back",onclick,disabled:!!disabled,type:"button","aria-label":"Закрытая карта","data-card":id||null}):el("div",{class:"card back","data-card":id||null});
 
+function seatRects(){ const m={}; document.querySelectorAll(".seat [data-card]").forEach(e=>{ m[e.dataset.card]=e.getBoundingClientRect(); }); return m; }
+function glideSeat(prev){
+  if(!prev||Prefs.get("anim")==="off") return;
+  const k=Prefs.get("anim")==="fast"?.55:1;
+  document.querySelectorAll(".seat [data-card]").forEach((e,i)=>{ const a=prev[e.dataset.card]; if(!a) return; const b=e.getBoundingClientRect(); if(!b.width) return;
+    const dx=a.left+a.width/2-(b.left+b.width/2), dy=a.top+a.height/2-(b.top+b.height/2), sc=a.width/b.width;
+    if(Math.abs(dx)+Math.abs(dy)<8&&Math.abs(sc-1)<.06) return;
+    try{ e.animate([{transform:`translate(${dx}px,${dy}px) scale(${sc})`},{transform:"translate(0,0) scale(1)"}],{duration:720*k,delay:i*40*k,easing:"cubic-bezier(.2,.85,.3,1.12)",composite:"add",fill:"backwards"}); }catch(_){ } });
+}
 function render(){
+  const prevSeat=seatRects();
   renderInner();
+  glideSeat(prevSeat);
   if(post.length){ const jobs=post.splice(0); requestAnimationFrame(()=>jobs.forEach(f=>{ try{ f(); }catch(e){} })); }
 }
 function renderInner(){
   if(view==="casino"&&casinoLock) return; // не трогаем экран, пока крутятся барабаны
+  if(tenseLock&&view==="main") return;  // идёт напряжённый момент
   app.replaceChildren();
   if(view==="settings"){ renderSettings(); return; }
   if(view==="shop"){ renderShop(); return; }
@@ -1381,6 +1501,7 @@ function exitRoom(){ sendMsg({t:"exit"}); room=null; store.del("durak.room"); re
 
 function renderMenu(){
   const codeIn=el("input",{id:"joincode",maxlength:"4",placeholder:"КОД","aria-label":"Код комнаты",style:"width:6.5em;text-transform:uppercase;letter-spacing:.15em"});
+  app.append(feedPanel());
   app.append(el("div",{class:"panel"},
     el("h2",{},`Привет, ${me.name}!`),
     profile?el("div",{class:"row"},el("span",{class:"coins",text:`💰 $${profile.coins}`}),profile.dailyReady?el("button",{class:"btn small",type:"button",onclick:()=>sendMsg({t:"daily"})},"🎁 Забрать бонус"):null,el("button",{class:"btn ghost small",type:"button",onclick:()=>{view="shop";render();}},"🛒 Магазин"),el("button",{class:"btn ghost small",type:"button",onclick:()=>{view="casino";render();}},"🎰 Казино")):null,
@@ -1393,8 +1514,25 @@ function renderMenu(){
     el("h2",{},"Тренировка с ботами"),
     el("p",{class:"muted small"},"Партия только для тебя. Боты ходят сами."),
     el("div",{class:"row"},[1,2,3].map(n=>el("button",{class:n===1?"btn":"btn ghost",type:"button",onclick:()=>sendMsg({t:"practice",bots:n})},n===1?"Против 1 бота":`Против ${n} ботов`)))));
+  app.append(openPanel());
   app.append(boardPanel());
   app.append(rulesPanel());
+}
+function openPanel(){
+  const box=el("div",{class:"panel"},el("h2",{},"Открытые столы"));
+  if(!openTables.length) box.append(el("p",{class:"muted small",text:"Пока никого. Создай стол и включи «Открытый стол» — его увидят все."}));
+  else box.append(el("div",{class:"otables"},openTables.map(t=>el("div",{class:"otrow"},el("span",{class:"code",text:t.code}),
+    el("div",{class:"otav"},t.names.map((n,i)=>avatarEl({name:n,avatar:t.avatars&&t.avatars[i],color:"#2a5a50"},24))),
+    el("span",{class:"muted small",text:`${t.n}/5`}),el("button",{class:"btn small",type:"button",onclick:()=>sendMsg({t:"enter",code:t.code})},"Сесть")))));
+  return box;
+}
+function feedText(f){ return f.kind==="game"?`🏆 ${f.name} выиграл партию${f.vs?" — дурак "+f.vs:""}`:`🔥 ${f.name}: ×${f.mult} в ${f.game} (+$${f.win})`; }
+function feedPanel(){
+  if(!feed.length) return el("div",{hidden:true});
+  const items=feed.slice(0,10).map(f=>el("span",{class:"fitem"},f.avatar?el("img",{class:"av",src:f.avatar,alt:"",style:"width:18px;height:18px"}):null,el("span",{text:feedText(f)})));
+  const track=el("div",{class:"ftrack"},items,items.map(x=>x.cloneNode(true)));
+  track.style.animationDuration=Math.max(18,feed.length*5)+"s";
+  return el("div",{class:"feed",role:"marquee","aria-label":"Лента больших выигрышей"},el("span",{class:"flabel",text:"LIVE"}),el("div",{class:"fwin"},track));
 }
 function boardPanel(){
   const box=el("div",{class:"panel"},el("h2",{},"Рейтинг игроков"));
@@ -1426,20 +1564,29 @@ function invite(){
 }
 
 function renderWaiting(){
-  const isHost=room.host===me.id;
-  app.append(el("div",{class:"panel"},
-    el("h2",{},"Ждём игроков"),
-    el("p",{},"Код комнаты: ",el("span",{class:"code",style:"font-size:22px",text:room.code})),
-    el("div",{class:"row"},el("button",{class:"btn",type:"button",onclick:invite},"Пригласить друга")),
-    el("div",{class:"players"},room.players.map(p=>el("span",{class:"pl",style:`display:inline-flex;align-items:center;gap:6px`},nameTag(p,{you:p.id===me.id}),p.id===room.host?el("span",{class:"muted small",text:"· создатель"}):null,
-      p.bot&&isHost?el("button",{class:"btn ghost",type:"button",style:"padding:0 8px;margin-left:6px","aria-label":"Убрать бота",onclick:()=>act("kick",p.id)},"×"):null))),
-    el("div",{class:"row"},el("span",{class:"muted small",text:"⏱ Таймер хода:"}),isHost?el("div",{class:"seg"},[[0,"Выкл"],[30,"30 сек"]].map(([v,l])=>el("button",{type:"button",class:(room.timer||0)===v?"on":"",onclick:()=>act("setTimer",v)},l))):el("b",{class:"small",text:room.timer?"30 сек":"выкл"})),
-    el("p",{class:"muted small"},`За столом ${room.players.length} из 5.`),
-    el("div",{class:"row"},
-      isHost?el("button",{class:"btn",type:"button",disabled:room.players.length<2,onclick:()=>act("start")},room.players.length<2?"Нужен ещё 1 игрок":"Раздать карты"):el("span",{class:"muted small"},"Карты раздаст создатель комнаты."),
-      isHost&&room.players.length<5?el("button",{class:"btn ghost",type:"button",onclick:()=>act("addBot")},"Добавить бота"):null,
-      isHost?el("button",{class:"btn ghost",type:"button",onclick:()=>{sendMsg({t:"close"});}},"Закрыть комнату"):el("button",{class:"btn ghost",type:"button",onclick:()=>{act("leave");room=null;store.del("durak.room");render();}},"Встать из-за стола"))));
-  app.append(rulesPanel());
+  const isHost=room.host===me.id, st=room;
+  const stage=el("div",{class:"waitstage"});
+  stage.append(el("div",{class:"muted small",text:`Стол ${st.code}`+(st.open?" · открытый":"")}),
+    el("div",{class:"wttl"},el("span",{class:"dots",text:"В ожидании игроков"})),
+    el("div",{class:"wtimer","data-since":String(waitAt||Date.now()),text:mmss(Date.now()-(waitAt||Date.now()))}));
+  const seats=el("div",{class:"wseats"});
+  for(let i=0;i<5;i++){ const p=st.players[i];
+    if(p) seats.append(el("div",{class:"wseat"},avatarEl(p,46),el("span",{class:"wn",text:p.name+(p.id===me.id?" (ты)":"")}),el("span",{class:"muted small",text:p.id===st.host?"создатель":p.bot?"бот":""}),
+      p.bot&&isHost?el("button",{class:"wkick",type:"button","aria-label":"Убрать бота",onclick:()=>act("kick",p.id)},"×"):null));
+    else seats.append(el("button",{class:"wseat empty",type:"button",onclick:invite,"aria-label":"Позвать на свободное место"},el("span",{class:"wplus",text:"+"}),el("span",{class:"muted small",text:"свободно"}))); }
+  stage.append(seats);
+  if(countAt) stage.append(el("div",{class:"wcount","data-until":String(countAt),"data-fmt":"Автостарт через ",text:"Автостарт через "+mmss(countAt-Date.now())}));
+  const opts=el("div",{class:"wopts"});
+  if(isHost){ const id="open-tg"; const i=el("input",{type:"checkbox",id,checked:!!st.open}); i.addEventListener("change",()=>{ act("setOpen",i.checked); Sound.fx("pick"); });
+    opts.append(el("label",{class:"chk",for:id},i,el("span",{text:"Открытый стол — виден всем в меню, автостарт, когда сядут двое"}))); }
+  opts.append(el("div",{class:"row"},el("span",{class:"muted small",text:"⏱ Таймер хода:"}),isHost?el("div",{class:"seg"},[[0,"Выкл"],[30,"30 сек"]].map(([v,l])=>el("button",{type:"button",class:(st.timer||0)===v?"on":"",onclick:()=>act("setTimer",v)},l))):el("b",{class:"small",text:st.timer?"30 сек":"выкл"})));
+  stage.append(opts);
+  stage.append(el("div",{class:"wbtns"},
+    el("button",{class:"btn ghost",type:"button",onclick:invite},"📨 Пригласить"),
+    isHost&&st.players.length<5?el("button",{class:"btn ghost",type:"button",onclick:()=>act("addBot")},"🤖 + Бот"):null,
+    isHost?el("button",{class:"btn",type:"button",disabled:st.players.length<2,onclick:()=>act("start")},st.players.length<2?"Нужен ещё игрок":"Раздать карты"):el("span",{class:"muted small",text:"Карты раздаст создатель стола"})),
+    el("button",{class:"btn ghost small",type:"button",onclick:leaveTable},isHost?"Покинуть стол":"Встать из-за стола"));
+  app.append(stage);
 }
 
 
@@ -1503,6 +1650,60 @@ function animSeat(seatEl,F,hand){
   if(F.deal){ seatEl.querySelectorAll(".card").forEach((c,i)=>{ c.classList.add("dealin"); c.style.animationDelay=(i*85)+"ms"; }); return; }
   if(F.same&&anim.hand){ let k=0; [...seatEl.querySelectorAll(".hand > .card")].forEach((c,i)=>{ if(hand[i]&&!anim.hand.has(hand[i])){ c.classList.add("drawin"); c.style.animationDelay=(k++*110)+"ms"; } }); }
 }
+/* ---------- конец партии: «Ещё партию?» ---------- */
+function mmss(ms){ const s=Math.max(0,Math.ceil(ms/1000)); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
+function rematchSheet(st){
+  const voted=st.rematch&&st.rematch[me.id], online=new Set(st.online||[]);
+  const tags=st.players.map(p=>{ const yes=p.bot||(st.rematch&&st.rematch[p.id]); const gone=!p.bot&&!online.has(p.id);
+    return el("span",{class:"vote"},avatarEl(p,24),el("span",{class:"tag "+(yes?"ok":gone?"gone":"wait"),text:yes?"готов":gone?"ушёл":"думает"})); });
+  const cd=countAt?el("div",{class:"muted small",text:"Раздача через "+mmss(countAt-Date.now()),"data-until":String(countAt),"data-fmt":"Раздача через "}):el("div",{class:"muted small",text:st.practice?"Боты всегда готовы":voted?"Ждём остальных…":"Все, кто нажмёт «Играть ещё», останутся за столом"});
+  return el("div",{class:"sheet over"},
+    st.loser?el("div",{class:"loser",style:"display:flex;align-items:center;gap:8px;justify-content:center"},hatEl(),el("span",{text:`${nameOf(st.loser)}${st.loser===me.id?" (ты)":""} — дурак`})):null,
+    el("div",{class:"muted small",text:st.finished.map((id,i)=>`${i+1}. ${nameOf(id)}`).join(" · ")}),
+    el("b",{text:"Ещё партию?"}),el("div",{class:"votes"},tags),cd,
+    el("div",{class:"row"},voted?el("button",{class:"btn",type:"button",disabled:true},"✓ Ты готов"):el("button",{class:"btn",type:"button",onclick:()=>{ Sound.fx("pick"); act("vote",true); }},"🔁 Играть ещё"),
+      el("button",{class:"btn ghost",type:"button",onclick:leaveTable},"Покинуть стол")));
+}
+function leaveTable(){ sendMsg({t:"leaveTable"}); room=null; store.del("durak.room"); exitSheet=false; document.body.classList.remove("tablemode"); render(); }
+// живые таймеры на экране
+setInterval(()=>{ document.querySelectorAll("[data-until]").forEach(e=>{ e.textContent=(e.dataset.fmt||"")+mmss(+e.dataset.until-Date.now()); }); document.querySelectorAll("[data-since]").forEach(e=>{ e.textContent=mmss(Date.now()-+e.dataset.since); }); },1000);
+/* ---------- напряжённый момент: выбор закрытой карты ---------- */
+let tenseLock=false, tensePick=null, tenseOn=false, tenseT=null;
+function tenseEnter(){ if(tenseOn) return; tenseOn=true; document.body.classList.add("tense"); Sound.tense(true); }
+function tenseLeave(){ if(!tenseOn) return; tenseOn=false; document.body.classList.remove("tense"); Sound.tense(false); }
+function renderTenseStage(st){
+  tenseEnter();
+  const n=st.down[me.id]||0, top=st.pile.length?st.pile[st.pile.length-1]:null, eff=effectiveTop(st.pile);
+  const stage=el("div",{class:"tensestage"});
+  stage.append(el("div",{class:"tpile hint"},top?`Стопка: ${pretty(top)}`+(eff&&rk(top)==="8"?` (под ней ${pretty(eff)})`:""):"Стопка пустая — подойдёт любая"));
+  stage.append(el("div",{class:"tttl",text:"Последний шанс"}));
+  const row=el("div",{class:"trow"});
+  for(let i=0;i<n;i++){
+    const c=el("div",{class:"tcard",role:"button",tabindex:"0","aria-label":"Закрытая карта "+(i+1)},el("div",{class:"tb"},backEl()),el("div",{class:"tf"}));
+    const pick=()=>{ if(tenseLock) return; tenseLock=true; tensePick=i; row.querySelectorAll(".tcard").forEach(x=>{ if(x!==c) x.classList.add("dimmed"); }); c.classList.add("picked"); Sound.fx("whoosh"); act("blind",i);
+      clearTimeout(tenseT); tenseT=setTimeout(()=>{ if(tenseLock){ tenseLock=false; tensePick=null; render(); } },7000); };
+    c.addEventListener("click",pick); c.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" ") pick(); });
+    row.append(c);
+  }
+  stage.append(row,el("div",{class:"tsub hint"},"Открой одну закрытую карту. Не подойдёт — забираешь стопку"),el("div",{class:"tres"}),timerBar(st)||"");
+  app.append(stage);
+}
+function tenseReveal(lb,done){
+  const stage=document.querySelector(".tensestage"), c=stage&&stage.querySelectorAll(".tcard")[tensePick];
+  if(!c||!lb.card){ tenseLock=false; tensePick=null; tenseLeave(); return done(); }
+  const k=Prefs.get("anim")==="fast"?.55:1, red=su(lb.card)==="h"||su(lb.card)==="d";
+  const face=cardEl(lb.card); face.classList.remove("glass","special"); c.querySelector(".tf").append(face); c.classList.add(red?"red":"blk");
+  void c.offsetWidth; c.classList.add("open");
+  const res=stage.querySelector(".tres");
+  setTimeout(()=>{
+    Sound.tense(false);
+    if(lb.ok){ document.body.classList.remove("tense"); document.body.classList.add("flash"); c.classList.add("daylight"); Sound.fx("fits");
+      const r=c.getBoundingClientRect(); Fx.sparks(r.left+r.width/2,r.top+r.height/2,"#7ee0b5"); res.textContent="Подошла!"; res.className="tres on good"; }
+    else { Sound.fx("nofit"); haptic("heavy"); res.textContent=`Не подошла — забираешь ${lb.n} ${lb.n%10===1&&lb.n%100!==11?"карту":(lb.n%10>=2&&lb.n%10<=4&&(lb.n%100<12||lb.n%100>14))?"карты":"карт"}`; res.className="tres on bad"; }
+  },1450*k);
+  setTimeout(()=>{ document.body.classList.remove("flash"); if(lb.ok){ c.classList.add("away"); } },2300*k);
+  setTimeout(()=>{ tenseLock=false; tensePick=null; tenseOn=false; document.body.classList.remove("tense"); done(); if(lb.ok){ const p=document.querySelector(".pile"); if(p){ const r=p.getBoundingClientRect(); setTimeout(()=>Fx.sparks(r.left+r.width/2,r.top+r.height/2,"#7ee0b5"),500); } } },(lb.ok?2700:2900)*k);
+}
 /* ---------- начало партии: выбор трёх карт, которые лягут сверху ---------- */
 let swapKey=null, swapSel=[], swapStrong=[];
 const swapScore=c=>{ const r=rk(c); return r==="2"?20:r==="10"?19:r==="8"?16:val(r); };
@@ -1538,6 +1739,8 @@ function renderTable(){
   const turnId=st.status==="play"?st.players[st.turn].id:null, myTurn=turnId===me.id;
   const F=animFlags(st,turnId);
   if(st.status==="swap"&&myIdx>=0&&!st.ready[me.id]){ renderSwapStage(st); anim={...anim,code:st.code,status:"swapstage"}; return; }
+  if(st.status==="play"&&myTurn&&mySource()==="down"&&Prefs.get("tense")&&Prefs.get("anim")!=="off"){ renderTenseStage(st); return; }
+  if(tenseOn&&!tenseLock) tenseLeave();
   const opps=el("div",{class:"opps"});
   for(let k=1;k<=n;k++){
     const p=st.players[((seated?myIdx:-1)+k+n)%n]; if(p.id===me.id) continue;
@@ -1581,12 +1784,9 @@ function renderTable(){
     el("div",{class:"pilebox"},pile,el("div",{class:"status"+(F.turnChanged?" pop":"")},statusText),timerBar(st),el("div",{class:"need",text:need})),
     el("div",{class:"side"},discardEl(st.burned),el("span",{},"Бита: ",el("b",{text:st.burned})))));
 
-  if(st.status==="over"){
-    app.append(el("div",{class:"panel result"},
-      st.loser?el("div",{class:"loser",style:"display:flex;align-items:center;gap:8px"},hatEl(),el("span",{text:`${nameOf(st.loser)}${st.loser===me.id?" (ты)":""} — дурак`})):null,
-      el("ol",{},st.finished.map(id=>el("li",{text:nameOf(id)+(id===me.id?" (ты)":"")}))),
-      el("div",{class:"row"},st.host===me.id?el("button",{class:"btn",type:"button",onclick:()=>act("again")},"Новая партия"):el("span",{class:"muted small"},"Новую партию начнёт создатель комнаты."))));
-  }
+  if(st.status==="over") app.append(rematchSheet(st));
+  if(exitSheet&&st.status==="play") app.append(el("div",{class:"sheet"},el("b",{text:st.finished[0]===me.id?"Ты вышел первым! 🎉":"Ты не дурак! 🎉"}),el("span",{class:"muted small",text:"Партия ещё идёт — можешь досмотреть, кто станет дураком"}),
+    el("div",{class:"row"},el("button",{class:"btn",type:"button",onclick:()=>{ exitSheet=false; Sound.fx("pick"); render(); }},"👀 Смотреть"),el("button",{class:"btn ghost",type:"button",onclick:()=>{ exitSheet=false; exitRoom(); }},"Уйти в меню"))));
   const myHandArr=Array.isArray(st.hands[me.id])?st.hands[me.id]:[];
   if(seated){ const seatEl=renderSeat(st,myTurn); animSeat(seatEl,F,myHandArr); app.append(seatEl); }
   else app.append(el("div",{class:"panel"},el("p",{class:"muted"},"Ты смотришь эту партию. Сесть можно, когда начнётся следующая.")));
@@ -1625,13 +1825,13 @@ function renderSeat(st,myTurn){
     haptic(); render();
   };
   const tab=el("div",{class:"tableau"});
+  const upInHand=src==="up", downInHand=src==="down";
   for(let i=0;i<Math.max(downN,up.length);i++){
     const slot=el("div",{class:"slot"});
-    if(i<downN){ const can=myTurn&&src==="down"; slot.append(backEl(can?()=>act("blind",i):null,!can)); }
-    if(up[i]!==undefined){
+    if(i<downN&&!downInHand) slot.append(backEl(null,true,"D"+i));
+    if(up[i]!==undefined&&!upInHand){
       const c=up[i];
       if(swapping) slot.append(cardEl(c,{extra:"upc",onclick:()=>{ if(swapHand===null) return toast("Сначала выбери карту в руке"); act("swap",swapHand,i); }}));
-      else if(myTurn&&src==="up") slot.append(cardEl(c,{extra:"upc "+glowOk(c),onclick:()=>toggle("up",c),selected:selSrc==="up"&&sel.includes(c),dim:!canPlay(rk(c),st.pile)}));
       else slot.append(cardEl(c,{extra:"upc"}));
     }
     tab.append(slot);
@@ -1642,8 +1842,10 @@ function renderSeat(st,myTurn){
     else if(myTurn&&src==="hands") handBox.append(cardEl(c,{extra:glowOk(c),onclick:()=>toggle("hands",c),selected:selSrc==="hands"&&sel.includes(c),dim:!canPlay(rk(c),st.pile)}));
     else handBox.append(cardEl(c));
   });
+  if(upInHand) up.forEach(c=>handBox.append(myTurn?cardEl(c,{extra:glowOk(c),onclick:()=>toggle("up",c),selected:selSrc==="up"&&sel.includes(c),dim:!canPlay(rk(c),st.pile)}):cardEl(c)));
+  if(downInHand) for(let i=0;i<downN;i++) handBox.append(backEl(myTurn?()=>act("blind",i):null,!myTurn,"D"+i));
   fanHand(handBox);
-  if(!hand.length) handBox.append(el("span",{class:"muted small",style:"align-self:center"},done?"Ты вышел из игры":"Рука пустая"));
+  if(!hand.length&&!upInHand&&!downInHand) handBox.append(el("span",{class:"muted small",style:"align-self:center"},done?"Ты вышел из игры":"Рука пустая"));
   const actions=el("div",{class:"row"});
   if(swapping) actions.append(el("button",{class:"btn",type:"button",onclick:()=>act("ready")},"Готов"),el("span",{class:"muted small hint"},"Нажми карту в руке, потом открытую — они поменяются местами."));
   if(myTurn){
@@ -1681,6 +1883,7 @@ document.getElementById("setBtn").addEventListener("click",()=>{ if(casinoLock) 
 applyPrefs(); applyCosmetics();
 render();
 connect();
+if(window.__DEV__) window.__t={ get me(){return me;}, get room(){return room;}, sendMsg:m=>sendMsg(m), act:(...a)=>act(...a) };
 })();
 </script>
 </body>
