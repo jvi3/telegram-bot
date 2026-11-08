@@ -20,6 +20,7 @@ const ITEMS = [
   { id: "bg:dungeon", type: "bg", key: "dungeon", name: "Подземелье", price: 40 },
   { id: "bg:snow", type: "bg", key: "snow", name: "Зимняя ночь", price: 40 },
   { id: "bg:sunset", type: "bg", key: "sunset", name: "Пиксельный закат", price: 60 },
+  { id: "bg:swirl", type: "bg", key: "swirl", name: "Психоделика", price: 75 },
 
   { id: "deck:classic", type: "deck", key: "classic", name: "Классика", price: 0 },
   { id: "deck:vintage", type: "deck", key: "vintage", name: "Винтаж", price: 25 },

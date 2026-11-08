@@ -221,7 +221,7 @@ const A = {
       st.pileBy = [];
       st.burnStreak = 0;
       st.last = null;
-      log(st, `${nameOf(st, pid)} открыл ${pretty(c)} вслепую — не подошла, забрал ${n} ${plural(n)}`);
+      log(st, `${nameOf(st, pid)} открыл закрытую карту — не подошла, забрал ${n} ${plural(n)}`);
       advance(st);
     }
   },

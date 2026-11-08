@@ -326,7 +326,9 @@ function viewFor(st, uid) {
     hands[p.id] = p.id === uid ? h : h.length;
     down[p.id] = (st.down[p.id] || []).length;
   }
-  return { ...st, players: decorate(st), hands, down, deck: st.deck.length, pileBy: st.pileBy || [],
+  // Неподошедшую закрытую карту видит только тот, кто её открыл: она ушла ему в руку
+  const lb = st.lastBlind && !st.lastBlind.ok && st.lastBlind.pid !== uid ? { ...st.lastBlind, card: null } : st.lastBlind;
+  return { ...st, lastBlind: lb, players: decorate(st), hands, down, deck: st.deck.length, pileBy: st.pileBy || [],
     turnLeft: st.deadline ? Math.max(0, st.deadline - Date.now()) : 0 };
 }
 

@@ -165,7 +165,7 @@ button.card:disabled{cursor:default}
 .board tr.meRow td{background:rgba(226,173,75,.08)}
 .loser{font-family:var(--display);font-size:clamp(18px,4.5vw,26px);color:var(--brass)}
 @media (max-width:560px){.center{grid-template-columns:auto minmax(0,1fr) auto;padding:10px 8px;gap:6px}.need{font-size:12px}.status{font-size:14px}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
 /* ---------- подгонка под экран и анимации ---------- */
 :root{--cwb:clamp(38px,min(11.5vw,7vh),66px);--cw:var(--cwb);--gap:18px}
 @media (max-height:820px){:root{--gap:10px}.wrap.app{gap:10px;padding-block:10px 24px}.center{padding:12px;gap:10px}.seat{padding:12px;gap:8px}.opp{padding:8px 10px;gap:6px}.panel{padding:12px}.hand{padding-top:10px}h1{font-size:clamp(18px,4.4vw,28px)}}
@@ -191,7 +191,7 @@ button.card:disabled{cursor:default}
 .status.pop{animation:pop .55s cubic-bezier(.2,.9,.3,1.4)}
 .seat.turn,.opp.turn{animation:glow 1.8s ease-in-out infinite}
 .loser{animation:pop .5s ease-out}
-@media (prefers-reduced-motion:reduce){.pile .card.fresh,.hand>.card.drawin,.seat .card.dealin,.pile.burning,.burnfx,.burntxt,.status.pop,.seat.turn,.opp.turn,.loser{animation:none!important}.burnfx,.burntxt{display:none}}
+
 
 
 /* ---------- фоны, экраны настроек и магазина, подсветки, эффекты ---------- */
@@ -263,7 +263,7 @@ header.wrap,.wrap.app{position:relative;z-index:1}
 :root[data-anim="fast"] .pile .card.fresh,:root[data-anim="fast"] .hand>.card.drawin,:root[data-anim="fast"] .seat .card.dealin{animation-duration:.3s}
 :root[data-anim="off"] .pile .card.fresh,:root[data-anim="off"] .hand>.card.drawin,:root[data-anim="off"] .seat .card.dealin,:root[data-anim="off"] .pile.burning,:root[data-anim="off"] .status.pop,:root[data-anim="off"] .loser{animation:none!important}
 :root[data-anim="off"] .burnfx,:root[data-anim="off"] .burntxt{display:none}
-@media (prefers-reduced-motion:reduce){.floatemoji,.bigtxt,.coinpop,.shakeall,.opp.turn,.seat.turn{animation:none!important}}
+
 
 .flying{position:fixed;z-index:42;margin:0;pointer-events:none}
 .discard{position:relative;width:var(--cw);aspect-ratio:5/7}
@@ -292,6 +292,40 @@ header.wrap,.wrap.app{position:relative;z-index:1}
 .ytmini{position:fixed;right:max(10px,env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:35;width:200px;height:200px;border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.5);border:1px solid var(--felt-line);background:#000}
 .ytmini iframe{width:100%;height:100%;border:0;display:block}
 .ytclose{position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(0,0,0,.7);color:#fff;font-size:13px;line-height:1;display:grid;place-items:center;padding:0}
+
+.flipinner.wobble{animation:wobble .7s ease-in-out}
+@keyframes wobble{0%,100%{transform:none}20%{transform:rotate(-8deg) scale(1.05)}40%{transform:rotate(7deg)}60%{transform:rotate(-5deg)}80%{transform:rotate(3deg)}}
+
+/* ---------- Balatro: веер, наклон, пружина, вспышки ---------- */
+.hand.fan{flex-wrap:nowrap;justify-content:center;gap:0;padding-top:18px;padding-bottom:6px}
+.hand.fan>.card+.card{margin-left:var(--ov,6px)}
+.hand>.card{--base:translateY(calc(var(--fy,0px) + var(--lift,0px))) rotate(var(--fr,0deg));transform:var(--base) perspective(600px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--sc,1));transition:transform .22s cubic-bezier(.2,.8,.3,1.35),margin .2s;animation:sway 3.4s ease-in-out infinite;animation-delay:calc(var(--i,0) * -.45s)}
+.hand>button.card:not(:disabled):hover,.hand>button.card.tilt{--lift:-10px;--sc:1.06;transform:var(--base) perspective(600px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--sc,1));z-index:3}
+.hand>.card.sel{--lift:-24px;--sc:1.04;transform:var(--base) perspective(600px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--sc,1))!important;z-index:2}
+@keyframes sway{0%,100%{translate:0 0}50%{translate:0 -3px}}
+.hand>.card::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at var(--gx,50%) var(--gy,0%),rgba(255,255,255,.6),rgba(255,255,255,0) 55%);opacity:0;transition:opacity .2s;pointer-events:none;mix-blend-mode:soft-light}
+.hand>.card.tilt::before{opacity:1}
+.hand>.card.drawin{animation:hdrawin .65s cubic-bezier(.18,.9,.3,1.3) backwards,sway 3.4s ease-in-out .65s infinite}
+.seat .hand>.card.dealin{animation:hdealin .8s cubic-bezier(.18,.85,.3,1.2) backwards,sway 3.4s ease-in-out .8s infinite}
+@keyframes hdrawin{0%{transform:translate(0,-80px) scale(.7) rotate(10deg);opacity:0}60%{transform:translate(0,8px) scale(1.1) rotate(-2deg);opacity:1}100%{transform:var(--base);opacity:1}}
+@keyframes hdealin{0%{transform:translate(0,-180px) rotate(20deg) scale(.6);opacity:0}100%{transform:var(--base);opacity:1}}
+@keyframes flyin{0%{transform:translate(0,130%) rotate(-20deg) scale(.6);opacity:0}50%{transform:translate(0,-14%) rotate(4deg) scale(1.14);opacity:1}68%{transform:translate(0,3%) rotate(-1deg) scale(1.16,.84)}82%{transform:translate(0,-1%) scale(.95,1.06)}100%{transform:var(--rot,none);opacity:1}}
+.center.jolt{animation:jolt .4s ease-out .32s}
+@keyframes jolt{0%,100%{transform:none}35%{transform:translateY(3px) scaleY(.995)}70%{transform:translateY(-1px)}}
+.pile.flash::after{content:"";position:absolute;left:50%;top:50%;width:calc(var(--cw)*2);height:calc(var(--cw)*2);margin:calc(var(--cw)*-1) 0 0 calc(var(--cw)*-1);border-radius:50%;pointer-events:none;animation:sflash .9s ease-out .35s backwards;opacity:0}
+.pile.f2::after{background:radial-gradient(circle,rgba(242,193,78,.75),rgba(242,193,78,0) 65%)}
+.pile.f8::after{background:radial-gradient(circle,rgba(160,220,255,.7),rgba(160,220,255,0) 65%)}
+@keyframes sflash{0%{transform:scale(.3);opacity:1}100%{transform:scale(1.6);opacity:0}}
+.spop{position:absolute;left:50%;top:-6px;font-family:"Press Start 2P",var(--display);font-size:11px;white-space:nowrap;padding:5px 9px;border-radius:6px;text-shadow:1px 1px 0 #000;pointer-events:none;animation:spop 1.6s cubic-bezier(.2,.9,.3,1.4) .35s both;z-index:4}
+.spop.s2{background:#f2c14e;color:#2a1d05;text-shadow:none}
+.spop.s8{background:#9fd8ff;color:#06263a;text-shadow:none}
+@keyframes spop{0%{transform:translate(-50%,20px) scale(.3) rotate(-8deg);opacity:0}25%{transform:translate(-50%,-14px) scale(1.15) rotate(3deg);opacity:1}40%{transform:translate(-50%,-8px) scale(1) rotate(-2deg)}80%{opacity:1;transform:translate(-50%,-10px) rotate(0)}100%{transform:translate(-50%,-26px);opacity:0}}
+.coins.counting{animation:cpulse .25s ease-in-out infinite alternate;border-color:var(--brass)}
+@keyframes cpulse{from{transform:scale(1)}to{transform:scale(1.08)}}
+:root[data-anim="off"] .opp.turn,:root[data-anim="off"] .seat.turn,:root[data-anim="off"] .hand>.card,:root[data-anim="off"] .center.jolt,:root[data-anim="off"] .spop,:root[data-anim="off"] .pile.flash::after{animation:none!important}
+:root[data-anim="fast"] .hand>.card.drawin,:root[data-anim="fast"] .seat .hand>.card.dealin{animation-duration:.3s,3.4s}
+
+:root[data-hlturn] .opp.turn .name span.av,:root[data-hlturn] .seat.turn .name span.av{color:#1c1b19}
 </style>
 </head>
 <body>
@@ -406,6 +440,7 @@ const Sound=(()=>{
     error(){ tone(ctx.currentTime,180,.15,{type:"square",gain:.05}); },
     pick(){ const t=ctx.currentTime; noise(t,.035,{freq:3400,q:1.4,gain:.28}); tone(t,1150,.05,{gain:.035}); },
     unpick(){ const t=ctx.currentTime; noise(t,.035,{freq:1700,q:1.4,gain:.22}); tone(t,620,.05,{gain:.03}); },
+    tick(){ tone(ctx.currentTime,1760+Math.random()*200,.03,{type:"square",gain:.025}); },
     coin(){ const t=ctx.currentTime; tone(t,988,.08,{type:"square",gain:.05}); tone(t+.08,1319,.22,{type:"square",gain:.05}); }
   };
   /* музыка */
@@ -482,16 +517,27 @@ function applyPrefs(){
   r.setAttribute("data-anim",Prefs.get("anim"));
   if(Prefs.get("big")) r.setAttribute("data-big","1"); else r.removeAttribute("data-big");
   r.toggleAttribute("data-hlturn",!!Prefs.get("hlTurn"));
-  const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
-  Bg.setLive(Prefs.get("liveBg")&&!rm);
+  Bg.setLive(!!Prefs.get("liveBg"));
 }
 function applyCosmetics(){
   document.documentElement.setAttribute("data-cards",equippedKey("deck")||"classic");
   document.documentElement.style.setProperty("--mycolor",equippedKey("color")||"#f2c14e");
   Bg.set(equippedKey("bg")||"felt");
-  const c=document.getElementById("coinsBtn"); if(c){ c.hidden=!profile; if(profile) c.textContent=`💰 $${profile.coins}`; }
+  const c=document.getElementById("coinsBtn"); if(c){ c.hidden=!profile; if(profile&&!Coins.busy){ c.textContent=`💰 $${profile.coins}`; Coins.shown=profile.coins; } }
 }
 
+/* ---------- счётчик денег: считает вверх, как касса ---------- */
+const Coins={ shown:null, busy:false,
+  animateTo(to){
+    const b=document.getElementById("coinsBtn"); if(!b) return;
+    const from=this.shown==null?to:this.shown; this.shown=to;
+    if(from===to||Prefs.get("anim")==="off"){ b.textContent=`💰 $${to}`; return; }
+    this.busy=true; b.classList.add("counting"); const t0=performance.now(), dur=Math.min(1600,500+Math.abs(to-from)*60); let lastV=from;
+    const step=t=>{ const k=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-k,3), v=Math.round(from+(to-from)*e);
+      if(v!==lastV){ lastV=v; b.textContent=`💰 $${v}`; Sound.fx("tick"); }
+      if(k<1) requestAnimationFrame(step); else { this.busy=false; b.classList.remove("counting"); b.textContent=`💰 $${to}`; } };
+    requestAnimationFrame(step);
+  } };
 /* ---------- пиксельные фоны (рисуются кодом, без картинок) ---------- */
 const Bg=(()=>{
   const rng=seed=>{ let s=seed; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; };
@@ -506,7 +552,7 @@ const Bg=(()=>{
         for(let yy=h-bh+3;yy<h-2;yy+=4) for(let xx=x+1;xx<x+bw-1;xx+=3){ const on=r()<.35, off=Math.sin(t/900+xx*3+yy)>.97; if(on&&!off) px(c,xx,yy,"#e8c46a"); } x+=bw+1; } },
     stars(c,w,h,t){ bands(c,w,["#070a1c","#0b1029","#101636"],0,h); const r=rng(11);
       for(let i=0;i<w*h/70;i++){ const x=r()*w, y=r()*h, ph=r()*6, b=Math.sin(t/700+ph); px(c,x,y,b>.6?"#ffffff":b>-.2?"#9aa3d6":"#3a4275"); }
-      const mx=w*.8|0, my=h*.13|0, R=Math.max(4,w*.05|0); for(let y=-R;y<=R;y++) for(let x=-R;x<=R;x++){ const inMoon=x*x+y*y<=R*R, inShade=(x-R*.55)**2+(y+R*.3)**2<=(R*.9)**2; if(inMoon&&!inShade) px(c,mx+x,my+y,"#e9e4c8"); } },
+      const mx=w*.82|0, my=h*.12|0; c.fillStyle="#e9e4c8"; c.fillRect(mx-1,my-3,3,7); c.fillRect(mx-3,my-1,7,3); c.fillRect(mx-2,my-2,5,5); c.fillStyle="#c9c3a3"; c.fillRect(mx,my-1,1,1); c.fillRect(mx-1,my+1,1,1); },
     tavern(c,w,h,t){ const r=rng(5), cols=["#3b2416","#432a19","#36210f","#4a2e1b"];
       for(let y=0;y<h;y+=6){ c.fillStyle=cols[(y/6)%4]; c.fillRect(0,y,w,6); c.fillStyle="#24150b"; c.fillRect(0,y+5,w,1); for(let x=(y*7)%23;x<w;x+=23) c.fillRect(x,y,1,5); }
       for(let i=0;i<w*h/400;i++) px(c,r()*w,r()*h,"#2a180c");
@@ -518,6 +564,18 @@ const Bg=(()=>{
       const R=Math.round(w*.14), cx=w/2|0; for(let y=-R;y<0;y++) for(let x=-R;x<=R;x++) if(x*x+y*y<=R*R){ const stripe=(y+R)%4===3&&y>-R*.6; if(!stripe) px(c,cx+x,hz+y,y<-R*.6?"#f2c14e":y<-R*.25?"#f29a4e":"#e8664e"); }
       c.fillStyle="#5c2a6e"; const sh=(t/80)%1; for(let k=0;k<12;k++){ const y=hz+Math.round(((k+sh)/12)**2*(h-hz)); c.fillRect(0,y,w,1); }
       c.strokeStyle="#5c2a6e"; c.lineWidth=1; for(let i=-9;i<=9;i++){ c.beginPath(); c.moveTo(cx+i*2,hz); c.lineTo(cx+i*w*.15,h); c.stroke(); } },
+    swirl(c,w,h,t){
+      const pal=[[70,24,52],[112,34,62],[58,48,118],[34,92,138],[28,108,106],[50,64,126]];
+      const img=c.createImageData(w,h), d=img.data, cx=w/2, cy=h*.45, tt=t/1600;
+      for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+        const dx=x-cx, dy=y-cy, r=Math.sqrt(dx*dx+dy*dy), a=Math.atan2(dy,dx);
+        let v=Math.sin(a*3+r*.16-tt*1.3)+Math.sin(r*.07-tt*.8)+Math.sin((x+y)*.05+tt*.5)*.5;
+        v=(v+2.5)/5; v+=((x*7+y*13)%4)/24; // лёгкий пиксельный дизеринг
+        const p=pal[Math.max(0,Math.min(pal.length-1,Math.floor(v*pal.length)))], i=(y*w+x)*4;
+        d[i]=p[0]; d[i+1]=p[1]; d[i+2]=p[2]; d[i+3]=255;
+      }
+      c.putImageData(img,0,0);
+    },
     snow(c,w,h,t){ bands(c,w,["#0c1630","#10203f","#16294d"],0,h); c.fillStyle="#cfdcef"; for(let x=0;x<w;x++){ const hh=Math.round(h*.12+4*Math.sin(x/9)+3*Math.sin(x/4.3)); c.fillRect(x,h-hh,1,hh); }
       c.fillStyle="#a9bad6"; for(let x=0;x<w;x++){ const hh=Math.round(h*.07+3*Math.sin(x/7+1)); c.fillRect(x,h-hh,1,hh); }
       const r=rng(13); for(let i=0;i<w*h/60;i++){ const x0=r()*w, sp=.004+r()*.006, y=((r()*h)+t*sp)%h, x=(x0+Math.sin(t/900+i)*2+w)%w; px(c,x,y,"#ffffff"); } }
@@ -526,8 +584,10 @@ const Bg=(()=>{
   const c=cv.getContext("2d"); let key="felt", live=true, last=0, W=120, H=200;
   function draw(t){ (GEN[key]||GEN.felt)(c,W,H,t); c.fillStyle="rgba(0,0,0,.22)"; c.fillRect(0,0,W,H); }
   function resize(){ W=120; H=Math.max(60,Math.min(400,Math.round(120*innerHeight/Math.max(1,innerWidth)))); cv.width=W; cv.height=H; draw(performance.now()); }
-  function loop(t){ requestAnimationFrame(loop); if(!live||key==="felt"||document.hidden||t-last<100) return; last=t; draw(t); }
+  function tick(){ const t=performance.now(); if(!live||key==="felt"||document.hidden||t-last<90) return; last=t; draw(t); }
+  function loop(){ requestAnimationFrame(loop); tick(); }
   addEventListener("resize",resize); resize(); requestAnimationFrame(loop);
+  setInterval(tick,110); // запасной таймер: некоторые встроенные браузеры придерживают requestAnimationFrame
   return {
     set(k){ if(k!==key){ key=GEN[k]?k:"felt"; draw(performance.now()); } },
     setLive(v){ live=!!v; draw(performance.now()); },
@@ -814,7 +874,7 @@ function connect(){
     } else if(m.t==="profile"){
       profile=m; applyCosmetics(); if(view!=="main"||!room) render();
     } else if(m.t==="reward"){
-      if(profile) profile.coins=m.coins; applyCosmetics(); Fx.coinPop(m.delta); if(m.delta>0) Sound.fx("coin"); if(m.reason) toast(m.reason+(m.delta?` ${m.delta>0?"+":"−"}$${Math.abs(m.delta)}`:""));
+      if(profile) profile.coins=m.coins; Coins.animateTo(m.coins); applyCosmetics(); Fx.coinPop(m.delta); if(m.delta>0) Sound.fx("coin"); if(m.reason) toast(m.reason+(m.delta?` ${m.delta>0?"+":"−"}$${Math.abs(m.delta)}`:""));
     } else if(m.t==="toast"){ toast(m.msg);
     } else if(m.t==="react"){
       const box=document.querySelector(`[data-pid="${CSS.escape(m.from)}"]`); Fx.emoji(m.e,box); if(m.from!==me.id) Sound.fx("pick");
@@ -964,11 +1024,12 @@ function flipReveal(lb,nr,done){
   const who=(nr.players.find(p=>p.id===lb.pid)||{}).name||"Игрок";
   const k=Prefs.get("anim")==="fast"?.55:1;
   const box=el("div",{class:"flipbox"}); box.style.left=(r.left+r.width/2)+"px"; box.style.top=(r.top+r.height/2)+"px";
-  const inner=el("div",{class:"flipinner"},el("div",{class:"fface fback"},backEl()),el("div",{class:"fface ffront"},cardEl(lb.card)));
+  const hidden=!lb.card; // чужая неподошедшая карта: показываем только рубашку
+  const inner=el("div",{class:"flipinner"+(hidden?" hiddencard":"")},el("div",{class:"fface fback"},backEl()),hidden?null:el("div",{class:"fface ffront"},cardEl(lb.card)));
   const label=el("div",{class:"fliplabel",text:lb.pid===me.id?"Открываешь вслепую…":`${who} открывает вслепую…`});
   box.append(inner,label); document.body.append(box);
   if(fromEl){ const fr=fromEl.getBoundingClientRect(); box.animate([{transform:`translate(calc(-50% + ${fr.left+fr.width/2-(r.left+r.width/2)}px),calc(-50% + ${fr.top+fr.height/2-(r.top+r.height/2)}px)) scale(.6)`},{transform:"translate(-50%,-50%) scale(1.25)"}],{duration:520*k,easing:"cubic-bezier(.18,.9,.3,1.25)",fill:"both"}); }
-  setTimeout(()=>{ inner.classList.add("open"); Sound.fx("pick"); },560*k);
+  setTimeout(()=>{ if(hidden) inner.classList.add("wobble"); else inner.classList.add("open"); Sound.fx("pick"); },560*k);
   setTimeout(()=>{
     label.textContent=lb.ok?"Подошла!":(lb.pid===me.id?`Не подошла — забираешь ${lb.n} ${lb.n%10===1&&lb.n%100!==11?"карту":(lb.n%10>=2&&lb.n%10<=4&&(lb.n%100<12||lb.n%100>14))?"карты":"карт"}`:`Не подошла — ${who} забирает стопку`);
     label.classList.add(lb.ok?"good":"bad"); if(!lb.ok){ Sound.fx("error"); if(lb.pid===me.id) haptic("heavy"); }
@@ -1015,8 +1076,13 @@ function renderTable(){
     const gi=st.pile.length-shown.length+i; if(Prefs.get("hlPile")&&st.pileBy&&st.pileBy[gi]){ x.classList.add("owned"); x.style.setProperty("--own",colorOf(st.pileBy[gi])); } if(gi>=F.freshFrom){ x.classList.add("fresh"); x.style.animationDelay=((gi-F.freshFrom)*120)+"ms"; } pile.append(x);});
   if(F.burned&&anim.shown){ const flyset=anim.shown.concat((st.last&&st.last.cards)||[]).slice(-6); post.push(()=>flyCards(flyset,document.querySelector(".pile"),document.querySelector(".discard"),{step:100})); }
   if(F.same&&anim.pile>0&&st.pile.length===0&&!F.burned&&st.lastTake&&st.lastTake.seq!==anim.takeSeq&&anim.shown){
-    const lt=st.lastTake, flyset=anim.shown.concat(lt.blind&&st.lastBlind?[st.lastBlind.card]:[]);
+    const lt=st.lastTake, flyset=anim.shown.concat(lt.blind&&st.lastBlind&&st.lastBlind.card?[st.lastBlind.card]:[]);
     post.push(()=>{ const to=document.querySelector(`[data-pid="${CSS.escape(lt.pid)}"]`); flyCards(flyset,document.querySelector(".pile"),to,{step:70,dur:850}); });
+  }
+  if(isFinite(F.freshFrom)&&st.pile.length){
+    const top=rk(st.pile[st.pile.length-1]);
+    post.push(()=>{ const c=document.querySelector(".center"); if(c){ c.classList.remove("jolt"); void c.offsetWidth; c.classList.add("jolt"); } });
+    if(top==="2"||top==="8"){ pile.classList.add("flash",top==="2"?"f2":"f8"); pile.append(el("div",{class:"spop "+(top==="2"?"s2":"s8"),text:top==="2"?"Старшая!":"Прозрачная!"})); }
   }
   if(F.burned){ pile.classList.add("burning"); pile.append(el("div",{class:"burnfx"}),el("div",{class:"burntxt",text:"🔥 Сгорело!"})); if((st.burnStreak||0)>=2) setTimeout(()=>Fx.bigText(st.burnStreak>=3?"Тройное сжигание!":"Двойное сжигание!","hot"),150); }
   if(F.same&&anim.pile>=8&&st.pile.length===0&&!F.burned&&st.lastTake){ setTimeout(()=>{ Fx.shake(); Fx.bigText("Ой! +"+st.lastTake.n); },60); }
@@ -1048,6 +1114,24 @@ function renderTable(){
   if((st.log||[]).length) app.append(el("div",{class:"panel"},el("h2",{},"Ходы"),el("div",{class:"log"},st.log.map(l=>el("div",{text:l})))));
 }
 
+/* ---------- веер карт в руке, покачивание и 3D-наклон с бликом ---------- */
+function fanHand(box){
+  const cards=[...box.children].filter(c=>c.classList.contains("card")), n=cards.length; if(!n) return;
+  box.classList.add("fan");
+  const mid=(n-1)/2, spread=Math.min(5,32/n), lift=Math.min(1.8,9/n);
+  box.style.paddingBottom=Math.round(mid*mid*lift+Math.min(14,n*1.6)+6)+"px";
+  cards.forEach((c,i)=>{ const d=i-mid; c.style.setProperty("--fr",(d*spread).toFixed(2)+"deg"); c.style.setProperty("--fy",(d*d*lift).toFixed(1)+"px"); c.style.setProperty("--i",i); if(c.tagName==="BUTTON") addTilt(c); });
+  post.push(()=>{ const h=document.querySelector(".hand.fan"); if(!h) return; const cs=[...h.querySelectorAll(":scope > .card")]; if(cs.length<2) return;
+    const W=h.clientWidth, cw=cs[0].getBoundingClientRect().width; const need=cs.length*cw+(cs.length-1)*6;
+    h.style.setProperty("--ov",need>W?((W-cs.length*cw)/(cs.length-1)-2).toFixed(1)+"px":"6px"); });
+}
+function addTilt(c){
+  if(Prefs.get("anim")==="off") return;
+  c.addEventListener("pointermove",e=>{ const r=c.getBoundingClientRect(), x=(e.clientX-r.left)/r.width, y=(e.clientY-r.top)/r.height;
+    c.style.setProperty("--ry",((x-.5)*22).toFixed(1)+"deg"); c.style.setProperty("--rx",((.5-y)*22).toFixed(1)+"deg");
+    c.style.setProperty("--gx",(x*100).toFixed(0)+"%"); c.style.setProperty("--gy",(y*100).toFixed(0)+"%"); c.classList.add("tilt"); });
+  c.addEventListener("pointerleave",()=>{ c.style.removeProperty("--rx"); c.style.removeProperty("--ry"); c.classList.remove("tilt"); });
+}
 function renderSeat(st,myTurn){
   const hand=Array.isArray(st.hands[me.id])?st.hands[me.id]:[], up=st.up[me.id]||[], downN=st.down[me.id]||0;
   const src=st.status==="play"?mySource():null, done=st.finished.includes(me.id);
@@ -1078,6 +1162,7 @@ function renderSeat(st,myTurn){
     else if(myTurn&&src==="hands") handBox.append(cardEl(c,{extra:glowOk(c),onclick:()=>toggle("hands",c),selected:selSrc==="hands"&&sel.includes(c),dim:!canPlay(rk(c),st.pile)}));
     else handBox.append(cardEl(c));
   });
+  fanHand(handBox);
   if(!hand.length) handBox.append(el("span",{class:"muted small",style:"align-self:center"},done?"Ты вышел из игры":"Рука пустая"));
   const actions=el("div",{class:"row"});
   if(swapping) actions.append(el("button",{class:"btn",type:"button",onclick:()=>act("ready")},"Готов"),el("span",{class:"muted small"},"Нажми карту в руке, потом открытую — они поменяются местами."));
