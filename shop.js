@@ -14,6 +14,7 @@ const ECONOMY = {
 // type: bg | deck | color | title | reacts | winfx
 const ITEMS = [
   { id: "bg:felt", type: "bg", key: "felt", name: "Сукно", price: 0 },
+  { id: "bg:classic", type: "bg", key: "classic", name: "Классический стол", price: 0 },
   { id: "bg:stars", type: "bg", key: "stars", name: "Звёздное небо", price: 20 },
   { id: "bg:city", type: "bg", key: "city", name: "Ночной город", price: 30 },
   { id: "bg:tavern", type: "bg", key: "tavern", name: "Таверна", price: 30 },

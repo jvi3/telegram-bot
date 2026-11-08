@@ -384,7 +384,7 @@ function subscribe(ws, room) {
   room.subs.add(ws);
 }
 
-const ACTIONS = new Set(["start", "leave", "swap", "ready", "play", "blind", "take", "again", "addBot", "kick", "setTimer"]);
+const ACTIONS = new Set(["start", "leave", "swap", "arrange", "ready", "play", "blind", "take", "again", "addBot", "kick", "setTimer"]);
 
 function handle(ws, msg) {
   if (!msg || typeof msg !== "object") return;

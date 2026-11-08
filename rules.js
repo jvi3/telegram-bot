@@ -246,6 +246,16 @@ const A = {
     if (st.status !== "over") return false;
     deal(st);
   },
+  // Выбор трёх карт, которые лягут сверху на закрытые (из шести: рука + открытые)
+  arrange(st, pid, upCards) {
+    if (st.status !== "swap" || st.ready[pid] === undefined || st.ready[pid]) return false;
+    const pool = [...st.hands[pid], ...st.up[pid]];
+    if (!Array.isArray(upCards) || upCards.length !== 3 || new Set(upCards).size !== 3) return "Выбери ровно 3 карты";
+    if (!upCards.every(c => pool.includes(c))) return false;
+    st.up[pid] = upCards.slice();
+    st.hands[pid] = sortHand(pool.filter(c => !upCards.includes(c)));
+    return A.ready(st, pid);
+  },
   setTimer(st, pid, sec) {
     if (st.host !== pid) return "Таймер включает создатель комнаты";
     if (st.status !== "lobby" && st.status !== "over") return "Таймер можно поменять только между партиями";

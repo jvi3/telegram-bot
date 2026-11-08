@@ -693,6 +693,13 @@ const Bg=(()=>{
   const GEN={
     felt(c,w,h){ const r=rng(3); c.fillStyle="#123a33"; c.fillRect(0,0,w,h); for(let i=0;i<w*h*.08;i++) px(c,r()*w,r()*h,r()<.5?"#15433b":"#0f322c");
       const g=c.createRadialGradient(w/2,h*.45,Math.min(w,h)*.2,w/2,h*.45,Math.max(w,h)*.75); g.addColorStop(0,"rgba(0,0,0,0)"); g.addColorStop(1,"rgba(0,0,0,.45)"); c.fillStyle=g; c.fillRect(0,0,w,h); },
+    classic(c,w,h){ const m=Math.max(4,Math.round(w*.07));
+      c.fillStyle="#5a3418"; c.fillRect(0,0,w,h); for(let y=0;y<h;y+=3){ c.fillStyle=y%6?"#6a3e1c":"#4e2c14"; c.fillRect(0,y,w,1); }
+      c.fillStyle="#0f5a3a"; c.fillRect(m,m,w-2*m,h-2*m); const r=rng(7);
+      for(let i=0;i<w*h*.12;i++) px(c,m+r()*(w-2*m),m+r()*(h-2*m),r()<.5?"#126a44":"#0c4e32");
+      const g=c.createRadialGradient(w/2,h/2,Math.min(w,h)*.1,w/2,h/2,Math.max(w,h)*.7); g.addColorStop(0,"rgba(255,255,255,.07)"); g.addColorStop(1,"rgba(0,0,0,.35)"); c.fillStyle=g; c.fillRect(m,m,w-2*m,h-2*m);
+      c.globalAlpha=.55; c.strokeStyle="#c9a24a"; c.lineWidth=1; c.strokeRect(m+4.5,m+4.5,w-2*m-9,h-2*m-9); c.globalAlpha=1;
+      c.fillStyle="#2a160a"; c.fillRect(m-1,m-1,w-2*m+2,1); c.fillRect(m-1,h-m,w-2*m+2,1); c.fillRect(m-1,m-1,1,h-2*m+2); c.fillRect(w-m,m-1,1,h-2*m+2); },
     city(c,w,h,t){ bands(c,w,["#0b0f24","#11163a","#1a1d4a","#262457"],0,h); const r=rng(7); for(let i=0;i<w*h/90;i++) px(c,r()*w,r()*h*.5,"#8f95c9");
       let x=0; while(x<w){ const bw=6+(r()*9|0), bh=Math.round(h*(.25+r()*.45)); c.fillStyle=r()<.5?"#070a18":"#0b0e20"; c.fillRect(x,h-bh,bw,bh);
         for(let yy=h-bh+3;yy<h-2;yy+=4) for(let xx=x+1;xx<x+bw-1;xx+=3){ const on=r()<.35, off=Math.sin(t/900+xx*3+yy)>.97; if(on&&!off) px(c,xx,yy,"#e8c46a"); } x+=bw+1; } },
@@ -731,7 +738,7 @@ const Bg=(()=>{
   function draw(t){ (GEN[key]||GEN.felt)(c,W,H,t); c.fillStyle="rgba(0,0,0,.22)"; c.fillRect(0,0,W,H); }
   function resize(){ W=120; H=Math.max(60,Math.min(400,Math.round(120*innerHeight/Math.max(1,innerWidth)))); cv.width=W; cv.height=H; draw(performance.now()); }
   let n=0;
-  function tick(){ if(!live||key==="felt"||document.hidden) return; n++; if(key==="swirl"&&n%2) return; draw(performance.now()); }
+  function tick(){ if(!live||key==="felt"||key==="classic"||document.hidden) return; n++; if(key==="swirl"&&n%2) return; draw(performance.now()); }
   addEventListener("resize",()=>{ clearTimeout(resize.t); resize.t=setTimeout(resize,150); }); resize();
   setInterval(tick,120); // ~8 кадров в секунду: фону больше не нужно, а телефону легче
   return {
