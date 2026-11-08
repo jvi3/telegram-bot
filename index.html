@@ -19,6 +19,7 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{min-height:100%;margin:0}
 body{background:radial-gradient(120% 90% at 50% 40%,var(--felt) 0%,var(--felt-2) 100%) fixed;background-color:var(--felt-2);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent}
 .wrap{max-width:980px;margin:0 auto;padding-block:16px 40px;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
@@ -163,14 +164,42 @@ button.card:disabled{cursor:default}
 .board .nm{max-width:12em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .board tr.meRow td{background:rgba(226,173,75,.08)}
 .loser{font-family:var(--display);font-size:clamp(18px,4.5vw,26px);color:var(--brass)}
-@media (max-width:560px){.center{grid-template-columns:1fr 1fr}.pilebox{grid-column:1/-1;order:-1}}
+@media (max-width:560px){.center{grid-template-columns:auto minmax(0,1fr) auto;padding:10px 8px;gap:6px}.need{font-size:12px}.status{font-size:14px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* ---------- подгонка под экран и анимации ---------- */
+:root{--cwb:clamp(38px,min(11.5vw,7vh),66px);--cw:var(--cwb);--gap:18px}
+@media (max-height:820px){:root{--gap:10px}.wrap.app{gap:10px;padding-block:10px 24px}.center{padding:12px;gap:10px}.seat{padding:12px;gap:8px}.opp{padding:8px 10px;gap:6px}.panel{padding:12px}.hand{padding-top:10px}h1{font-size:clamp(18px,4.4vw,28px)}}
+.mini{--cw:clamp(22px,calc(var(--cwb)*.5),30px)}
+.center .side{--cw:calc(var(--cwb)*.72)}
+.hdr .gear{padding:7px 14px;font-size:13px}
+.hdr .audio{flex-basis:100%}
+@keyframes flyin{0%{transform:translate(0,110%) rotate(-14deg) scale(.7);opacity:0}70%{opacity:1}100%{transform:var(--rot,none);opacity:1}}
+@keyframes drawin{0%{transform:translate(0,-60px) scale(.75) rotate(6deg);opacity:0}100%{transform:none;opacity:1}}
+@keyframes dealin{0%{transform:translate(0,-160px) rotate(18deg) scale(.6);opacity:0}100%{opacity:1}}
+@keyframes burnfx{0%{transform:scale(.3);opacity:.95}60%{opacity:.7}100%{transform:scale(2.4);opacity:0}}
+@keyframes burntxt{0%{transform:translate(-50%,-30%) scale(.6);opacity:0}25%{transform:translate(-50%,-50%) scale(1.15);opacity:1}75%{opacity:1}100%{transform:translate(-50%,-90%) scale(1);opacity:0}}
+@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-4px) rotate(-1deg)}40%{transform:translateX(4px) rotate(1deg)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+@keyframes pop{0%{transform:scale(.85);opacity:.4}60%{transform:scale(1.08);opacity:1}100%{transform:none}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(226,173,75,.0)}50%{box-shadow:0 0 0 6px rgba(226,173,75,.22)}}
+.pile .card{transform:var(--rot,none)}
+.pile .card.fresh{animation:flyin .42s cubic-bezier(.2,.9,.25,1.15) both}
+.hand>.card.drawin{animation:drawin .38s cubic-bezier(.2,.9,.3,1.2) both}
+.seat .card.dealin{animation:dealin .45s cubic-bezier(.2,.8,.3,1.1) both}
+.pile.burning{animation:shake .45s ease-in-out}
+.burnfx{position:absolute;left:50%;top:50%;width:calc(var(--cw)*1.6);height:calc(var(--cw)*1.6);margin:calc(var(--cw)*-.8) 0 0 calc(var(--cw)*-.8);border-radius:50%;background:radial-gradient(circle,#fff3c4 0%,#ffb340 30%,#e2522b 60%,transparent 72%);animation:burnfx .8s ease-out forwards;pointer-events:none}
+.burntxt{position:absolute;left:50%;top:50%;font-family:var(--display);font-weight:700;font-size:15px;color:#ffd27a;text-shadow:0 2px 8px rgba(0,0,0,.6);white-space:nowrap;animation:burntxt 1.3s ease-out forwards;pointer-events:none}
+.status.pop{animation:pop .4s ease-out}
+.seat.turn,.opp.turn{animation:glow 1.8s ease-in-out infinite}
+.loser{animation:pop .5s ease-out}
+@media (prefers-reduced-motion:reduce){.pile .card.fresh,.hand>.card.drawin,.seat .card.dealin,.pile.burning,.burnfx,.burntxt,.status.pop,.seat.turn,.opp.turn,.loser{animation:none!important}.burnfx,.burntxt{display:none}}
+
 </style>
 </head>
 <body>
 <header class="wrap hdr">
   <div class="brand"><span class="by">by Кащей</span><h1>Китайский <b>дурак</b></h1></div>
-  <div class="audio" id="audio"></div>
+  <button id="gear" class="btn ghost gear" type="button" aria-expanded="false" aria-controls="audio">⚙ Звук и колода</button>
+  <div class="audio" id="audio" hidden></div>
 </header>
 <div class="wrap app" id="app"></div>
 <script>window.__DEV__=false;</script>
@@ -189,7 +218,7 @@ let sel=[], selSrc=null, swapHand=null, toastTimer=null, board=null;
 
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
 
-if(TG){ try{ TG.ready(); TG.expand(); TG.setHeaderColor("#0c2b26"); TG.setBackgroundColor("#0c2b26"); }catch(e){} }
+if(TG){ try{ TG.disableVerticalSwipes&&TG.disableVerticalSwipes(); }catch(e){} try{ TG.ready(); TG.expand(); TG.setHeaderColor("#0c2b26"); TG.setBackgroundColor("#0c2b26"); }catch(e){} }
 
 // комната из ссылки-приглашения
 {
@@ -352,6 +381,8 @@ function themesPanel(){
 }
 applyCardTheme();
 function buildAudioBar(){
+  const gear=document.getElementById("gear"), ab=document.getElementById("audio");
+  if(gear&&ab) gear.addEventListener("click",()=>{ ab.hidden=!ab.hidden; gear.setAttribute("aria-expanded",String(!ab.hidden)); Sound.fx("pick"); });
   const box=document.getElementById("audio"); if(!box) return;
   const S=Sound.state;
   const musBtn=el("button",{class:"ib",type:"button","aria-pressed":String(S.musOn),"aria-label":"Музыка",title:"Музыка вкл/выкл"},"♪");
@@ -412,7 +443,7 @@ const act=(a,...args)=>{ sendMsg({t:"act",a,args}); sel=[];selSrc=null;swapHand=
 
 /* ---------- логика для подсказок ---------- */
 function effectiveTop(p){ for(let i=p.length-1;i>=0;i--) if(rk(p[i])!=="8") return p[i]; return null; }
-function canPlay(r,p){ if(r==="8"||r==="10"||r==="2")return true; const t=effectiveTop(p); if(!t)return true; return val(r)>=val(rk(t)); }
+function canPlay(r,p){ if(r==="8"||r==="10"||r==="2")return true; const t=effectiveTop(p); if(!t||rk(t)==="2")return true; return val(r)>=val(rk(t)); }
 const cnt=x=>Array.isArray(x)?x.length:(x||0);
 const nameOf=id=>(room.players.find(p=>p.id===id)||{}).name||"Игрок";
 function mySource(){ const h=room.hands[me.id]; if(cnt(h))return"hands"; if((room.up[me.id]||[]).length)return"up"; if(room.down[me.id])return"down"; return null; }
@@ -471,7 +502,7 @@ function rulesPanel(){
   const mk=(c,t,d)=>el("div",{class:"rule"},cardEl(c),el("div",{},el("strong",{text:t}),el("p",{text:d})));
   return el("div",{class:"panel"},el("h2",{},"Особые карты"),
     el("div",{class:"rules"},
-      mk("2h","Двойка — старшая","Сильнее туза. Кладётся на что угодно, побить её можно только двойкой."),
+      mk("2h","Двойка — старшая","Бьёт любую карту, даже туза. Но на неё можно положить любую карту."),
       mk("8s","Восьмёрка — прозрачная","Кладётся на любую карту. Следующий бьёт карту, которая лежит под ней."),
       mk("10d","Десятка — сброс","Кладётся на любую карту и сжигает стопку. Ты ходишь ещё раз.")),
     el("p",{class:"muted small"},"3 закрытые, 3 открытые и 3 в руку, перед игрой руку можно поменять с открытыми. Кладёшь равную или старшую, можно несколько одинаковых, добираешь до 3 из колоды. Не можешь побить — забираешь стопку. Четыре одинаковые подряд сжигают стопку. Потом играешь открытыми, затем закрытыми вслепую. Кто остался последним — дурак."));
@@ -501,9 +532,22 @@ function renderWaiting(){
   app.append(rulesPanel());
 }
 
+
+/* ---------- анимации стола: сравниваем с прошлым кадром ---------- */
+let anim={code:null,pile:0,burned:0,hand:null,status:null,turn:null};
+function animFlags(st,turnId){
+  const same=anim.code===st.code;
+  return {same, freshFrom: same&&st.pile.length>anim.pile?anim.pile:Infinity, burned: same&&st.burned>anim.burned,
+    deal: st.status==="swap"&&(!same||anim.status!=="swap"), turnChanged: same&&anim.turn!==turnId&&turnId!=null};
+}
+function animSeat(seatEl,F,hand){
+  if(F.deal){ seatEl.querySelectorAll(".card").forEach((c,i)=>{ c.classList.add("dealin"); c.style.animationDelay=(i*45)+"ms"; }); return; }
+  if(F.same&&anim.hand){ let k=0; [...seatEl.querySelectorAll(".hand > .card")].forEach((c,i)=>{ if(hand[i]&&!anim.hand.has(hand[i])){ c.classList.add("drawin"); c.style.animationDelay=(k++*60)+"ms"; } }); }
+}
 function renderTable(){
   const st=room,n=st.players.length,myIdx=st.players.findIndex(p=>p.id===me.id),seated=myIdx>=0;
   const turnId=st.status==="play"?st.players[st.turn].id:null, myTurn=turnId===me.id;
+  const F=animFlags(st,turnId);
   const opps=el("div",{class:"opps"});
   for(let k=1;k<=n;k++){
     const p=st.players[((seated?myIdx:-1)+k+n)%n]; if(p.id===me.id) continue;
@@ -518,7 +562,9 @@ function renderTable(){
 
   const pile=el("div",{class:"pile"}), shown=st.pile.slice(-4);
   if(!shown.length) pile.append(el("div",{class:"card empty",style:"left:calc(50% - var(--cw)/2)"}));
-  shown.forEach((c,i)=>{const x=cardEl(c);x.style.left=`calc(50% - var(--cw)/2 + ${(i-(shown.length-1))*18}px)`;x.style.transform=`rotate(${(i-(shown.length-1))*-4}deg)`;pile.append(x);});
+  shown.forEach((c,i)=>{const x=cardEl(c);x.style.left=`calc(50% - var(--cw)/2 + ${(i-(shown.length-1))*18}px)`;x.style.setProperty("--rot",`rotate(${(i-(shown.length-1))*-4}deg)`);
+    const gi=st.pile.length-shown.length+i; if(gi>=F.freshFrom){ x.classList.add("fresh"); x.style.animationDelay=((gi-F.freshFrom)*70)+"ms"; } pile.append(x);});
+  if(F.burned){ pile.classList.add("burning"); pile.append(el("div",{class:"burnfx"}),el("div",{class:"burntxt",text:"🔥 Сгорело!"})); }
   const eff=effectiveTop(st.pile);
   let statusText, need="";
   if(st.status==="swap") statusText=st.ready[me.id]?"Ждём, пока остальные поменяют карты":"Поменяй карты: нажми карту в руке, потом открытую";
@@ -526,12 +572,12 @@ function renderTable(){
   else statusText="Партия окончена";
   if(st.status==="play"){
     if(!st.pile.length) need="Стопка пустая — можно любую карту";
-    else if(eff) need=rk(eff)==="2"?"Сверху двойка: бьётся только двойкой, или клади 8 / 10":`Бей ${rk(eff)} или старше${rk(st.pile[st.pile.length-1])==="8"?" (под восьмёркой)":""}. 8, 10 и 2 — на что угодно.`;
+    else if(eff) need=rk(eff)==="2"?"Сверху двойка — можно любую карту":`Бей ${rk(eff)} или старше${rk(st.pile[st.pile.length-1])==="8"?" (под восьмёркой)":""}. 8, 10 и 2 — на что угодно.`;
     else need="Сверху только восьмёрки — можно любую карту";
   }
   app.append(el("div",{class:"center"},
     el("div",{class:"side"},st.deck?backEl():el("div",{class:"card empty"}),el("span",{},"Колода: ",el("b",{text:st.deck}))),
-    el("div",{class:"pilebox"},pile,el("div",{class:"status"},statusText),el("div",{class:"need",text:need})),
+    el("div",{class:"pilebox"},pile,el("div",{class:"status"+(F.turnChanged?" pop":"")},statusText),el("div",{class:"need",text:need})),
     el("div",{class:"side"},el("div",{class:"card empty"}),el("span",{},"Сброшено: ",el("b",{text:st.burned})))));
 
   if(st.status==="over"){
@@ -540,8 +586,10 @@ function renderTable(){
       el("ol",{},st.finished.map(id=>el("li",{text:nameOf(id)+(id===me.id?" (ты)":"")}))),
       el("div",{class:"row"},st.host===me.id?el("button",{class:"btn",type:"button",onclick:()=>act("again")},"Новая партия"):el("span",{class:"muted small"},"Новую партию начнёт создатель комнаты."))));
   }
-  if(seated) app.append(renderSeat(st,myTurn));
+  const myHandArr=Array.isArray(st.hands[me.id])?st.hands[me.id]:[];
+  if(seated){ const seatEl=renderSeat(st,myTurn); animSeat(seatEl,F,myHandArr); app.append(seatEl); }
   else app.append(el("div",{class:"panel"},el("p",{class:"muted"},"Ты смотришь эту партию. Сесть можно, когда начнётся следующая.")));
+  anim={code:st.code,pile:st.pile.length,burned:st.burned,hand:new Set(myHandArr),status:st.status,turn:turnId};
   if((st.log||[]).length) app.append(el("div",{class:"panel"},el("h2",{},"Ходы"),el("div",{class:"log"},st.log.map(l=>el("div",{text:l})))));
 }
 
