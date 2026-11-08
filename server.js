@@ -22,25 +22,55 @@ const sha = s => crypto.createHash("sha256").update(s).digest("hex");
 const HOOK_SECRET = BOT_TOKEN ? sha("hook" + BOT_TOKEN).slice(0, 40) : "dev";
 const HOOK_PATH = "/tg/" + HOOK_SECRET.slice(0, 20);
 let botUsername = process.env.BOT_USERNAME || "";
+const ADMIN_IDS = String(process.env.ADMIN_IDS || "").split(/[^0-9]+/).filter(Boolean);
+const startedAt = Date.now();
+
+/* ---------------- данные: игроки, баны, статистика ---------------- */
+// Хранятся в файле data.json. На бесплатном Render файл очищается при перезапуске сервера.
+const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, "data.json");
+let data = { users: {}, banned: [], stats: { games: 0 }, maintenance: false };
+try { data = Object.assign(data, JSON.parse(fs.readFileSync(DATA_FILE, "utf8"))); } catch (e) {}
+let saveTimer = null;
+function save() {
+  if (saveTimer) return;
+  saveTimer = setTimeout(() => {
+    saveTimer = null;
+    fs.writeFile(DATA_FILE, JSON.stringify(data), e => { if (e) console.error("Не удалось сохранить data.json:", e.message); });
+  }, 1500);
+}
+function touchUser(tgId, from) {
+  const id = String(tgId);
+  const u = data.users[id] || { first: Date.now(), games: 0 };
+  if (from) { u.name = String(from.first_name || from.username || u.name || "Игрок").slice(0, 32); if (from.username) u.username = from.username; }
+  u.last = Date.now();
+  data.users[id] = u;
+  save();
+}
 
 /* ---------------- Telegram API ---------------- */
-async function tg(method, body) {
+async function tg(method, body, opts) {
   const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${method}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body || {}),
   });
   const j = await res.json().catch(() => ({}));
-  if (!j.ok) console.error(`Telegram ${method}:`, j.description || res.status);
+  if (!j.ok && !(opts && opts.quiet)) console.error(`Telegram ${method}:`, j.description || res.status);
   return j.result;
 }
 
 const appUrl = code => PUBLIC_URL + "/" + (code ? `?room=${code}` : "");
 
 async function onUpdate(u) {
+  if (u.callback_query) return admin.onCallback(u.callback_query);
   const m = u.message;
   if (!m || !m.text || !m.chat) return;
+  if (m.from && m.chat.type === "private") touchUser(m.from.id, m.from);
+  if (await admin.onMessage(m)) return;
   const [cmd, arg] = m.text.trim().split(/\s+/);
+  if (cmd === "/myid") {
+    return tg("sendMessage", { chat_id: m.chat.id, parse_mode: "HTML", text: `Твой Telegram ID: <code>${m.from.id}</code>${admin.isAdmin(m.from.id) ? "\nТы админ, панель: /admin" : ""}` });
+  }
   if (cmd !== "/start" && cmd !== "/play") {
     return tg("sendMessage", {
       chat_id: m.chat.id,
@@ -71,9 +101,15 @@ async function setupBot() {
     console.error("Не знаю адрес сервера: задай PUBLIC_URL (на Render он подставится сам).");
     return;
   }
-  await tg("setWebhook", { url: PUBLIC_URL + HOOK_PATH, secret_token: HOOK_SECRET, allowed_updates: ["message"] });
+  await tg("setWebhook", { url: PUBLIC_URL + HOOK_PATH, secret_token: HOOK_SECRET, allowed_updates: ["message", "callback_query"] });
   await tg("setChatMenuButton", { menu_button: { type: "web_app", text: "Играть", web_app: { url: appUrl() } } });
-  await tg("setMyCommands", { commands: [{ command: "start", description: "Открыть игру" }] });
+  await tg("setMyCommands", { commands: [{ command: "start", description: "Открыть игру" }, { command: "myid", description: "Узнать свой ID" }] });
+  for (const id of ADMIN_IDS) {
+    await tg("setMyCommands", { scope: { type: "chat", chat_id: Number(id) }, commands: [
+      { command: "start", description: "Открыть игру" }, { command: "admin", description: "Админ-панель" }, { command: "myid", description: "Узнать свой ID" },
+    ] }, { quiet: true });
+  }
+  if (!ADMIN_IDS.length) console.log("Админов нет: добавь ADMIN_IDS в Environment Variables, чтобы открыть /admin.");
   console.log(`Бот @${botUsername} готов, игра: ${PUBLIC_URL}`);
 }
 
@@ -92,7 +128,7 @@ function checkInitData(initData) {
   let u = null;
   try { u = JSON.parse(p.get("user") || "null"); } catch (e) {}
   if (!u || !u.id) return null;
-  return { id: "tg" + u.id, name: String(u.first_name || u.username || "Игрок").slice(0, 16) };
+  return { id: "tg" + u.id, name: String(u.first_name || u.username || "Игрок").slice(0, 16), from: { first_name: u.first_name, username: u.username } };
 }
 
 /* ---------------- комнаты ---------------- */
@@ -132,6 +168,17 @@ function viewFor(st, uid) {
 function send(ws, msg) { if (ws.readyState === 1) ws.send(JSON.stringify(msg)); }
 function broadcast(room) {
   room.st.updated = Date.now();
+  if (room.lastStatus !== room.st.status) {
+    if (room.st.status === "over" && !room.st.practice) {
+      data.stats.games++;
+      for (const p of room.st.players) {
+        const id = p.id.startsWith("tg") ? p.id.slice(2) : null;
+        if (id && data.users[id]) data.users[id].games = (data.users[id].games || 0) + 1;
+      }
+      save();
+    }
+    room.lastStatus = room.st.status;
+  }
   for (const ws of room.subs) send(ws, { t: "state", room: viewFor(room.st, ws.user && ws.user.id) });
 }
 
@@ -165,13 +212,18 @@ function handle(ws, msg) {
       user = { id: "dev" + msg.dev.replace(/[^a-z0-9]/gi, "").slice(0, 12), name: String(msg.name || "Игрок").slice(0, 16) };
     }
     if (!user) return send(ws, { t: "fatal", msg: "Открой игру через Telegram-бота, а не по прямой ссылке." });
+    const tgId = user.id.startsWith("tg") ? user.id.slice(2) : null;
+    if (tgId && data.banned.includes(tgId)) return send(ws, { t: "fatal", msg: "Тебе закрыт доступ к игре." });
+    if (tgId) touchUser(tgId, user.from);
     ws.user = user;
-    return send(ws, { t: "me", me: user, bot: botUsername });
+    return send(ws, { t: "me", me: { id: user.id, name: user.name }, bot: botUsername });
   }
   if (!ws.user) return;
   const me = ws.user;
 
+  const MAINT = "Идут техработы, новые игры пока не создаются. Загляни чуть позже.";
   if (msg.t === "create" || msg.t === "practice") {
+    if (data.maintenance && !admin.isAdmin(me.id.replace(/^tg/, ""))) return send(ws, { t: "error", msg: MAINT });
     const room = newRoom(me, msg.t === "practice");
     if (msg.t === "practice") {
       const n = Math.min(3, Math.max(1, Number(msg.bots) || 1));
@@ -204,9 +256,7 @@ function handle(ws, msg) {
   if (msg.t === "close") {
     const room = ws.room;
     if (!room || room.st.host !== me.id) return;
-    for (const s of room.subs) { send(s, { t: "gone", code: room.st.code }); s.room = null; }
-    clearTimeout(room.timer);
-    rooms.delete(room.st.code);
+    closeRoom(room.st.code);
     return;
   }
   if (msg.t === "act") {
@@ -223,6 +273,26 @@ function handle(ws, msg) {
   }
 }
 
+function closeRoom(code) {
+  const room = rooms.get(code);
+  if (!room) return false;
+  for (const s of room.subs) { send(s, { t: "gone", code }); s.room = null; }
+  clearTimeout(room.timer);
+  rooms.delete(code);
+  return true;
+}
+function kickUser(tgId) {
+  for (const ws of wss.clients) {
+    if (ws.user && ws.user.id === "tg" + tgId) { send(ws, { t: "fatal", msg: "Тебе закрыт доступ к игре." }); ws.close(); }
+  }
+}
+function onlineIds() {
+  const s = new Set();
+  for (const ws of wss.clients) if (ws.user && ws.user.id.startsWith("tg")) s.add(ws.user.id.slice(2));
+  return s;
+}
+const admin = require("./admin")({ tg, rooms, data, save, adminIds: ADMIN_IDS, kickUser, closeRoom, onlineIds, startedAt, appUrl });
+
 // Чистим комнаты, где давно никто не играл
 setInterval(() => {
   const now = Date.now();
@@ -233,7 +303,12 @@ setInterval(() => {
 }, 10 * 60e3);
 
 /* ---------------- HTTP ---------------- */
-const indexHtml = fs.readFileSync(path.join(__dirname, "public", "index.html"));
+const indexPath = [path.join(__dirname, "index.html"), path.join(__dirname, "public", "index.html")].find(p => fs.existsSync(p));
+if (!indexPath) {
+  console.error("Не нашёл index.html. Загрузи его на GitHub рядом с server.js.");
+  process.exit(1);
+}
+const indexHtml = fs.readFileSync(indexPath);
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, "http://x");
