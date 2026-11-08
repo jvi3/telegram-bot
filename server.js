@@ -25,18 +25,59 @@ let botUsername = process.env.BOT_USERNAME || "";
 const ADMIN_IDS = String(process.env.ADMIN_IDS || "").split(/[^0-9]+/).filter(Boolean);
 const startedAt = Date.now();
 
-/* ---------------- данные: игроки, баны, статистика ---------------- */
-// Хранятся в файле data.json. На бесплатном Render файл очищается при перезапуске сервера.
+/* ---------------- данные: игроки, рейтинг, баны, статистика ---------------- */
+// Если задан DATABASE_URL (бесплатная база Neon), всё хранится там навсегда.
+// Без базы данные лежат в файле data.json и стираются при перезапуске сервера на Render.
+const DATABASE_URL = process.env.DATABASE_URL || "";
 const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, "data.json");
 let data = { users: {}, banned: [], stats: { games: 0 }, maintenance: false };
-try { data = Object.assign(data, JSON.parse(fs.readFileSync(DATA_FILE, "utf8"))); } catch (e) {}
-let saveTimer = null;
+let pool = null;
+
+async function loadData() {
+  if (DATABASE_URL) {
+    const { Pool } = require("pg");
+    pool = new Pool({ connectionString: DATABASE_URL, max: 3, idleTimeoutMillis: 30000 });
+    pool.on("error", e => console.error("База данных:", e.message)); // Neon сам закрывает простаивающие соединения
+    await pool.query("CREATE TABLE IF NOT EXISTS durak_kv (k text PRIMARY KEY, v jsonb NOT NULL, updated timestamptz NOT NULL DEFAULT now())");
+    const r = await pool.query("SELECT v FROM durak_kv WHERE k = 'data'");
+    if (r.rows[0]) data = Object.assign(data, r.rows[0].v);
+    console.log(`База данных подключена: игроков ${Object.keys(data.users).length}, партий ${data.stats.games}`);
+    return;
+  }
+  try { data = Object.assign(data, JSON.parse(fs.readFileSync(DATA_FILE, "utf8"))); } catch (e) {}
+  console.log("База данных не подключена: данные хранятся до перезапуска сервера (добавь DATABASE_URL).");
+}
+
+let saveTimer = null, saving = Promise.resolve();
+async function writeNow() {
+  const json = JSON.stringify(data);
+  if (pool) {
+    try { await pool.query("INSERT INTO durak_kv (k, v, updated) VALUES ('data', $1::jsonb, now()) ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v, updated = now()", [json]); }
+    catch (e) { console.error("Не удалось сохранить в базу:", e.message); }
+  } else {
+    await fs.promises.writeFile(DATA_FILE, json).catch(e => console.error("Не удалось сохранить data.json:", e.message));
+  }
+}
 function save() {
   if (saveTimer) return;
-  saveTimer = setTimeout(() => {
-    saveTimer = null;
-    fs.writeFile(DATA_FILE, JSON.stringify(data), e => { if (e) console.error("Не удалось сохранить data.json:", e.message); });
-  }, 1500);
+  saveTimer = setTimeout(() => { saveTimer = null; saving = saving.then(writeNow); }, 1500);
+}
+// Render выключает сервер сигналом SIGTERM (засыпание, новая версия): успеваем сохранить
+async function flushAndExit() {
+  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; saving = saving.then(writeNow); }
+  await saving;
+  if (pool) await pool.end().catch(() => {});
+  process.exit(0);
+}
+process.on("SIGTERM", flushAndExit);
+process.on("SIGINT", flushAndExit);
+
+function boardRows() {
+  return Object.entries(data.users)
+    .filter(([id, u]) => (u.games || 0) > 0 && !data.banned.includes(id))
+    .map(([id, u]) => ({ id: "tg" + id, name: u.name || "Игрок", points: u.points || 0, wins: u.wins || 0, fools: u.fools || 0, games: u.games || 0 }))
+    .sort((a, b) => b.points - a.points || b.wins - a.wins || a.fools - b.fools || b.games - a.games)
+    .slice(0, 20);
 }
 function touchUser(tgId, from) {
   const id = String(tgId);
@@ -171,11 +212,22 @@ function broadcast(room) {
   if (room.lastStatus !== room.st.status) {
     if (room.st.status === "over" && !room.st.practice) {
       data.stats.games++;
+      const n = room.st.players.length;
       for (const p of room.st.players) {
         const id = p.id.startsWith("tg") ? p.id.slice(2) : null;
-        if (id && data.users[id]) data.users[id].games = (data.users[id].games || 0) + 1;
+        const u = id && data.users[id];
+        if (!u) continue;
+        u.games = (u.games || 0) + 1;
+        if (p.id === room.st.loser) u.fools = (u.fools || 0) + 1;
+        else {
+          const place = room.st.finished.indexOf(p.id);
+          u.points = (u.points || 0) + Math.max(0, n - 1 - place); // вышел первым — больше всех очков, дурак — 0
+          if (place === 0) u.wins = (u.wins || 0) + 1;
+        }
       }
       save();
+      const board = boardRows();
+      for (const ws of wss.clients) if (ws.user) send(ws, { t: "board", rows: board });
     }
     room.lastStatus = room.st.status;
   }
@@ -209,13 +261,15 @@ function handle(ws, msg) {
   if (msg.t === "hello") {
     let user = checkInitData(msg.initData);
     if (!user && DEV && typeof msg.dev === "string") {
-      user = { id: "dev" + msg.dev.replace(/[^a-z0-9]/gi, "").slice(0, 12), name: String(msg.name || "Игрок").slice(0, 16) };
+      const nm = String(msg.name || "Игрок").slice(0, 16);
+      user = { id: "tg" + parseInt(sha(msg.dev).slice(0, 10), 16), name: nm, from: { first_name: nm } };
     }
     if (!user) return send(ws, { t: "fatal", msg: "Открой игру через Telegram-бота, а не по прямой ссылке." });
     const tgId = user.id.startsWith("tg") ? user.id.slice(2) : null;
     if (tgId && data.banned.includes(tgId)) return send(ws, { t: "fatal", msg: "Тебе закрыт доступ к игре." });
     if (tgId) touchUser(tgId, user.from);
     ws.user = user;
+    send(ws, { t: "board", rows: boardRows() });
     return send(ws, { t: "me", me: { id: user.id, name: user.name }, bot: botUsername });
   }
   if (!ws.user) return;
@@ -348,7 +402,11 @@ setInterval(() => {
   }
 }, 30000);
 
-server.listen(PORT, () => {
-  console.log(`Сервер запущен на порту ${PORT}${DEV ? " (режим DEV)" : ""}`);
-  setupBot().catch(e => console.error("Не удалось настроить бота:", e));
-});
+loadData()
+  .catch(e => { pool = null; console.error("Не удалось загрузить данные из базы, работаю без неё (данные в базе не трогаю):", e.message); })
+  .finally(() => {
+    server.listen(PORT, () => {
+      console.log(`Сервер запущен на порту ${PORT}${DEV ? " (режим DEV)" : ""}`);
+      setupBot().catch(e => console.error("Не удалось настроить бота:", e));
+    });
+  });
