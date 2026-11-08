@@ -580,6 +580,45 @@ header.hdr:has(.nav.float){z-index:24}
 .av.anon{border:1px dashed #7d8b87}
 .ntag.gone{min-width:0;min-height:0;padding:0}
 .eyebtn[aria-pressed="true"]{background:rgba(242,193,78,.25)}
+
+/* ---------- рука в два ряда ---------- */
+.hand.rows2{display:grid;grid-template-columns:repeat(var(--cols),var(--step,28px));justify-content:center;gap:0;padding-top:16px;padding-right:calc(var(--cw) - var(--step,28px));padding-bottom:4px}
+.hand.rows2>.card{--fr:0deg;--fy:0px}
+.hand.rows2>.card.r2{margin-top:calc(var(--cw) * -.42);z-index:1}
+.hand.rows2>.card:not(.drawin){animation:none}
+body.chaton .toast{bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+.hand.rows2>.card.r2:hover,.hand.rows2>.card.r2.sel{z-index:4}
+/* ---------- чат ---------- */
+.chatbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(6px + env(safe-area-inset-bottom,0px));width:min(520px,calc(100% - 16px));display:flex;gap:6px;align-items:center;z-index:12;background:rgba(6,14,12,.72);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:4px 4px 4px 14px}
+.chatbar input{flex:1;min-width:0;background:none;border:0;color:var(--text,#e9efe9);font-size:14px;padding:6px 0;outline:none}
+.chatbar input::placeholder{color:rgba(233,239,233,.45)}
+.chatbar .btn{padding:6px 12px;font-size:14px;border-radius:999px}
+.chatbar .ccount{font-size:10px;color:#ffb3a8}
+body.chaton .wrap.app{padding-bottom:calc(52px + env(safe-area-inset-bottom,0px))}
+body.tense .chatbar{display:none}
+.cbub{position:absolute;left:10px;bottom:calc(100% - 4px);max-width:min(240px,70vw);background:#f7f1e1;color:#1c1b19;font-size:13px;line-height:1.3;padding:6px 10px;border-radius:14px 14px 14px 4px;box-shadow:0 4px 14px rgba(0,0,0,.4);z-index:15;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;pointer-events:none;animation:cbub 6.5s ease both}
+.cbub.mine{background:#ffe6a0}
+.seat>.cbub{bottom:auto;top:-10px;transform:translateY(-100%)}
+@keyframes cbub{0%{opacity:0;translate:0 8px;scale:.8}5%{opacity:1;translate:0 0;scale:1}88%{opacity:1}100%{opacity:0;translate:0 -6px}}
+/* ---------- друзья ---------- */
+.frhead{justify-content:space-between}
+.frlist{display:flex;flex-direction:column;gap:6px}
+.frrow{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:12px;background:rgba(0,0,0,.25)}
+.frav{position:relative;flex:none}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#6b7a76;border:2px solid #0e1f1b}
+.frav .dot{position:absolute;right:-1px;bottom:-1px}
+.dot.online{background:#4cd98a}.dot.game{background:#f2c14e}
+.frn{flex:1;min-width:0;display:flex;flex-direction:column}
+.frn b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.frx{opacity:.6}
+.wfriends{display:flex;flex-direction:column;gap:6px;align-items:center;max-width:460px}
+.wfrow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.frchip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 5px;border-radius:999px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);color:var(--text,#e9efe9);font-size:13px}
+.frchip.offline{opacity:.7}
+.addfr{position:absolute;top:-6px;left:4px;width:24px;height:24px;border-radius:50%;border:0;background:#2e9e6e;font-size:12px;line-height:1;padding:0;z-index:2;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.vote{position:relative}.vote .addfr{position:static;width:22px;height:22px}
+.invbox{position:fixed;left:50%;top:calc(10px + var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px));transform:translateX(-50%);width:min(420px,calc(100% - 20px));display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;background:rgba(10,24,20,.96);border:1px solid rgba(242,193,78,.6);box-shadow:0 12px 30px rgba(0,0,0,.55);z-index:40;animation:navdown .4s cubic-bezier(.2,.9,.3,1.15)}
+.invt{flex:1;min-width:0;display:flex;flex-direction:column}
 </style>
 </head>
 <body>
@@ -1384,6 +1423,7 @@ function buildAudioBar(){
 
 
 /* ---------- очередь состояний: даём доиграть перевороту закрытой карты ---------- */
+let chatB={}, friends=[], myFcode="", pendingInvite=null, delFr=null;
 let holding=false; const stateQ=[]; let blindSeen=null, celebrated=null, exitSheet=false, countAt=null, waitAt=null, openTables=[], feed=[];
 function queueState(nr,at){ stateQ.push([nr,at]); if(!holding) pumpStates(); }
 function pumpStates(){
@@ -1403,6 +1443,7 @@ function pumpStates(){
 function applyState(nr,at){
       const prevTurn=room&&room.status==="play"&&room.players[room.turn]&&room.players[room.turn].id;
       const prevR=room; room=nr; soundsFor(prevR,room);
+      if(pendingInvite&&room.status==="lobby"&&room.host===me.id&&!room.practice){ const id=pendingInvite; pendingInvite=null; setTimeout(()=>sendMsg({t:"inviteFriend",id}),200); }
       deadlineAt=room.turnLeft>0?at+room.turnLeft:null;
       const iFinishedNow=prevR&&prevR.code===room.code&&!prevR.finished.includes(me.id)&&room.finished.includes(me.id);
       if(iFinishedNow){ const place=room.finished.indexOf(me.id); celebrated=room.code+":"+place;
@@ -1433,7 +1474,7 @@ function connect(){
   ws.onmessage=e=>{
     let m; try{m=JSON.parse(e.data)}catch(_){return}
     if(m.t==="me"){
-      me=m.me; botName=m.bot||""; conn="ok";
+      me=m.me; botName=m.bot||""; conn="ok"; sendMsg({t:"friends"});
       const code=pendingRoom||store.get("durak.room"); pendingRoom=null;
       if(code) sendMsg({t:"enter",code}); else render();
     } else if(m.t==="catalog"){
@@ -1444,6 +1485,9 @@ function connect(){
       if(profile) profile.coins=m.coins; Coins.animateTo(m.coins); applyCosmetics(); Fx.coinPop(m.delta); if(m.delta>0) Sound.fx("coin"); if(m.reason) toast(m.reason+(m.delta?` ${m.delta>0?"+":"−"}$${Math.abs(m.delta)}`:""));
     } else if(m.t==="casinoRes"){ onCasinoRes(m);
     } else if(m.t==="toast"){ toast(m.msg);
+    } else if(m.t==="chat"){ chatB[m.from]={text:m.text,at:Date.now()}; if(m.from!==me.id) Sound.fx("pick"); showBubbles();
+    } else if(m.t==="friends"){ friends=m.list||[]; myFcode=m.code||""; if(!room&&view==="main"){ const o=document.querySelector(".friendsp"); if(o) o.replaceWith(friendsPanel()); } else if(room&&room.status==="lobby"){ const o=document.querySelector(".wfriends"); if(o) o.replaceWith(lobbyFriends()); }
+    } else if(m.t==="invite"){ showInvite(m);
     } else if(m.t==="react"){
       const box=document.querySelector(`[data-pid="${CSS.escape(m.from)}"]`); Fx.emoji(m.e,box); if(m.from!==me.id) Sound.fx("pick");
     } else if(m.t==="openTables"){ openTables=m.list||[]; if(!room&&view==="main") render();
@@ -1494,6 +1538,7 @@ function render(){
   const prevSeat=seatRects();
   renderInner();
   glideSeat(prevSeat);
+  chatSync(); showBubbles();
   if(post.length){ const jobs=post.splice(0); requestAnimationFrame(()=>jobs.forEach(f=>{ try{ f(); }catch(e){} })); }
 }
 function renderInner(){
@@ -1536,6 +1581,7 @@ function renderMenu(){
     el("h2",{},"Тренировка с ботами"),
     el("p",{class:"muted small"},"Партия только для тебя. Боты ходят сами."),
     el("div",{class:"row"},[1,2,3].map(n=>el("button",{class:n===1?"btn":"btn ghost",type:"button",onclick:()=>sendMsg({t:"practice",bots:n})},n===1?"Против 1 бота":`Против ${n} ботов`)))));
+  app.append(friendsPanel());
   app.append(openPanel());
   app.append(boardPanel());
   app.append(rulesPanel());
@@ -1593,10 +1639,10 @@ function renderWaiting(){
     el("div",{class:"wtimer","data-since":String(waitAt||Date.now()),text:mmss(Date.now()-(waitAt||Date.now()))}));
   const seats=el("div",{class:"wseats"});
   for(let i=0;i<5;i++){ const p=st.players[i];
-    if(p) seats.append(el("div",{class:"wseat"},avatarEl(p,46),el("span",{class:"wn",text:anonOn()?shownName(p):p.name+(p.id===me.id?" (ты)":"")}),el("span",{class:"muted small",text:p.id===st.host?"создатель":p.bot?"бот":""}),
+    if(p) seats.append(el("div",{class:"wseat"},addFrBtn(p),avatarEl(p,46),el("span",{class:"wn",text:anonOn()?shownName(p):p.name+(p.id===me.id?" (ты)":"")}),el("span",{class:"muted small",text:p.id===st.host?"создатель":p.bot?"бот":""}),
       p.bot&&isHost?el("button",{class:"wkick",type:"button","aria-label":"Убрать бота",onclick:()=>act("kick",p.id)},"×"):null));
     else seats.append(el("button",{class:"wseat empty",type:"button",onclick:invite,"aria-label":"Позвать на свободное место"},el("span",{class:"wplus",text:"+"}),el("span",{class:"muted small",text:"свободно"}))); }
-  stage.append(seats);
+  stage.append(seats,lobbyFriends());
   if(countAt) stage.append(el("div",{class:"wcount","data-until":String(countAt),"data-fmt":"Автостарт через ",text:"Автостарт через "+mmss(countAt-Date.now())}));
   const opts=el("div",{class:"wopts"});
   if(isHost){ const id="open-tg"; const i=el("input",{type:"checkbox",id,checked:!!st.open}); i.addEventListener("change",()=>{ act("setOpen",i.checked); Sound.fx("pick"); });
@@ -1672,12 +1718,84 @@ function animSeat(seatEl,F,hand){
   if(F.deal){ seatEl.querySelectorAll(".card").forEach((c,i)=>{ c.classList.add("dealin"); c.style.animationDelay=(i*85)+"ms"; }); return; }
   if(F.same&&anim.hand){ let k=0; [...seatEl.querySelectorAll(".hand > .card")].forEach((c,i)=>{ if(hand[i]&&!anim.hand.has(hand[i])){ c.classList.add("drawin"); c.style.animationDelay=(k++*110)+"ms"; } }); }
 }
+/* ---------- чат за столом: пузырьки над ником ---------- */
+const CHAT_MS=6500;
+function showBubbles(){
+  const now=Date.now();
+  document.querySelectorAll(".cbub").forEach(b=>{ const c=chatB[b.dataset.for]; if(!c||now-c.at>CHAT_MS||b.dataset.at!=String(c.at)) b.remove(); });
+  for(const [pid,c] of Object.entries(chatB)){
+    const age=now-c.at; if(age>CHAT_MS){ delete chatB[pid]; continue; }
+    const host=document.querySelector(`[data-pid="${CSS.escape(pid)}"]`); if(!host||host.querySelector(":scope > .cbub")) continue;
+    const b=el("div",{class:"cbub"+(pid===me.id?" mine":""),"data-for":pid,"data-at":String(c.at),role:"status",text:c.text}); b.style.animationDelay=`-${age}ms`; host.append(b);
+    setTimeout(showBubbles,CHAT_MS-age+50);
+  }
+}
+let chatBar=null;
+function chatSync(){
+  const on=!!(room&&me&&room.players.some(p=>p.id===me.id)&&!tenseOn);
+  document.body.classList.toggle("chaton",on);
+  if(!on){ if(chatBar) chatBar.hidden=true; return; }
+  if(!chatBar){
+    const inp=el("input",{type:"text",maxlength:"50",placeholder:"Сообщение…","aria-label":"Сообщение в чат",enterkeyhint:"send",autocomplete:"off"});
+    const cnt=el("span",{class:"ccount","aria-hidden":"true"});
+    const go=()=>{ const t=inp.value.replace(/\s+/g," ").trim(); if(!t) return; sendMsg({t:"chat",text:t}); inp.value=""; cnt.textContent=""; inp.blur(); };
+    inp.addEventListener("input",()=>{ const n=inp.value.length; cnt.textContent=n>=35?`${n}/50`:""; });
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); go(); } });
+    chatBar=el("form",{class:"chatbar",onsubmit:e=>{ e.preventDefault(); go(); }},inp,cnt,el("button",{class:"btn",type:"submit","aria-label":"Отправить"},"➤"));
+    document.body.append(chatBar);
+  }
+  chatBar.hidden=false;
+}
+/* ---------- друзья ---------- */
+const isFriend=pid=>friends.some(f=>"tg"+f.id===pid);
+const ST_TXT={online:"в сети",game:"играет",offline:"не в сети"};
+function inviteFriend(f){
+  Sound.fx("pick");
+  if(room&&!room.practice&&room.status==="lobby") return sendMsg({t:"inviteFriend",id:f.id});
+  if(room&&!room.practice) return sendMsg({t:"inviteFriend",id:f.id});
+  pendingInvite=f.id; sendMsg({t:"create"}); toast(`Создаю стол и зову ${f.name}…`);
+}
+function friendsPanel(){
+  const box=el("div",{class:"panel friendsp"},el("h2",{},"Друзья"));
+  const inp=el("input",{id:"frcode",maxlength:"8",placeholder:"Код друга","aria-label":"Код друга",style:"width:8em;text-transform:uppercase;letter-spacing:.12em"});
+  const add=()=>{ const c=inp.value.trim(); if(c.length<4) return toast("Введи код друга"); sendMsg({t:"addFriend",code:c}); inp.value=""; };
+  inp.addEventListener("keydown",e=>{ if(e.key==="Enter") add(); });
+  box.append(el("div",{class:"row frhead"},el("span",{class:"muted small"},"Твой код: ",el("b",{class:"code",text:myFcode||"…"})),
+    myFcode?el("button",{class:"btn ghost tiny",type:"button",onclick:()=>{ const t=`Добавь меня в друзья в «Китайском дураке»: мой код ${myFcode}`; if(navigator.clipboard) navigator.clipboard.writeText(t).then(()=>toast("Код скопирован")); else toast(myFcode); }},"Копировать"):null),
+    el("div",{class:"row"},inp,el("button",{class:"btn small",type:"button",onclick:add},"Добавить")));
+  if(!friends.length) box.append(el("p",{class:"muted small",text:"Пока никого. Дай другу свой код или добавь игрока прямо за столом кнопкой 🤝."}));
+  else box.append(el("div",{class:"frlist"},friends.map(f=>el("div",{class:"frrow"},
+    el("span",{class:"frav"},avatarEl({name:f.name,avatar:f.avatar,color:"#2a5a50"},34),el("i",{class:"dot "+f.status})),
+    el("div",{class:"frn"},el("b",{text:f.name}),el("span",{class:"muted small",text:ST_TXT[f.status]})),
+    delFr===f.id?el("button",{class:"btn ghost tiny",type:"button",onclick:()=>{ delFr=null; sendMsg({t:"delFriend",id:f.id}); }},"Удалить?"):el("button",{class:"btn ghost tiny frx",type:"button","aria-label":"Удалить из друзей",onclick:()=>{ delFr=f.id; const o=document.querySelector(".friendsp"); if(o) o.replaceWith(friendsPanel()); setTimeout(()=>{ if(delFr===f.id){ delFr=null; const o2=document.querySelector(".friendsp"); if(o2) o2.replaceWith(friendsPanel()); } },3000); }},"✕"),
+    el("button",{class:"btn small",type:"button",onclick:()=>inviteFriend(f)},f.status==="offline"?"📨 Позвать":"Позвать")))));
+  return box;
+}
+function lobbyFriends(){
+  const here=new Set(room.players.map(p=>p.id)); const list=friends.filter(f=>!here.has("tg"+f.id));
+  if(!list.length) return el("div",{class:"wfriends",hidden:true});
+  return el("div",{class:"wfriends"},el("span",{class:"muted small",text:"Позвать друзей:"}),
+    el("div",{class:"wfrow"},list.slice(0,8).map(f=>el("button",{class:"frchip "+f.status,type:"button",onclick:()=>inviteFriend(f),title:ST_TXT[f.status]},avatarEl({name:f.name,avatar:f.avatar,color:"#2a5a50"},22),el("span",{text:f.name}),el("i",{class:"dot "+f.status})))));
+}
+const addFrBtn=p=>(!p.bot&&p.id!==me.id&&p.id.startsWith("tg")&&!isFriend(p.id))?el("button",{class:"addfr",type:"button",title:"Добавить в друзья","aria-label":"Добавить "+p.name+" в друзья",onclick:e=>{ e.stopPropagation(); sendMsg({t:"addFriend",pid:p.id}); Sound.fx("pick"); }},"🤝"):null;
+function showInvite(m){
+  document.querySelectorAll(".invbox").forEach(x=>x.remove());
+  if(room&&room.code===m.code) return;
+  Sound.fx("turn"); haptic("medium");
+  const b=el("div",{class:"invbox",role:"alertdialog","aria-label":"Приглашение"},
+    m.from.avatar?el("img",{class:"av",src:m.from.avatar,alt:"",style:"width:36px;height:36px"}):el("span",{class:"av ini",style:"width:36px;height:36px;font-size:16px",text:(m.from.name||"?").charAt(0)}),
+    el("div",{class:"invt"},el("b",{text:m.from.name}),el("span",{class:"small",text:"зовёт тебя за стол 🃏"})),
+    el("button",{class:"btn small",type:"button",onclick:()=>{ b.remove(); if(room) sendMsg({t:"exit"}); room=null; sendMsg({t:"enter",code:m.code}); }},"Сесть"),
+    el("button",{class:"btn ghost tiny",type:"button","aria-label":"Закрыть",onclick:()=>b.remove()},"✕"));
+  document.body.append(b); setTimeout(()=>b.remove(),25000);
+}
+setInterval(()=>{ if(conn==="ok"&&me&&((!room&&view==="main")||(room&&room.status==="lobby"))) sendMsg({t:"friends"}); },20000);
 /* ---------- конец партии: «Ещё партию?» ---------- */
 function mmss(ms){ const s=Math.max(0,Math.ceil(ms/1000)); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
 function rematchSheet(st){
   const voted=st.rematch&&st.rematch[me.id], online=new Set(st.online||[]);
   const tags=st.players.map(p=>{ const yes=p.bot||(st.rematch&&st.rematch[p.id]); const gone=!p.bot&&!online.has(p.id);
-    return el("span",{class:"vote"},avatarEl(p,24),el("span",{class:"tag "+(yes?"ok":gone?"gone":"wait"),text:yes?"готов":gone?"ушёл":"думает"})); });
+    return el("span",{class:"vote"},avatarEl(p,24),addFrBtn(p),el("span",{class:"tag "+(yes?"ok":gone?"gone":"wait"),text:yes?"готов":gone?"ушёл":"думает"})); });
   const cd=countAt?el("div",{class:"muted small",text:"Раздача через "+mmss(countAt-Date.now()),"data-until":String(countAt),"data-fmt":"Раздача через "}):el("div",{class:"muted small",text:st.practice?"Боты всегда готовы":voted?"Ждём остальных…":"Все, кто нажмёт «Играть ещё», останутся за столом"});
   return el("div",{class:"sheet over"},
     st.loser?el("div",{class:"loser",style:"display:flex;align-items:center;gap:8px;justify-content:center"},hatEl(),el("span",{text:`${nameOf(st.loser)}${st.loser===me.id?" (ты)":""} — дурак`})):null,
@@ -1819,6 +1937,13 @@ function renderTable(){
 /* ---------- веер карт в руке, покачивание и 3D-наклон с бликом ---------- */
 function fanHand(box){
   const cards=[...box.children].filter(c=>c.classList.contains("card")), n=cards.length; if(!n) return;
+  if(n>8){ // много карт — два ряда, номиналы всегда видны
+    const top=Math.ceil(n/2); box.classList.add("rows2"); box.style.setProperty("--cols",top);
+    cards.forEach((c,i)=>{ const r2=i>=top; c.style.gridRow=r2?"2":"1"; c.style.gridColumn=String((r2?i-top:i)+1); if(r2) c.classList.add("r2"); c.style.setProperty("--i",i); if(c.tagName==="BUTTON") addTilt(c); });
+    post.push(()=>{ const h=document.querySelector(".hand.rows2"); if(!h) return; const c0=h.querySelector(":scope > .card"); if(!c0) return;
+      const cw=c0.getBoundingClientRect().width, W=h.clientWidth-8; h.style.setProperty("--step",Math.max(14,Math.min(cw+6,(W-cw)/Math.max(1,top-1))).toFixed(1)+"px"); });
+    return;
+  }
   box.classList.add("fan");
   const mid=(n-1)/2, spread=Math.min(5,32/n), lift=Math.min(1.8,9/n);
   box.style.paddingBottom=Math.round(mid*mid*lift+Math.min(14,n*1.6)+6)+"px";

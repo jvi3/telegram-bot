@@ -246,6 +246,33 @@ function decorate(st) {
     return { ...p, color, title, avatar: u ? avatarUrl(p.id.slice(2)) : "" };
   });
 }
+/* ---------- друзья ---------- */
+function friendCode(tgId) {
+  const u = data.users[tgId]; if (!u) return null;
+  if (!u.fcode) { const used = new Set(Object.values(data.users).map(x => x.fcode).filter(Boolean)); let c; do { c = crypto.randomBytes(4).toString("hex").slice(0, 6).toUpperCase(); } while (used.has(c)); u.fcode = c; save(); }
+  return u.fcode;
+}
+function friendStatus(fid) {
+  const ws = wsOf(fid); if (!ws.length) return { status: "offline" };
+  const inRoom = ws.find(w => w.room && w.room.st.status !== "lobby" && w.room.st.status !== "over");
+  return { status: inRoom ? "game" : "online" };
+}
+function friendList(tgId) {
+  const u = data.users[tgId]; if (!u) return [];
+  return (u.friends || []).filter(id => data.users[id]).map(id => ({ id, name: displayName(data.users[id]), avatar: avatarUrl(id), ...friendStatus(id), last: data.users[id].last || 0 }))
+    .sort((a, b) => ({ online: 0, game: 1, offline: 2 }[a.status] - { online: 0, game: 1, offline: 2 }[b.status]) || b.last - a.last);
+}
+function sendFriends(tgId) { const list = friendList(tgId), code = friendCode(tgId); for (const w of wsOf(tgId)) send(w, { t: "friends", list, code }); }
+function makeFriends(a, b) {
+  const ua = data.users[a], ub = data.users[b]; if (!ua || !ub || a === b) return "Нельзя";
+  ua.friends = ua.friends || []; ub.friends = ub.friends || [];
+  if (ua.friends.includes(b)) return "Вы уже друзья";
+  if (ua.friends.length >= 100) return "Друзей уже 100 — это максимум";
+  ua.friends.push(b); if (!ub.friends.includes(a)) ub.friends.push(a); save();
+  sendFriends(a); sendFriends(b);
+  for (const w of wsOf(b)) send(w, { t: "toast", msg: `${displayName(ua)} добавил тебя в друзья 🤝` });
+  return null;
+}
 function wsOf(tgId) { return [...wss.clients].filter(ws => ws.user && ws.user.id === "tg" + tgId); }
 function profileCoins(tgId) { const u = data.users[tgId]; return u ? u.coins : null; }
 function fullProfile(tgId) {
@@ -549,6 +576,45 @@ function handle(ws, msg) {
     const r = SHOP.redeemPromo(data, myTg, msg.code);
     if (r.err) return send(ws, { t: "error", msg: r.err });
     giveCoins(myTg, r.amount, `Промокод ${r.code}`);
+    return;
+  }
+  if (msg.t === "friends") { if (myU) sendFriends(myTg); return; }
+  if (msg.t === "addFriend") {
+    if (!myU) return send(ws, { t: "error", msg: "Друзья работают в Telegram" });
+    let fid = null;
+    if (msg.pid && String(msg.pid).startsWith("tg")) fid = String(msg.pid).slice(2);
+    else { const c = String(msg.code || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); fid = Object.keys(data.users).find(id => data.users[id].fcode === c) || null; if (!fid) return send(ws, { t: "error", msg: "Такого кода нет" }); }
+    if (fid === myTg) return send(ws, { t: "error", msg: "Это твой собственный код 🙂" });
+    const err = makeFriends(myTg, fid);
+    if (err) return send(ws, { t: "error", msg: err });
+    return send(ws, { t: "toast", msg: `${displayName(data.users[fid])} теперь в друзьях` });
+  }
+  if (msg.t === "delFriend") {
+    if (!myU) return; const fid = String(msg.id || "");
+    myU.friends = (myU.friends || []).filter(x => x !== fid);
+    const fu = data.users[fid]; if (fu) fu.friends = (fu.friends || []).filter(x => x !== myTg);
+    save(); sendFriends(myTg); if (fu) sendFriends(fid); return;
+  }
+  if (msg.t === "inviteFriend") {
+    const room = ws.room, fid = String(msg.id || "");
+    if (!myU || !(myU.friends || []).includes(fid)) return send(ws, { t: "error", msg: "Это не твой друг" });
+    if (!room || room.st.practice) return send(ws, { t: "error", msg: "Сначала создай стол" });
+    if (room.st.players.some(p => p.id === "tg" + fid)) return send(ws, { t: "toast", msg: "Он уже за столом" });
+    ws.invT = ws.invT || {}; const now = Date.now();
+    if (now - (ws.invT[fid] || 0) < 20000) return send(ws, { t: "error", msg: "Уже позвал, подожди немного" });
+    ws.invT[fid] = now;
+    const from = { name: displayName(myU), avatar: avatarUrl(myTg) }, code = room.st.code, online = wsOf(fid);
+    if (online.length) for (const w of online) send(w, { t: "invite", from, code });
+    else if (BOT_TOKEN) tg("sendMessage", { chat_id: fid, text: `${from.name} зовёт тебя за стол в китайского дурака 🃏`, reply_markup: { inline_keyboard: [[{ text: "🃏 Сесть за стол", web_app: { url: appUrl(code) } }]] } }, { quiet: true });
+    return send(ws, { t: "toast", msg: online.length ? `Позвал ${displayName(data.users[fid])}` : `${displayName(data.users[fid])} не в игре — отправил приглашение в Telegram` });
+  }
+  if (msg.t === "chat") {
+    const room = ws.room; if (!room || !room.st.players.some(p => p.id === me.id)) return;
+    const text = String(msg.text || "").replace(/[\u0000-\u001f\u200b-\u200f\u202a-\u202e]/g, "").replace(/\s+/g, " ").trim().slice(0, 50);
+    if (!text) return;
+    const now = Date.now(); if (now - (ws.lastChat || 0) < 1500) return send(ws, { t: "error", msg: "Не так быстро" });
+    ws.lastChat = now;
+    for (const s of room.subs) send(s, { t: "chat", from: me.id, text });
     return;
   }
   if (msg.t === "react") {
