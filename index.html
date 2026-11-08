@@ -193,13 +193,86 @@ button.card:disabled{cursor:default}
 .loser{animation:pop .5s ease-out}
 @media (prefers-reduced-motion:reduce){.pile .card.fresh,.hand>.card.drawin,.seat .card.dealin,.pile.burning,.burnfx,.burntxt,.status.pop,.seat.turn,.opp.turn,.loser{animation:none!important}.burnfx,.burntxt{display:none}}
 
+
+/* ---------- фоны, экраны настроек и магазина, подсветки, эффекты ---------- */
+#bgcanvas{position:fixed;inset:0;width:100%;height:100%;image-rendering:pixelated;z-index:-1;pointer-events:none}
+.fxcanvas{position:fixed;inset:0;width:100%;height:100%;image-rendering:pixelated;z-index:40;pointer-events:none}
+.panel,.center,.seat,.opp{background:rgba(6,18,16,.62);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.nav{display:flex;gap:6px;align-items:center}
+.nav .btn{padding:7px 12px;font-size:14px}
+.coins{background:rgba(0,0,0,.35);color:var(--brass);border:1px solid rgba(226,173,75,.45);border-radius:999px;padding:6px 12px;font-weight:600;font-variant-numeric:tabular-nums}
+.vtitle{font-size:18px}
+.ntag{display:flex;flex-direction:column;gap:1px;min-width:0}
+.name{display:flex;align-items:center;gap:6px;min-width:0}
+.name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.name .dot{width:9px;height:9px;border-radius:50%;background:var(--pc,#f2c14e);flex:none;box-shadow:0 0 6px var(--pc,#f2c14e)}
+.ptitle{font-size:11px;color:var(--brass);letter-spacing:.04em;padding-left:15px}
+.hat{display:inline-flex;flex:none;filter:drop-shadow(0 1px 0 rgba(0,0,0,.5))}
+@keyframes glowc{0%,100%{box-shadow:0 0 0 1px var(--pc),0 0 0 0 transparent}50%{box-shadow:0 0 0 1px var(--pc),0 0 16px 2px var(--pc)}}
+.opp.turn,.seat.turn{animation:none;border-color:rgba(255,255,255,.15)}
+:root[data-hlturn] .opp.turn,:root[data-hlturn] .seat.turn{border-color:var(--pc);animation:glowc 1.8s ease-in-out infinite}
+:root[data-hlturn] .opp.turn .name span,:root[data-hlturn] .status b{color:var(--pc)}
+.card.owned{box-shadow:inset 0 0 0 var(--c-edge-w) var(--c-edge),0 0 0 2px var(--own),var(--c-shadow)}
+.card.can{box-shadow:inset 0 0 0 var(--c-edge-w) var(--c-edge),0 0 10px 1px color-mix(in srgb,var(--mycolor) 60%,transparent),var(--c-shadow)}
+.seat .card.sel{box-shadow:0 0 0 3px var(--mycolor),0 0 18px 3px color-mix(in srgb,var(--mycolor) 55%,transparent)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px}
+.tile{display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px;border-radius:14px;background:rgba(0,0,0,.22);border:1px solid var(--felt-line);text-align:center}
+.tile.on{border-color:var(--brass);box-shadow:0 0 0 2px rgba(226,173,75,.22)}
+.tprev{min-height:64px;display:flex;align-items:center;justify-content:center;width:100%}
+.tprev.duo{gap:4px;--cw:30px}
+.tprev.duo .card{padding:2px 3px}
+.tprev.duo .card.special::after{display:none}
+.tprev.emo{font-size:26px;letter-spacing:4px}
+.bgprev{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--felt-line)}
+.bgprev canvas{width:100%;aspect-ratio:16/10;image-rendering:pixelated;display:block}
+.bgprev.locked canvas{filter:brightness(.42) saturate(.6)}
+.bgprev .q{position:absolute;inset:0;display:grid;place-items:center;font-family:"Press Start 2P",var(--display);font-size:26px;color:rgba(255,255,255,.85);text-shadow:2px 2px 0 #000}
+.tname{font-size:13px;font-weight:500}
+.btn.small{padding:6px 12px;font-size:13px}
+.btn.confirm{background:#e8664e;color:#fff}
+.tag.ok{font-size:12px;color:var(--brass);padding:6px 0}
+.seg{display:inline-flex;border:1px solid var(--felt-line);border-radius:999px;overflow:hidden;align-self:flex-start}
+.seg button{background:transparent;color:var(--text);border:0;padding:8px 14px;font-size:13px}
+.seg button.on{background:var(--brass);color:var(--brass-ink);font-weight:600}
+.chk{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer}
+.chk input{width:18px;height:18px;accent-color:var(--brass)}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.tabs button{flex:none;background:rgba(0,0,0,.3);color:var(--text);border:1px solid var(--felt-line);border-radius:999px;padding:7px 13px;font-size:13px}
+.tabs button.on{background:var(--brass);color:var(--brass-ink);border-color:var(--brass);font-weight:600}
+.wallet{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.wallet .bal{display:flex;flex-direction:column}
+.wallet .bal b{font-family:var(--display);font-size:24px;color:var(--brass)}
+.tbar{width:min(220px,90%);height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
+.tbar i{display:block;height:100%;background:var(--brass);transform-origin:left;animation:tbar linear forwards}
+@keyframes tbar{from{transform:scaleX(var(--f,1));background:var(--brass)}75%{background:var(--brass)}to{transform:scaleX(0);background:#e8664e}}
+.reacts{display:flex;gap:6px;flex-wrap:wrap}
+.reacts button{background:rgba(0,0,0,.3);border:1px solid var(--felt-line);border-radius:999px;font-size:20px;line-height:1;padding:6px 10px}
+.reacts button:active{transform:scale(.9)}
+.floatemoji{position:fixed;z-index:45;font-size:36px;pointer-events:none;animation:floatup 1.8s ease-out forwards;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
+@keyframes floatup{0%{transform:translateY(0) scale(.4);opacity:0}15%{transform:translateY(-10px) scale(1.2);opacity:1}100%{transform:translateY(-120px) scale(1);opacity:0}}
+.bigtxt{position:fixed;left:50%;top:42%;z-index:45;font-family:"Press Start 2P",var(--display);font-size:clamp(18px,6vw,30px);color:#ffd27a;text-shadow:3px 3px 0 #000;white-space:nowrap;pointer-events:none;animation:bigtxt 1.6s ease-out forwards}
+.bigtxt.hot{color:#ff8a2a;font-size:clamp(16px,5vw,26px)}
+@keyframes bigtxt{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}20%{transform:translate(-50%,-50%) scale(1.15);opacity:1}75%{opacity:1}100%{transform:translate(-50%,-80%) scale(1);opacity:0}}
+.coinpop{position:fixed;z-index:45;font-family:var(--display);font-weight:700;font-size:20px;color:#7ee0b5;text-shadow:2px 2px 0 #000;pointer-events:none;animation:coinpop 1.7s ease-out forwards}
+.coinpop.neg{color:#ff8b7b}
+@keyframes coinpop{0%{transform:translateY(0) scale(.5);opacity:0}20%{transform:translateY(6px) scale(1.2);opacity:1}100%{transform:translateY(46px) scale(1);opacity:0}}
+@keyframes shakeall{0%,100%{transform:none}15%{transform:translate(-6px,2px)}30%{transform:translate(6px,-2px)}45%{transform:translate(-4px,1px)}60%{transform:translate(4px,0)}80%{transform:translate(-2px,0)}}
+.shakeall{animation:shakeall .5s ease-in-out}
+:root[data-big]{--cwb:clamp(44px,min(15vw,8.6vh),84px)}
+:root[data-anim="fast"] .pile .card.fresh,:root[data-anim="fast"] .hand>.card.drawin,:root[data-anim="fast"] .seat .card.dealin{animation-duration:.2s}
+:root[data-anim="off"] .pile .card.fresh,:root[data-anim="off"] .hand>.card.drawin,:root[data-anim="off"] .seat .card.dealin,:root[data-anim="off"] .pile.burning,:root[data-anim="off"] .status.pop,:root[data-anim="off"] .loser{animation:none!important}
+:root[data-anim="off"] .burnfx,:root[data-anim="off"] .burntxt{display:none}
+@media (prefers-reduced-motion:reduce){#bgcanvas{display:none}.floatemoji,.bigtxt,.coinpop,.shakeall,.opp.turn,.seat.turn{animation:none!important}}
 </style>
 </head>
 <body>
 <header class="wrap hdr">
   <div class="brand"><span class="by">by Кащей</span><h1>Китайский <b>дурак</b></h1></div>
-  <button id="gear" class="btn ghost gear" type="button" aria-expanded="false" aria-controls="audio">⚙ Звук и колода</button>
-  <div class="audio" id="audio" hidden></div>
+  <nav class="nav" aria-label="Меню">
+    <button id="coinsBtn" class="coins" type="button" hidden title="Баланс, открыть магазин">💰 $0</button>
+    <button id="shopBtn" class="btn ghost" type="button" aria-label="Магазин">🛒</button>
+    <button id="setBtn" class="btn ghost" type="button" aria-label="Настройки">⚙</button>
+  </nav>
 </header>
 <div class="wrap app" id="app"></div>
 <script>window.__DEV__=false;</script>
@@ -303,7 +376,8 @@ const Sound=(()=>{
     lose(){ const t=ctx.currentTime; [392,370,349,262].forEach((f,i)=>tone(t+i*.2,f,.35,{type:"sawtooth",gain:.06})); },
     error(){ tone(ctx.currentTime,180,.15,{type:"square",gain:.05}); },
     pick(){ const t=ctx.currentTime; noise(t,.035,{freq:3400,q:1.4,gain:.28}); tone(t,1150,.05,{gain:.035}); },
-    unpick(){ const t=ctx.currentTime; noise(t,.035,{freq:1700,q:1.4,gain:.22}); tone(t,620,.05,{gain:.03}); }
+    unpick(){ const t=ctx.currentTime; noise(t,.035,{freq:1700,q:1.4,gain:.22}); tone(t,620,.05,{gain:.03}); },
+    coin(){ const t=ctx.currentTime; tone(t,988,.08,{type:"square",gain:.05}); tone(t+.08,1319,.22,{type:"square",gain:.05}); }
   };
   /* музыка */
   const mf=m=>440*Math.pow(2,(m-69)/12);
@@ -360,30 +434,198 @@ function soundsFor(prev,next){
   const nT=next.players[next.turn]&&next.players[next.turn].id;
   if(nT===me.id&&pT!==me.id) setTimeout(()=>Sound.fx("turn"),380);
 }
-/* ---------- оформление колоды ---------- */
-const CARD_THEMES=[["classic","Классика"],["noir","Нуар"],["vintage","Винтаж"],["royal","Королевская"],["pixel","8-бит"]];
-let cardTheme=(()=>{ const t=ls.get("durak.cards"); return CARD_THEMES.some(([k])=>k===t)?t:"classic"; })();
-function applyCardTheme(){ document.documentElement.setAttribute("data-cards",cardTheme); }
-function setCardTheme(t){
-  cardTheme=t; ls.set("durak.cards",t); applyCardTheme();
-  const s=document.getElementById("cardtheme"); if(s) s.value=t;
-  Sound.fx("pick"); render();
+/* ---------- каталог, профиль и личные настройки ---------- */
+let catalog=[], eco=null, profile=null, view="main", shopTab="bg", pendingBuy=null, pendingBuyT=null, deadlineAt=null;
+const DEF_EQUIP={bg:"bg:felt",deck:"deck:classic",color:"color:gold",title:"title:none",winfx:"winfx:fireworks"};
+const itemById=id=>catalog.find(i=>i.id===id);
+const itemsOf=t=>catalog.filter(i=>i.type===t);
+const owns=id=>{ const it=itemById(id); return !!it&&(it.price===0||(profile&&profile.owned.includes(id))); };
+const equippedId=t=>(profile&&profile.equipped&&profile.equipped[t])||DEF_EQUIP[t];
+const equippedKey=t=>{ const it=itemById(equippedId(t)); return it?it.key:null; };
+
+const Prefs=(()=>{
+  const d={liveBg:true,anim:"normal",big:false,hlPlayable:true,hlPile:true,hlTurn:true};
+  let p; try{ p=Object.assign({},d,JSON.parse(ls.get("durak.prefs")||"{}")); }catch(e){ p={...d}; }
+  return { get:k=>p[k], set(k,v){ p[k]=v; ls.set("durak.prefs",JSON.stringify(p)); applyPrefs(); } };
+})();
+function applyPrefs(){
+  const r=document.documentElement;
+  r.setAttribute("data-anim",Prefs.get("anim"));
+  if(Prefs.get("big")) r.setAttribute("data-big","1"); else r.removeAttribute("data-big");
+  r.toggleAttribute("data-hlturn",!!Prefs.get("hlTurn"));
+  Bg.setLive(Prefs.get("liveBg"));
 }
-function themeSelect(){
-  const s=el("select",{id:"cardtheme","aria-label":"Оформление карт"},CARD_THEMES.map(([k,n])=>el("option",{value:k,selected:k===cardTheme},n)));
-  s.addEventListener("change",()=>setCardTheme(s.value));
-  return s;
+function applyCosmetics(){
+  document.documentElement.setAttribute("data-cards",equippedKey("deck")||"classic");
+  document.documentElement.style.setProperty("--mycolor",equippedKey("color")||"#f2c14e");
+  Bg.set(equippedKey("bg")||"felt");
+  const c=document.getElementById("coinsBtn"); if(c){ c.hidden=!profile; if(profile) c.textContent=`💰 $${profile.coins}`; }
 }
-function themesPanel(){
-  return el("div",{class:"panel"},el("h2",{},"Оформление карт"),
-    el("div",{class:"themes"},CARD_THEMES.map(([k,n])=>el("button",{class:"theme",type:"button","data-cards":k,"aria-pressed":String(k===cardTheme),onclick:()=>setCardTheme(k)},
-      el("div",{class:"duo"},cardEl("Ah"),cardEl("10s"),backEl()),el("span",{text:n})))));
+
+/* ---------- пиксельные фоны (рисуются кодом, без картинок) ---------- */
+const Bg=(()=>{
+  const rng=seed=>{ let s=seed; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; };
+  const px=(c,x,y,col)=>{ c.fillStyle=col; c.fillRect(x|0,y|0,1,1); };
+  const bands=(c,w,cols,y0,y1)=>{ const n=cols.length; for(let i=0;i<n;i++){ c.fillStyle=cols[i]; c.fillRect(0,Math.round(y0+(y1-y0)*i/n),w,Math.ceil((y1-y0)/n)+1); } };
+  const glow=(c,x,y,r,rgb,a)=>{ for(let rr=r;rr>0;rr-=2){ c.fillStyle=`rgba(${rgb},${a})`; c.beginPath(); c.arc(x,y,rr,0,7); c.fill(); } };
+  const GEN={
+    felt(c,w,h){ const r=rng(3); c.fillStyle="#123a33"; c.fillRect(0,0,w,h); for(let i=0;i<w*h*.08;i++) px(c,r()*w,r()*h,r()<.5?"#15433b":"#0f322c");
+      const g=c.createRadialGradient(w/2,h*.45,Math.min(w,h)*.2,w/2,h*.45,Math.max(w,h)*.75); g.addColorStop(0,"rgba(0,0,0,0)"); g.addColorStop(1,"rgba(0,0,0,.45)"); c.fillStyle=g; c.fillRect(0,0,w,h); },
+    city(c,w,h,t){ bands(c,w,["#0b0f24","#11163a","#1a1d4a","#262457"],0,h); const r=rng(7); for(let i=0;i<w*h/90;i++) px(c,r()*w,r()*h*.5,"#8f95c9");
+      let x=0; while(x<w){ const bw=6+(r()*9|0), bh=Math.round(h*(.25+r()*.45)); c.fillStyle=r()<.5?"#070a18":"#0b0e20"; c.fillRect(x,h-bh,bw,bh);
+        for(let yy=h-bh+3;yy<h-2;yy+=4) for(let xx=x+1;xx<x+bw-1;xx+=3){ const on=r()<.35, off=Math.sin(t/900+xx*3+yy)>.97; if(on&&!off) px(c,xx,yy,"#e8c46a"); } x+=bw+1; } },
+    stars(c,w,h,t){ bands(c,w,["#070a1c","#0b1029","#101636"],0,h); const r=rng(11);
+      for(let i=0;i<w*h/70;i++){ const x=r()*w, y=r()*h, ph=r()*6, b=Math.sin(t/700+ph); px(c,x,y,b>.6?"#ffffff":b>-.2?"#9aa3d6":"#3a4275"); }
+      const mx=w*.8|0, my=h*.13|0, R=Math.max(4,w*.05|0); for(let y=-R;y<=R;y++) for(let x=-R;x<=R;x++){ const inMoon=x*x+y*y<=R*R, inShade=(x-R*.55)**2+(y+R*.3)**2<=(R*.9)**2; if(inMoon&&!inShade) px(c,mx+x,my+y,"#e9e4c8"); } },
+    tavern(c,w,h,t){ const r=rng(5), cols=["#3b2416","#432a19","#36210f","#4a2e1b"];
+      for(let y=0;y<h;y+=6){ c.fillStyle=cols[(y/6)%4]; c.fillRect(0,y,w,6); c.fillStyle="#24150b"; c.fillRect(0,y+5,w,1); for(let x=(y*7)%23;x<w;x+=23) c.fillRect(x,y,1,5); }
+      for(let i=0;i<w*h/400;i++) px(c,r()*w,r()*h,"#2a180c");
+      [[w*.18,h*.2],[w*.82,h*.2]].forEach(([lx,ly])=>{ const fl=.85+.15*Math.sin(t/180+lx); glow(c,lx,ly,18,"255,180,80",.05*fl); c.fillStyle="#ffd27a"; c.fillRect(lx-1,ly-2,3,4); }); },
+    dungeon(c,w,h,t){ const r=rng(9); c.fillStyle="#1d222b"; c.fillRect(0,0,w,h);
+      for(let y=0;y<h;y+=5){ const off=(y/5)%2?5:0; for(let x=-off;x<w;x+=10){ c.fillStyle=["#2a303b","#262b35","#2e3440"][r()*3|0]; c.fillRect(x+1,y+1,8,3); } }
+      [[w*.15,h*.3],[w*.85,h*.3]].forEach(([fx,fy],k)=>{ const f=Math.sin(t/120+k*2)*.5+.5; glow(c,fx,fy,16,"255,120,40",.035+.02*f); c.fillStyle="#5a3a22"; c.fillRect(fx,fy,1,6); c.fillStyle=f>.5?"#ffb340":"#ff8a2a"; c.fillRect(fx-1,fy-3,3,3); px(c,fx,fy-4,"#ffe08a"); }); },
+    sunset(c,w,h,t){ const hz=Math.round(h*.58); bands(c,w,["#1a1033","#2a1442","#3d1a4d","#5a2450","#7a3550"],0,hz); c.fillStyle="#120a24"; c.fillRect(0,hz,w,h-hz);
+      const R=Math.round(w*.14), cx=w/2|0; for(let y=-R;y<0;y++) for(let x=-R;x<=R;x++) if(x*x+y*y<=R*R){ const stripe=(y+R)%4===3&&y>-R*.6; if(!stripe) px(c,cx+x,hz+y,y<-R*.6?"#f2c14e":y<-R*.25?"#f29a4e":"#e8664e"); }
+      c.fillStyle="#5c2a6e"; const sh=(t/80)%1; for(let k=0;k<12;k++){ const y=hz+Math.round(((k+sh)/12)**2*(h-hz)); c.fillRect(0,y,w,1); }
+      c.strokeStyle="#5c2a6e"; c.lineWidth=1; for(let i=-9;i<=9;i++){ c.beginPath(); c.moveTo(cx+i*2,hz); c.lineTo(cx+i*w*.15,h); c.stroke(); } },
+    snow(c,w,h,t){ bands(c,w,["#0c1630","#10203f","#16294d"],0,h); c.fillStyle="#cfdcef"; for(let x=0;x<w;x++){ const hh=Math.round(h*.12+4*Math.sin(x/9)+3*Math.sin(x/4.3)); c.fillRect(x,h-hh,1,hh); }
+      c.fillStyle="#a9bad6"; for(let x=0;x<w;x++){ const hh=Math.round(h*.07+3*Math.sin(x/7+1)); c.fillRect(x,h-hh,1,hh); }
+      const r=rng(13); for(let i=0;i<w*h/60;i++){ const x0=r()*w, sp=.004+r()*.006, y=((r()*h)+t*sp)%h, x=(x0+Math.sin(t/900+i)*2+w)%w; px(c,x,y,"#ffffff"); } }
+  };
+  const cv=document.createElement("canvas"); cv.id="bgcanvas"; cv.setAttribute("aria-hidden","true"); document.body.prepend(cv);
+  const c=cv.getContext("2d"); let key="felt", live=true, last=0, W=120, H=200;
+  function draw(t){ (GEN[key]||GEN.felt)(c,W,H,t); c.fillStyle="rgba(0,0,0,.22)"; c.fillRect(0,0,W,H); }
+  function resize(){ W=120; H=Math.max(60,Math.min(400,Math.round(120*innerHeight/Math.max(1,innerWidth)))); cv.width=W; cv.height=H; draw(performance.now()); }
+  function loop(t){ requestAnimationFrame(loop); if(!live||key==="felt"||document.hidden||t-last<100) return; last=t; draw(t); }
+  addEventListener("resize",resize); resize(); requestAnimationFrame(loop);
+  return {
+    set(k){ if(k!==key){ key=GEN[k]?k:"felt"; draw(performance.now()); } },
+    setLive(v){ live=!!v; draw(performance.now()); },
+    thumb(k){ const t=document.createElement("canvas"); t.width=96; t.height=60; const tc=t.getContext("2d"); (GEN[k]||GEN.felt)(tc,96,60,0); tc.fillStyle="rgba(0,0,0,.18)"; tc.fillRect(0,0,96,60); return t; }
+  };
+})();
+
+/* ---------- эффекты: фейерверк, конфетти, золотой дождь, тряска, надписи, реакции ---------- */
+const Fx=(()=>{
+  let cv=null, raf=null;
+  function run(kind){
+    if(Prefs.get("anim")==="off") return;
+    if(!cv){ cv=document.createElement("canvas"); cv.className="fxcanvas"; cv.setAttribute("aria-hidden","true"); document.body.append(cv); }
+    const S=4, W=Math.ceil(innerWidth/S), H=Math.ceil(innerHeight/S); cv.width=W; cv.height=H; const c=cv.getContext("2d");
+    const cols=["#f2c14e","#7ee0b5","#ff8b7b","#b9a4ff","#7cc4ff","#c7e86a","#ffffff"];
+    const P=[]; const t0=performance.now(); const dur=kind==="fireworks"?2800:3200;
+    const burst=(x,y)=>{ const col=cols[Math.random()*cols.length|0]; for(let i=0;i<40;i++){ const a=Math.random()*Math.PI*2, v=.6+Math.random()*1.6; P.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,g:.03,life:55+Math.random()*25,col,s:1}); } Sound.fx("draw",1); };
+    if(kind==="confetti") for(let i=0;i<160;i++) P.push({x:Math.random()*W,y:-Math.random()*H,vx:(Math.random()-.5)*.4,vy:.4+Math.random()*.6,g:0,life:999,col:cols[Math.random()*6|0],s:Math.random()<.5?1:2,spin:Math.random()*6});
+    if(kind==="coins") for(let i=0;i<70;i++) P.push({x:Math.random()*W,y:-Math.random()*H*1.2,vx:0,vy:.5+Math.random()*.7,g:.004,life:999,coin:1,spin:Math.random()*6});
+    const plan=kind==="fireworks"?[[0,.3,.35],[350,.7,.3],[700,.5,.22],[1100,.25,.25],[1400,.78,.4]]:[];
+    if(kind==="coins") Sound.fx("coin");
+    cancelAnimationFrame(raf);
+    const step=t=>{
+      const el=t-t0; c.clearRect(0,0,W,H);
+      while(plan.length&&plan[0][0]<=el){ const [,fx,fy]=plan.shift(); burst(W*fx,H*fy); }
+      for(const p of P){ p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.life--; if(p.life<=0) continue;
+        if(p.coin){ const w=Math.abs(Math.sin(el/180+p.spin))*3+1; c.fillStyle="#b9862c"; c.fillRect(p.x-w/2,p.y,w,4); c.fillStyle="#f2c14e"; c.fillRect(p.x-w/2+ (w>2?.5:0),p.y+.5,Math.max(1,w-1),3); }
+        else { c.globalAlpha=p.life<20?p.life/20:1; c.fillStyle=p.col; c.fillRect(p.x,p.y,p.s,p.spin!==undefined?(Math.sin(el/120+p.spin)>0?p.s:1):p.s); c.globalAlpha=1; } }
+      if(el<dur) raf=requestAnimationFrame(step); else c.clearRect(0,0,W,H);
+    };
+    raf=requestAnimationFrame(step);
+  }
+  function shake(){ if(Prefs.get("anim")==="off") return; app.classList.remove("shakeall"); void app.offsetWidth; app.classList.add("shakeall"); haptic("heavy"); }
+  function bigText(text,cls){ const e=el("div",{class:"bigtxt "+(cls||""),text}); document.body.append(e); setTimeout(()=>e.remove(),1600); }
+  function emoji(e,fromEl){
+    const r=fromEl?fromEl.getBoundingClientRect():{left:innerWidth/2-20,top:innerHeight/2,width:40,height:0};
+    const f=el("div",{class:"floatemoji",text:e}); f.style.left=(r.left+r.width/2-18+(Math.random()*30-15))+"px"; f.style.top=(r.top+Math.min(r.height,60)/2)+"px";
+    document.body.append(f); setTimeout(()=>f.remove(),1800);
+  }
+  function coinPop(delta){ const b=document.getElementById("coinsBtn"); const r=b&&!b.hidden?b.getBoundingClientRect():{left:innerWidth-90,top:20,width:60,height:20};
+    const f=el("div",{class:"coinpop"+(delta<0?" neg":""),text:(delta>=0?"+":"−")+"$"+Math.abs(delta)}); f.style.left=(r.left+r.width/2-24)+"px"; f.style.top=(r.top+r.height)+"px"; document.body.append(f); setTimeout(()=>f.remove(),1700); }
+  return {run,shake,bigText,emoji,coinPop};
+})();
+
+const HAT='<svg viewBox="0 0 16 12" width="22" height="16" shape-rendering="crispEdges" aria-label="дурацкий колпак"><rect x="2" y="8" width="12" height="3" fill="#f2c14e"/><rect x="2" y="5" width="4" height="3" fill="#c23a2b"/><rect x="1" y="3" width="3" height="2" fill="#c23a2b"/><rect x="0" y="2" width="2" height="1" fill="#c23a2b"/><rect x="6" y="3" width="4" height="5" fill="#2e9e6e"/><rect x="7" y="1" width="2" height="2" fill="#2e9e6e"/><rect x="10" y="5" width="4" height="3" fill="#c23a2b"/><rect x="12" y="3" width="3" height="2" fill="#c23a2b"/><rect x="14" y="2" width="2" height="1" fill="#c23a2b"/><rect x="0" y="0" width="2" height="2" fill="#f2c14e"/><rect x="7" y="0" width="2" height="1" fill="#f2c14e"/><rect x="14" y="0" width="2" height="2" fill="#f2c14e"/></svg>';
+function hatEl(){ const s=el("span",{class:"hat"}); s.innerHTML=HAT; return s; }
+const playerOf=id=>room&&room.players.find(p=>p.id===id);
+const colorOf=id=>{ const p=playerOf(id); return (p&&p.color)||"#f2c14e"; };
+function nameTag(p,{you=false}={}){
+  const wrap=el("div",{class:"ntag"});
+  const isFool=room&&(p.id===room.loser||(room.status!=="over"&&p.id===room.prevLoser));
+  wrap.append(el("div",{class:"name",style:`--pc:${p.color||"#f2c14e"}`},el("i",{class:"dot"}),isFool?hatEl():null,el("span",{text:p.name+(you?" (ты)":"")})));
+  if(p.title) wrap.append(el("div",{class:"ptitle",text:p.title}));
+  return wrap;
 }
-applyCardTheme();
+
+/* ---------- плитки товаров: и в магазине, и в настройках ---------- */
+function buyClick(it){
+  if(!profile) return toast("Магазин заработает, когда подключишься через Telegram");
+  if(profile.coins<it.price){ Sound.fx("error"); return toast(`Не хватает $${it.price-profile.coins}. Побеждай или забери ежедневный бонус`); }
+  if(pendingBuy!==it.id){ pendingBuy=it.id; clearTimeout(pendingBuyT); pendingBuyT=setTimeout(()=>{ pendingBuy=null; render(); },3000); Sound.fx("pick"); return render(); }
+  pendingBuy=null; sendMsg({t:"buy",id:it.id});
+}
+function itemTile(it){
+  const has=owns(it.id), on=it.type!=="reacts"&&equippedId(it.type)===it.id, locked=!has;
+  let prev;
+  if(it.type==="bg"){ prev=el("div",{class:"tprev bgprev"+(locked?" locked":"")}); prev.append(Bg.thumb(it.key)); if(locked) prev.append(el("span",{class:"q",text:"?"})); }
+  else if(it.type==="deck"){ prev=el("div",{class:"tprev duo","data-cards":it.key},cardEl("Ah"),cardEl("10s"),backEl()); }
+  else if(it.type==="color"){ prev=el("div",{class:"tprev"},el("div",{class:"name",style:`--pc:${it.key}`},el("i",{class:"dot"}),el("span",{text:me?me.name:"Игрок"}))); }
+  else if(it.type==="title"){ prev=el("div",{class:"tprev"},el("div",{class:"ntag"},el("div",{class:"name"},el("span",{text:me?me.name:"Игрок"})),it.key?el("div",{class:"ptitle",text:it.key}):el("div",{class:"muted small",text:"без подписи"}))); }
+  else if(it.type==="reacts"){ prev=el("div",{class:"tprev emo",text:it.emojis.join(" ")}); }
+  else if(it.type==="winfx"){ prev=el("div",{class:"tprev"},el("button",{class:"btn ghost small",type:"button",onclick:()=>Fx.run(it.key)},"▶ Показать")); }
+  let btn;
+  if(has){
+    if(it.type==="reacts") btn=el("span",{class:"tag ok",text:"Куплено"});
+    else if(on) btn=el("span",{class:"tag ok",text:"✓ Выбрано"});
+    else btn=el("button",{class:"btn small",type:"button",onclick:()=>{ Sound.fx("pick"); sendMsg({t:"equip",id:it.id}); }},"Выбрать");
+  } else {
+    const confirm=pendingBuy===it.id, poor=profile&&profile.coins<it.price;
+    btn=el("button",{class:"btn small"+(poor?" ghost":"")+(confirm?" confirm":""),type:"button",onclick:()=>buyClick(it)},confirm?`Точно? $${it.price}`:`Купить $${it.price}`);
+  }
+  return el("div",{class:"tile"+(on?" on":"")},prev,el("div",{class:"tname",text:it.name}),btn);
+}
+const tilesOf=t=>el("div",{class:"tiles"},itemsOf(t).map(itemTile));
+
+/* ---------- экран настроек ---------- */
+function seg(key,opts){ return el("div",{class:"seg",role:"group"},opts.map(([v,label])=>el("button",{type:"button",class:Prefs.get(key)===v?"on":"","aria-pressed":String(Prefs.get(key)===v),onclick:()=>{ Prefs.set(key,v); Sound.fx("pick"); render(); }},label))); }
+function check(key,label){ const id="pref-"+key; const i=el("input",{type:"checkbox",id,checked:!!Prefs.get(key)}); i.addEventListener("change",()=>{ Prefs.set(key,i.checked); Sound.fx(i.checked?"pick":"unpick"); render(); }); return el("label",{class:"chk",for:id},i,el("span",{text:label})); }
+function viewHead(title){ return el("div",{class:"top"},el("h2",{class:"vtitle",text:title}),el("button",{class:"btn ghost",type:"button",onclick:()=>{ view="main"; render(); }},room?"← К столу":"← В меню")); }
+function renderSettings(){
+  app.append(viewHead("⚙ Настройки"));
+  if(!catalog.length) app.append(el("div",{class:"panel"},el("p",{class:"muted"},"Подключаюсь к серверу…")));
+  else {
+    app.append(el("div",{class:"panel"},el("h2",{},"Фон"),tilesOf("bg"),check("liveBg","Живой фон (звёзды мерцают, снег падает)")));
+    app.append(el("div",{class:"panel"},el("h2",{},"Мой цвет"),el("p",{class:"muted small"},"Им светится твой ник и выбранные карты. Если цвет уже занят за столом, тебе дадут свободный."),tilesOf("color")));
+    app.append(el("div",{class:"panel"},el("h2",{},"Колода"),tilesOf("deck")));
+  }
+  app.append(el("div",{class:"panel"},el("h2",{},"Подсветки"),
+    check("hlTurn","Ник того, кто ходит, светится его цветом"),
+    check("hlPlayable","Подсвечивать карты, которыми можно сходить"),
+    check("hlPile","Показывать цветом, кто положил карту в стопку")));
+  app.append(el("div",{class:"panel"},el("h2",{},"Анимации"),seg("anim",[["normal","Обычные"],["fast","Быстрые"],["off","Выкл"]]),
+    el("h2",{},"Размер карт"),seg("big",[[false,"Обычные"],[true,"Крупные"]])));
+  const audioPanel=el("div",{class:"panel"},el("h2",{},"Звук и музыка")); audioPanel.append(audioBox); app.append(audioPanel);
+}
+
+/* ---------- экран магазина ---------- */
+const SHOP_TABS=[["bg","Фоны"],["deck","Колоды"],["color","Цвета"],["title","Титулы"],["reacts","Реакции"],["winfx","Победа"],["promo","🎟 Промокод"]];
+function renderShop(){
+  app.append(viewHead("🛒 Магазин"));
+  if(!profile){ app.append(el("div",{class:"panel"},el("p",{class:"muted"},catalog.length?"Магазин работает, когда игра открыта через Telegram.":"Подключаюсь к серверу…"))); return; }
+  const E=eco||{win:10,fool:-2,daily:5,middle:3};
+  app.append(el("div",{class:"panel wallet"},
+    el("div",{class:"bal"},el("span",{class:"muted small",text:"Твой баланс"}),el("b",{text:`💰 $${profile.coins}`})),
+    profile.dailyReady?el("button",{class:"btn",type:"button",onclick:()=>sendMsg({t:"daily"})},`🎁 Ежедневный бонус +$${E.daily}`):el("span",{class:"muted small",text:"🎁 Бонус уже забран, следующий завтра"}),
+    el("p",{class:"muted small",style:"flex-basis:100%"},`Победа +$${E.win}, средние места +$${E.middle}, дурак −$${Math.abs(E.fool)}. Считаются партии, где играют хотя бы двое живых.`)));
+  app.append(el("div",{class:"tabs",role:"tablist"},SHOP_TABS.map(([k,n])=>el("button",{type:"button",role:"tab","aria-selected":String(shopTab===k),class:shopTab===k?"on":"",onclick:()=>{ shopTab=k; Sound.fx("pick"); render(); }},n))));
+  if(shopTab==="promo"){
+    const inp=el("input",{id:"promocode",placeholder:"Например, WINTER",maxlength:"24","aria-label":"Промокод",style:"text-transform:uppercase;letter-spacing:.08em;flex:1;min-width:0"});
+    const go=()=>{ const v=inp.value.trim(); if(v.length<3) return toast("Введи промокод"); sendMsg({t:"promo",code:v}); inp.value=""; };
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter") go(); });
+    app.append(el("div",{class:"panel"},el("h2",{},"Промокод"),el("p",{class:"muted small"},"Промокоды раздаёт создатель игры. Каждый код можно активировать один раз."),el("div",{class:"row"},inp,el("button",{class:"btn",type:"button",onclick:go},"Активировать"))));
+  } else app.append(el("div",{class:"panel"},tilesOf(shopTab)));
+}
+
+const audioBox=el("div",{class:"audio"});
 function buildAudioBar(){
-  const gear=document.getElementById("gear"), ab=document.getElementById("audio");
-  if(gear&&ab) gear.addEventListener("click",()=>{ ab.hidden=!ab.hidden; gear.setAttribute("aria-expanded",String(!ab.hidden)); Sound.fx("pick"); });
-  const box=document.getElementById("audio"); if(!box) return;
+  const box=audioBox;
   const S=Sound.state;
   const musBtn=el("button",{class:"ib",type:"button","aria-pressed":String(S.musOn),"aria-label":"Музыка",title:"Музыка вкл/выкл"},"♪");
   const sel=el("select",{id:"track","aria-label":"Мелодия"},Object.entries(Sound.TRACKS).map(([k,t])=>el("option",{value:k,selected:k===S.track},t.name)));
@@ -399,10 +641,10 @@ function buildAudioBar(){
   sfxRange.addEventListener("input",()=>{ const v=+sfxRange.value; Sound.setSfx(v); sfxPct.textContent=v+"%"; sfxIcon.textContent=v?"🔊":"🔇"; clearTimeout(sfxT); sfxT=setTimeout(()=>Sound.fx("play"),120); });
   box.append(
     el("div",{class:"ag",title:"Музыка"},musBtn,sel,musRange,musPct),
-    el("div",{class:"ag",title:"Звуки игры"},sfxIcon,el("span",{class:"muted"},"Звуки"),sfxRange,sfxPct),
-    el("div",{class:"ag",title:"Оформление карт"},el("span",{class:"ib","aria-hidden":"true"},"♠"),themeSelect())
+    el("div",{class:"ag",title:"Звуки игры"},sfxIcon,el("span",{class:"muted"},"Звуки"),sfxRange,sfxPct)
   );
 }
+
 
 /* ---------- связь с сервером ---------- */
 function connect(){
@@ -419,11 +661,25 @@ function connect(){
       me=m.me; botName=m.bot||""; conn="ok";
       const code=pendingRoom||store.get("durak.room"); pendingRoom=null;
       if(code) sendMsg({t:"enter",code}); else render();
+    } else if(m.t==="catalog"){
+      catalog=m.items||[]; eco=m.eco||null; applyCosmetics(); if(view!=="main"||!room) render();
+    } else if(m.t==="profile"){
+      profile=m; applyCosmetics(); if(view!=="main"||!room) render();
+    } else if(m.t==="reward"){
+      if(profile) profile.coins=m.coins; applyCosmetics(); Fx.coinPop(m.delta); if(m.delta>0) Sound.fx("coin"); if(m.reason) toast(m.reason+(m.delta?` ${m.delta>0?"+":"−"}$${Math.abs(m.delta)}`:""));
+    } else if(m.t==="toast"){ toast(m.msg);
+    } else if(m.t==="react"){
+      const box=document.querySelector(`[data-pid="${CSS.escape(m.from)}"]`); Fx.emoji(m.e,box); if(m.from!==me.id) Sound.fx("pick");
     } else if(m.t==="board"){
       board=m.rows||[]; if(!room) render();
     } else if(m.t==="state"){
       const prevTurn=room&&room.status==="play"&&room.players[room.turn]&&room.players[room.turn].id;
       const prevR=room; room=m.room; soundsFor(prevR,room);
+      deadlineAt=room.turnLeft>0?Date.now()+room.turnLeft:null;
+      if(prevR&&prevR.code===room.code&&prevR.status!=="over"&&room.status==="over"&&room.players.some(p=>p.id===me.id)){
+        if(room.loser===me.id){ setTimeout(()=>{ Fx.shake(); Fx.bigText("Ты дурак 🤡"); },300); }
+        else setTimeout(()=>{ Fx.run(equippedKey("winfx")||"fireworks"); Fx.bigText(room.finished[0]===me.id?"Победа!":"Не дурак!"); },300);
+      }
       if(!room.practice) store.set("durak.room",room.code);
       const nowTurn=room.status==="play"&&room.players[room.turn].id;
       if(nowTurn===me.id&&prevTurn!==me.id) haptic("medium");
@@ -460,6 +716,8 @@ const backEl=(onclick,disabled)=>onclick?el("button",{class:"card back",onclick,
 
 function render(){
   app.replaceChildren();
+  if(view==="settings"){ renderSettings(); return; }
+  if(view==="shop"){ renderShop(); return; }
   if(room){ app.append(el("div",{class:"top"}, room.practice?el("span",{class:"muted small"},"Тренировка"):el("span",{class:"muted small"},"Комната ",el("span",{class:"code",text:room.code})), el("button",{class:"btn ghost",type:"button",onclick:exitRoom},"В меню"))); }
   if(fatal){ app.append(el("div",{class:"banner",text:fatal})); return; }
   if(conn==="lost") app.append(el("div",{class:"banner"},"Связь с сервером пропала, переподключаюсь…"));
@@ -474,6 +732,7 @@ function renderMenu(){
   const codeIn=el("input",{id:"joincode",maxlength:"4",placeholder:"КОД","aria-label":"Код комнаты",style:"width:6.5em;text-transform:uppercase;letter-spacing:.15em"});
   app.append(el("div",{class:"panel"},
     el("h2",{},`Привет, ${me.name}!`),
+    profile?el("div",{class:"row"},el("span",{class:"coins",text:`💰 $${profile.coins}`}),profile.dailyReady?el("button",{class:"btn small",type:"button",onclick:()=>sendMsg({t:"daily"})},"🎁 Забрать бонус"):null,el("button",{class:"btn ghost small",type:"button",onclick:()=>{view="shop";render();}},"🛒 Магазин")):null,
     el("p",{class:"muted small"},"Создай комнату и позови друга, или войди по коду, который тебе прислали."),
     el("div",{class:"row"},
       el("button",{class:"btn",type:"button",onclick:()=>sendMsg({t:"create"})},"Создать комнату"),
@@ -484,7 +743,6 @@ function renderMenu(){
     el("p",{class:"muted small"},"Партия только для тебя. Боты ходят сами."),
     el("div",{class:"row"},[1,2,3].map(n=>el("button",{class:n===1?"btn":"btn ghost",type:"button",onclick:()=>sendMsg({t:"practice",bots:n})},n===1?"Против 1 бота":`Против ${n} ботов`)))));
   app.append(boardPanel());
-  app.append(themesPanel());
   app.append(rulesPanel());
 }
 function boardPanel(){
@@ -492,9 +750,9 @@ function boardPanel(){
   if(!board) box.append(el("p",{class:"muted small"},"Загружаю рейтинг…"));
   else if(!board.length) box.append(el("p",{class:"muted small"},"Пока пусто. Сыграй с друзьями первую партию, и тут появятся лучшие игроки. Тренировки с ботами не считаются."));
   else box.append(el("div",{class:"tablewrap"},el("table",{class:"board"},
-    el("thead",{},el("tr",{},["#","Игрок","Очки","Побед","Дурак","Игр"].map(t=>el("th",{text:t})))),
+    el("thead",{},el("tr",{},["#","Игрок","Очки","Побед","Дурак","💰"].map(t=>el("th",{text:t})))),
     el("tbody",{},board.map((r,i)=>el("tr",{class:me&&r.id===me.id?"meRow":""},
-      el("td",{text:i+1}),el("td",{class:"nm",text:r.name+(me&&r.id===me.id?" (ты)":"")}),el("td",{text:r.points}),el("td",{text:r.wins}),el("td",{text:r.fools}),el("td",{text:r.games})))))),
+      el("td",{text:i+1}),el("td",{class:"nm"},el("div",{text:r.name+(me&&r.id===me.id?" (ты)":"")}),r.title?el("div",{class:"ptitle",style:"padding-left:0",text:r.title}):null),el("td",{text:r.points}),el("td",{text:r.wins}),el("td",{text:r.fools}),el("td",{text:"$"+(r.coins||0)})))))),
     el("p",{class:"muted small"},"Очки за место: кто вышел первым — больше всех, дурак — 0. Победа — выйти первым."));
   return box;
 }
@@ -522,8 +780,9 @@ function renderWaiting(){
     el("h2",{},"Ждём игроков"),
     el("p",{},"Код комнаты: ",el("span",{class:"code",style:"font-size:22px",text:room.code})),
     el("div",{class:"row"},el("button",{class:"btn",type:"button",onclick:invite},"Пригласить друга")),
-    el("div",{class:"players"},room.players.map(p=>el("span",{class:"pl"},p.name+(p.id===me.id?" (ты)":"")+(p.id===room.host?" · создатель":""),
+    el("div",{class:"players"},room.players.map(p=>el("span",{class:"pl",style:`display:inline-flex;align-items:center;gap:6px`},nameTag(p,{you:p.id===me.id}),p.id===room.host?el("span",{class:"muted small",text:"· создатель"}):null,
       p.bot&&isHost?el("button",{class:"btn ghost",type:"button",style:"padding:0 8px;margin-left:6px","aria-label":"Убрать бота",onclick:()=>act("kick",p.id)},"×"):null))),
+    el("div",{class:"row"},el("span",{class:"muted small",text:"⏱ Таймер хода:"}),isHost?el("div",{class:"seg"},[[0,"Выкл"],[30,"30 сек"]].map(([v,l])=>el("button",{type:"button",class:(room.timer||0)===v?"on":"",onclick:()=>act("setTimer",v)},l))):el("b",{class:"small",text:room.timer?"30 сек":"выкл"})),
     el("p",{class:"muted small"},`За столом ${room.players.length} из 5.`),
     el("div",{class:"row"},
       isHost?el("button",{class:"btn",type:"button",disabled:room.players.length<2,onclick:()=>act("start")},room.players.length<2?"Нужен ещё 1 игрок":"Раздать карты"):el("span",{class:"muted small"},"Карты раздаст создатель комнаты."),
@@ -533,6 +792,12 @@ function renderWaiting(){
 }
 
 
+function timerBar(st){
+  if(!st.timer||!deadlineAt||(st.status!=="play"&&st.status!=="swap")) return null;
+  const total=st.status==="swap"?45000:st.timer*1000, left=Math.max(0,deadlineAt-Date.now());
+  const i=el("i"); i.style.setProperty("--f",String(Math.min(1,left/total))); i.style.animationDuration=left+"ms";
+  return el("div",{class:"tbar",title:"Время на ход"},i);
+}
 /* ---------- анимации стола: сравниваем с прошлым кадром ---------- */
 let anim={code:null,pile:0,burned:0,hand:null,status:null,turn:null};
 function animFlags(st,turnId){
@@ -552,8 +817,8 @@ function renderTable(){
   for(let k=1;k<=n;k++){
     const p=st.players[((seated?myIdx:-1)+k+n)%n]; if(p.id===me.id) continue;
     const done=st.finished.includes(p.id), ups=st.up[p.id]||[], downs=st.down[p.id]||0;
-    opps.append(el("div",{class:"opp"+(p.id===turnId?" turn":"")},
-      el("div",{class:"name",text:p.name+(p.id===st.loser?" — дурак":"")}),
+    opps.append(el("div",{class:"opp"+(p.id===turnId?" turn":""),"data-pid":p.id,style:`--pc:${p.color||"#f2c14e"}`},
+      nameTag(p),
       done?el("span",{class:"chip"},`Вышел ${st.finished.indexOf(p.id)+1}-м`):st.status==="swap"?el("span",{class:"chip"},st.ready[p.id]?"Готов":"Меняет карты"):null,
       el("div",{class:"row"},el("span",{class:"chip"},"В руке ",el("b",{text:cnt(st.hands[p.id])})),el("span",{class:"chip"},"Закрытых ",el("b",{text:downs}))),
       el("div",{class:"stack mini"},ups.map(c=>cardEl(c)),Array.from({length:Math.max(0,downs-ups.length)},()=>backEl()))));
@@ -563,12 +828,13 @@ function renderTable(){
   const pile=el("div",{class:"pile"}), shown=st.pile.slice(-4);
   if(!shown.length) pile.append(el("div",{class:"card empty",style:"left:calc(50% - var(--cw)/2)"}));
   shown.forEach((c,i)=>{const x=cardEl(c);x.style.left=`calc(50% - var(--cw)/2 + ${(i-(shown.length-1))*18}px)`;x.style.setProperty("--rot",`rotate(${(i-(shown.length-1))*-4}deg)`);
-    const gi=st.pile.length-shown.length+i; if(gi>=F.freshFrom){ x.classList.add("fresh"); x.style.animationDelay=((gi-F.freshFrom)*70)+"ms"; } pile.append(x);});
-  if(F.burned){ pile.classList.add("burning"); pile.append(el("div",{class:"burnfx"}),el("div",{class:"burntxt",text:"🔥 Сгорело!"})); }
+    const gi=st.pile.length-shown.length+i; if(Prefs.get("hlPile")&&st.pileBy&&st.pileBy[gi]){ x.classList.add("owned"); x.style.setProperty("--own",colorOf(st.pileBy[gi])); } if(gi>=F.freshFrom){ x.classList.add("fresh"); x.style.animationDelay=((gi-F.freshFrom)*70)+"ms"; } pile.append(x);});
+  if(F.burned){ pile.classList.add("burning"); pile.append(el("div",{class:"burnfx"}),el("div",{class:"burntxt",text:"🔥 Сгорело!"})); if((st.burnStreak||0)>=2) setTimeout(()=>Fx.bigText(st.burnStreak>=3?"Тройное сжигание!":"Двойное сжигание!","hot"),150); }
+  if(F.same&&anim.pile>=8&&st.pile.length===0&&!F.burned&&st.lastTake){ setTimeout(()=>{ Fx.shake(); Fx.bigText("Ой! +"+st.lastTake.n); },60); }
   const eff=effectiveTop(st.pile);
   let statusText, need="";
   if(st.status==="swap") statusText=st.ready[me.id]?"Ждём, пока остальные поменяют карты":"Поменяй карты: нажми карту в руке, потом открытую";
-  else if(st.status==="play") statusText=myTurn?el("span",{},el("b",{},"Твой ход")):el("span",{},"Ходит ",el("b",{text:nameOf(turnId)}));
+  else if(st.status==="play") statusText=myTurn?el("span",{style:`--pc:${colorOf(me.id)}`},el("b",{},"Твой ход")):el("span",{style:`--pc:${colorOf(turnId)}`},"Ходит ",el("b",{text:nameOf(turnId)}));
   else statusText="Партия окончена";
   if(st.status==="play"){
     if(!st.pile.length) need="Стопка пустая — можно любую карту";
@@ -577,12 +843,12 @@ function renderTable(){
   }
   app.append(el("div",{class:"center"},
     el("div",{class:"side"},st.deck?backEl():el("div",{class:"card empty"}),el("span",{},"Колода: ",el("b",{text:st.deck}))),
-    el("div",{class:"pilebox"},pile,el("div",{class:"status"+(F.turnChanged?" pop":"")},statusText),el("div",{class:"need",text:need})),
+    el("div",{class:"pilebox"},pile,el("div",{class:"status"+(F.turnChanged?" pop":"")},statusText),timerBar(st),el("div",{class:"need",text:need})),
     el("div",{class:"side"},el("div",{class:"card empty"}),el("span",{},"Сброшено: ",el("b",{text:st.burned})))));
 
   if(st.status==="over"){
     app.append(el("div",{class:"panel result"},
-      st.loser?el("div",{class:"loser",text:`${nameOf(st.loser)}${st.loser===me.id?" (ты)":""} — дурак`}):null,
+      st.loser?el("div",{class:"loser",style:"display:flex;align-items:center;gap:8px"},hatEl(),el("span",{text:`${nameOf(st.loser)}${st.loser===me.id?" (ты)":""} — дурак`})):null,
       el("ol",{},st.finished.map(id=>el("li",{text:nameOf(id)+(id===me.id?" (ты)":"")}))),
       el("div",{class:"row"},st.host===me.id?el("button",{class:"btn",type:"button",onclick:()=>act("again")},"Новая партия"):el("span",{class:"muted small"},"Новую партию начнёт создатель комнаты."))));
   }
@@ -597,7 +863,9 @@ function renderSeat(st,myTurn){
   const hand=Array.isArray(st.hands[me.id])?st.hands[me.id]:[], up=st.up[me.id]||[], downN=st.down[me.id]||0;
   const src=st.status==="play"?mySource():null, done=st.finished.includes(me.id);
   const swapping=st.status==="swap"&&!st.ready[me.id];
-  const seat=el("div",{class:"seat"+(myTurn?" turn":"")});
+  const myP=playerOf(me.id)||{};
+  const seat=el("div",{class:"seat"+(myTurn?" turn":""),"data-pid":me.id,style:`--pc:${myP.color||"#f2c14e"};--mycolor:${myP.color||"#f2c14e"}`});
+  const glowOk=c=>Prefs.get("hlPlayable")&&canPlay(rk(c),st.pile)?"can":"";
   const toggle=(source,c)=>{
     if(selSrc!==source){sel=[];selSrc=source;}
     if(sel.includes(c)){ sel=sel.filter(x=>x!==c); Sound.fx("unpick"); } else { if(sel.length&&rk(sel[0])!==rk(c)) sel=[]; sel.push(c); Sound.fx("pick"); }
@@ -610,7 +878,7 @@ function renderSeat(st,myTurn){
     if(up[i]!==undefined){
       const c=up[i];
       if(swapping) slot.append(cardEl(c,{extra:"upc",onclick:()=>{ if(swapHand===null) return toast("Сначала выбери карту в руке"); act("swap",swapHand,i); }}));
-      else if(myTurn&&src==="up") slot.append(cardEl(c,{extra:"upc",onclick:()=>toggle("up",c),selected:selSrc==="up"&&sel.includes(c),dim:!canPlay(rk(c),st.pile)}));
+      else if(myTurn&&src==="up") slot.append(cardEl(c,{extra:"upc "+glowOk(c),onclick:()=>toggle("up",c),selected:selSrc==="up"&&sel.includes(c),dim:!canPlay(rk(c),st.pile)}));
       else slot.append(cardEl(c,{extra:"upc"}));
     }
     tab.append(slot);
@@ -618,7 +886,7 @@ function renderSeat(st,myTurn){
   const handBox=el("div",{class:"hand"});
   hand.forEach((c,i)=>{
     if(swapping) handBox.append(cardEl(c,{onclick:()=>{swapHand=swapHand===i?null:i;Sound.fx(swapHand===null?"unpick":"pick");haptic();render();},selected:swapHand===i}));
-    else if(myTurn&&src==="hands") handBox.append(cardEl(c,{onclick:()=>toggle("hands",c),selected:selSrc==="hands"&&sel.includes(c),dim:!canPlay(rk(c),st.pile)}));
+    else if(myTurn&&src==="hands") handBox.append(cardEl(c,{extra:glowOk(c),onclick:()=>toggle("hands",c),selected:selSrc==="hands"&&sel.includes(c),dim:!canPlay(rk(c),st.pile)}));
     else handBox.append(cardEl(c));
   });
   if(!hand.length) handBox.append(el("span",{class:"muted small",style:"align-self:center"},done?"Ты вышел из игры":"Рука пустая"));
@@ -630,12 +898,17 @@ function renderSeat(st,myTurn){
     else actions.append(el("span",{class:"small"},"Открой одну из закрытых карт — вслепую."));
     actions.append(el("button",{class:"btn ghost",type:"button",disabled:!st.pile.length,onclick:()=>act("take")},"Забрать стопку"));
   }
-  seat.append(el("div",{class:"row",style:"justify-content:space-between"},el("span",{class:"lbl"},`Ты · ${me.name}`),el("span",{class:"chip"},"Закрытых ",el("b",{text:downN}))),
-    tab,el("span",{class:"lbl"},"Рука"),handBox,actions);
+  const reacts=(profile&&profile.reacts||[]).length&&st.players.some(p=>p.id!==me.id)?el("div",{class:"reacts",role:"group","aria-label":"Реакции"},profile.reacts.map(e=>el("button",{type:"button","aria-label":"Реакция "+e,onclick:()=>sendMsg({t:"react",e})},e))):null;
+  seat.append(el("div",{class:"row",style:"justify-content:space-between"},nameTag({...myP,name:me.name},{you:true}),el("span",{class:"chip"},"Закрытых ",el("b",{text:downN}))),
+    tab,el("span",{class:"lbl"},"Рука"),handBox,actions,reacts);
   return seat;
 }
 
 buildAudioBar();
+document.getElementById("shopBtn").addEventListener("click",()=>{ view=view==="shop"?"main":"shop"; Sound.fx("pick"); render(); scrollTo(0,0); });
+document.getElementById("coinsBtn").addEventListener("click",()=>{ view="shop"; Sound.fx("pick"); render(); scrollTo(0,0); });
+document.getElementById("setBtn").addEventListener("click",()=>{ view=view==="settings"?"main":"settings"; Sound.fx("pick"); render(); scrollTo(0,0); });
+applyPrefs(); applyCosmetics();
 render();
 connect();
 })();

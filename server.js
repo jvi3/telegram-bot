@@ -7,6 +7,7 @@ const path = require("path");
 const crypto = require("crypto");
 const { WebSocketServer } = require("ws");
 const R = require("./rules");
+const SHOP = require("./shop");
 
 const BOT_TOKEN = process.env.BOT_TOKEN || "";
 const PORT = Number(process.env.PORT) || 3000;
@@ -30,7 +31,7 @@ const startedAt = Date.now();
 // Без базы данные лежат в файле data.json и стираются при перезапуске сервера на Render.
 const DATABASE_URL = process.env.DATABASE_URL || "";
 const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, "data.json");
-let data = { users: {}, banned: [], stats: { games: 0 }, maintenance: false };
+let data = { users: {}, banned: [], stats: { games: 0 }, maintenance: false, promos: {} };
 let pool = null;
 
 async function loadData() {
@@ -75,7 +76,7 @@ process.on("SIGINT", flushAndExit);
 function boardRows() {
   return Object.entries(data.users)
     .filter(([id, u]) => (u.games || 0) > 0 && !data.banned.includes(id))
-    .map(([id, u]) => ({ id: "tg" + id, name: u.name || "Игрок", points: u.points || 0, wins: u.wins || 0, fools: u.fools || 0, games: u.games || 0 }))
+    .map(([id, u]) => ({ id: "tg" + id, name: u.name || "Игрок", points: u.points || 0, wins: u.wins || 0, fools: u.fools || 0, games: u.games || 0, coins: SHOP.ensureEco(u).coins, title: (SHOP.BY_ID[u.equipped.title] || {}).key || "" }))
     .sort((a, b) => b.points - a.points || b.wins - a.wins || a.fools - b.fools || b.games - a.games)
     .slice(0, 20);
 }
@@ -84,6 +85,7 @@ function touchUser(tgId, from) {
   const u = data.users[id] || { first: Date.now(), games: 0 };
   if (from) { u.name = String(from.first_name || from.username || u.name || "Игрок").slice(0, 32); if (from.username) u.username = from.username; }
   u.last = Date.now();
+  SHOP.ensureEco(u);
   data.users[id] = u;
   save();
 }
@@ -148,6 +150,7 @@ async function setupBot() {
   for (const id of ADMIN_IDS) {
     await tg("setMyCommands", { scope: { type: "chat", chat_id: Number(id) }, commands: [
       { command: "start", description: "Открыть игру" }, { command: "admin", description: "Админ-панель" }, { command: "myid", description: "Узнать свой ID" },
+      { command: "give", description: "Выдать деньги: /give ID сумма" }, { command: "promo", description: "Промокод: /promo КОД СУММА ЛИМИТ" },
     ] }, { quiet: true });
   }
   if (!ADMIN_IDS.length) console.log("Админов нет: добавь ADMIN_IDS в Environment Variables, чтобы открыть /admin.");
@@ -196,6 +199,89 @@ function newRoom(host, practice) {
 }
 
 // Что видит конкретный игрок: свою руку целиком, у остальных только количество карт.
+// Цвет и титул каждого игрока: свой цвет, если он не занят тем, кто сел раньше
+function userOf(pid) { return pid && pid.startsWith("tg") ? data.users[pid.slice(2)] : null; }
+function decorate(st) {
+  const used = new Set();
+  return st.players.map(p => {
+    const u = userOf(p.id);
+    let color = u ? (SHOP.BY_ID[SHOP.ensureEco(u).equipped.color] || {}).key : null;
+    if (!color || used.has(color)) color = SHOP.COLOR_ORDER.find(c => !used.has(c)) || "#f2c14e";
+    used.add(color);
+    const title = u ? (SHOP.BY_ID[u.equipped.title] || {}).key || "" : "";
+    return { ...p, color, title };
+  });
+}
+function wsOf(tgId) { return [...wss.clients].filter(ws => ws.user && ws.user.id === "tg" + tgId); }
+function sendProfile(tgId) {
+  const u = data.users[tgId];
+  if (!u) return;
+  const prof = SHOP.profile(u);
+  for (const ws of wsOf(tgId)) send(ws, { t: "profile", ...prof });
+}
+function giveCoins(tgId, amount, reason) {
+  const u = data.users[tgId];
+  if (!u) return null;
+  SHOP.ensureEco(u);
+  const before = u.coins;
+  u.coins = Math.max(0, u.coins + amount);
+  const delta = u.coins - before;
+  save();
+  for (const ws of wsOf(tgId)) send(ws, { t: "reward", delta, coins: u.coins, reason });
+  sendProfile(tgId);
+  return delta;
+}
+function rewardGame(st) {
+  const humans = st.players.filter(p => userOf(p.id));
+  const E = SHOP.ECONOMY;
+  if (st.practice) {
+    const p = humans[0];
+    if (!p || st.finished[0] !== p.id) return;
+    const u = userOf(p.id), day = SHOP.today();
+    if (u.practiceDay !== day) { u.practiceDay = day; u.practiceCount = 0; }
+    if (u.practiceCount >= E.practiceCap) return;
+    u.practiceCount++;
+    giveCoins(p.id.slice(2), E.practiceWin, `Победа в тренировке (${u.practiceCount}/${E.practiceCap} сегодня)`);
+    return;
+  }
+  if (humans.length < 2) return;
+  for (const p of humans) {
+    const place = st.finished.indexOf(p.id);
+    if (p.id === st.loser) giveCoins(p.id.slice(2), E.fool, "Ты дурак");
+    else if (place === 0) giveCoins(p.id.slice(2), E.win, "Победа!");
+    else giveCoins(p.id.slice(2), E.middle, "Не дурак");
+  }
+}
+
+// Таймер хода (если создатель комнаты включил): не успел — за тебя ходит бот
+function armTimer(room) {
+  const st = room.st;
+  clearTimeout(room.turnT);
+  room.turnT = null;
+  st.deadline = null;
+  if (!st.timer) return;
+  if (st.status === "play") {
+    const cur = st.players[st.turn];
+    if (!cur || cur.bot) return;
+    st.deadline = Date.now() + st.timer * 1000;
+    room.turnT = setTimeout(() => {
+      if (!rooms.has(st.code) || st.status !== "play" || st.players[st.turn].id !== cur.id) return;
+      R.A.bot(st, cur.id);
+      st.log = [`⏰ ${cur.name} не успел — за него сходил бот`, ...(st.log || [])].slice(0, 8);
+      broadcast(room);
+      scheduleBots(room);
+    }, st.timer * 1000);
+  } else if (st.status === "swap") {
+    st.deadline = Date.now() + 45000;
+    room.turnT = setTimeout(() => {
+      if (!rooms.has(st.code) || st.status !== "swap") return;
+      for (const p of st.players) if (!st.ready[p.id]) R.A.ready(st, p.id);
+      broadcast(room);
+      scheduleBots(room);
+    }, 45000);
+  }
+}
+
 function viewFor(st, uid) {
   const hands = {}, down = {};
   for (const p of st.players) {
@@ -203,7 +289,8 @@ function viewFor(st, uid) {
     hands[p.id] = p.id === uid ? h : h.length;
     down[p.id] = (st.down[p.id] || []).length;
   }
-  return { ...st, hands, down, deck: st.deck.length };
+  return { ...st, players: decorate(st), hands, down, deck: st.deck.length, pileBy: st.pileBy || [],
+    turnLeft: st.deadline ? Math.max(0, st.deadline - Date.now()) : 0 };
 }
 
 function send(ws, msg) { if (ws.readyState === 1) ws.send(JSON.stringify(msg)); }
@@ -229,8 +316,10 @@ function broadcast(room) {
       const board = boardRows();
       for (const ws of wss.clients) if (ws.user) send(ws, { t: "board", rows: board });
     }
+    if (room.st.status === "over") rewardGame(room.st);
     room.lastStatus = room.st.status;
   }
+  armTimer(room);
   for (const ws of room.subs) send(ws, { t: "state", room: viewFor(room.st, ws.user && ws.user.id) });
 }
 
@@ -254,7 +343,7 @@ function subscribe(ws, room) {
   room.subs.add(ws);
 }
 
-const ACTIONS = new Set(["start", "leave", "swap", "ready", "play", "blind", "take", "again", "addBot", "kick"]);
+const ACTIONS = new Set(["start", "leave", "swap", "ready", "play", "blind", "take", "again", "addBot", "kick", "setTimer"]);
 
 function handle(ws, msg) {
   if (!msg || typeof msg !== "object") return;
@@ -270,6 +359,8 @@ function handle(ws, msg) {
     if (tgId) touchUser(tgId, user.from);
     ws.user = user;
     send(ws, { t: "board", rows: boardRows() });
+    send(ws, { t: "catalog", items: SHOP.ITEMS, eco: SHOP.ECONOMY });
+    if (tgId && data.users[tgId]) send(ws, { t: "profile", ...SHOP.profile(data.users[tgId]) });
     return send(ws, { t: "me", me: { id: user.id, name: user.name }, bot: botUsername });
   }
   if (!ws.user) return;
@@ -297,6 +388,38 @@ function handle(ws, msg) {
     if (room.st.status === "lobby") R.A.join(room.st, me.id, me.name);
     broadcast(room);
     return scheduleBots(room);
+  }
+  const myTg = me.id.startsWith("tg") ? me.id.slice(2) : null;
+  const myU = myTg && data.users[myTg];
+  if (msg.t === "buy" || msg.t === "equip" || msg.t === "daily") {
+    if (!myU) return send(ws, { t: "error", msg: "Магазин работает только в Telegram" });
+    const err = msg.t === "buy" ? SHOP.buy(myU, String(msg.id)) : msg.t === "equip" ? SHOP.equip(myU, String(msg.id)) : SHOP.claimDaily(myU);
+    if (err) return send(ws, { t: "error", msg: err });
+    save();
+    if (msg.t === "daily") { for (const s of wsOf(myTg)) send(s, { t: "reward", delta: SHOP.ECONOMY.daily, coins: myU.coins, reason: "Ежедневный бонус" }); }
+    else { const it = SHOP.BY_ID[String(msg.id)]; send(ws, { t: "toast", msg: msg.t === "buy" ? `Куплено: ${it.name}` : `Надето: ${it.name}` }); }
+    sendProfile(myTg);
+    if (ws.room) broadcast(ws.room); // чтобы соседи по столу увидели новый цвет или титул
+    return;
+  }
+  if (msg.t === "promo") {
+    if (!myU) return send(ws, { t: "error", msg: "Промокоды работают только в Telegram" });
+    const now = Date.now();
+    if (now - (ws.lastPromo || 0) < 1500) return send(ws, { t: "error", msg: "Не так быстро" });
+    ws.lastPromo = now;
+    const r = SHOP.redeemPromo(data, myTg, msg.code);
+    if (r.err) return send(ws, { t: "error", msg: r.err });
+    giveCoins(myTg, r.amount, `Промокод ${r.code}`);
+    return;
+  }
+  if (msg.t === "react") {
+    const room = ws.room, e = String(msg.e || "");
+    if (!room || !myU || !SHOP.canReact(myU, e)) return;
+    const now = Date.now();
+    if (now - (ws.lastReact || 0) < 1200) return;
+    ws.lastReact = now;
+    for (const s of room.subs) send(s, { t: "react", from: me.id, e });
+    return;
   }
   if (msg.t === "exit") {
     if (ws.room) {
@@ -332,6 +455,7 @@ function closeRoom(code) {
   if (!room) return false;
   for (const s of room.subs) { send(s, { t: "gone", code }); s.room = null; }
   clearTimeout(room.timer);
+  clearTimeout(room.turnT);
   rooms.delete(code);
   return true;
 }
@@ -345,14 +469,14 @@ function onlineIds() {
   for (const ws of wss.clients) if (ws.user && ws.user.id.startsWith("tg")) s.add(ws.user.id.slice(2));
   return s;
 }
-const admin = require("./admin")({ tg, rooms, data, save, adminIds: ADMIN_IDS, kickUser, closeRoom, onlineIds, startedAt, appUrl });
+const admin = require("./admin")({ tg, rooms, getData: () => data, data, save, adminIds: ADMIN_IDS, kickUser, closeRoom, onlineIds, startedAt, appUrl, giveCoins });
 
 // Чистим комнаты, где давно никто не играл
 setInterval(() => {
   const now = Date.now();
   for (const [code, room] of rooms) {
     const idle = now - room.st.updated;
-    if (idle > 6 * 3600e3 || (room.subs.size === 0 && idle > 30 * 60e3)) { clearTimeout(room.timer); rooms.delete(code); }
+    if (idle > 6 * 3600e3 || (room.subs.size === 0 && idle > 30 * 60e3)) { clearTimeout(room.timer); clearTimeout(room.turnT); rooms.delete(code); }
   }
 }, 10 * 60e3);
 

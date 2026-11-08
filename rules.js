@@ -87,9 +87,12 @@ function afterPlay(st, pid, r) {
   while (h.length < 3 && st.deck.length) h.push(st.deck.pop());
   sortHand(h);
   const burn = r === "10" || topFourSame(st.pile);
+  if (!burn) st.burnStreak = 0;
   if (burn) {
     st.burned += st.pile.length;
     st.pile = [];
+    st.pileBy = [];
+    st.burnStreak = (st.burnStreak || 0) + 1;
     log(st, r === "10"
       ? `${nameOf(st, pid)} сбросил стопку десяткой и ходит ещё`
       : `Четыре одинаковые — стопка сгорела, ${nameOf(st, pid)} ходит ещё`);
@@ -112,7 +115,8 @@ function deal(st) {
     st.hands[p.id] = sortHand(d.splice(0, 3));
     st.ready[p.id] = false;
   }
-  st.deck = d; st.pile = []; st.burned = 0; st.finished = []; st.loser = null; st.turn = 0; st.last = null;
+  st.prevLoser = st.loser || null;
+  st.deck = d; st.pile = []; st.pileBy = []; st.burned = 0; st.finished = []; st.loser = null; st.turn = 0; st.last = null; st.burnStreak = 0;
   st.status = "swap";
   st.log = [];
   log(st, "Карты розданы. Поменяйте карты в руке и открытые, затем нажмите «Готов».");
@@ -188,6 +192,7 @@ const A = {
     if (!canPlay(r, st.pile)) return "Эта карта не бьёт верхнюю";
     for (const c of cards) arr.splice(arr.indexOf(c), 1);
     st.pile.push(...cards);
+    st.pileBy = (st.pileBy || []).concat(cards.map(() => pid));
     st.last = { pid, cards };
     log(st, `${nameOf(st, pid)}: ${cards.map(pretty).join(" ")}${r === "8" ? " (прозрачная)" : ""}`);
     afterPlay(st, pid, r);
@@ -201,6 +206,7 @@ const A = {
     const r = rk(c);
     if (canPlay(r, st.pile)) {
       st.pile.push(c);
+      st.pileBy = (st.pileBy || []).concat([pid]);
       st.last = { pid, cards: [c] };
       log(st, `${nameOf(st, pid)} открыл ${pretty(c)} вслепую — подошла`);
       afterPlay(st, pid, r);
@@ -208,7 +214,10 @@ const A = {
       const n = st.pile.length + 1;
       st.hands[pid].push(c, ...st.pile);
       sortHand(st.hands[pid]);
+      st.lastTake = { pid, n };
       st.pile = [];
+      st.pileBy = [];
+      st.burnStreak = 0;
       st.last = null;
       log(st, `${nameOf(st, pid)} открыл ${pretty(c)} вслепую — не подошла, забрал ${n} ${plural(n)}`);
       advance(st);
@@ -221,7 +230,10 @@ const A = {
     const n = st.pile.length;
     st.hands[pid].push(...st.pile);
     sortHand(st.hands[pid]);
+    st.lastTake = { pid, n };
     st.pile = [];
+    st.pileBy = [];
+    st.burnStreak = 0;
     st.last = null;
     log(st, `${nameOf(st, pid)} забрал стопку (${n} ${plural(n)})`);
     advance(st);
@@ -230,6 +242,11 @@ const A = {
     if (st.host !== pid) return "Новую партию начинает создатель комнаты";
     if (st.status !== "over") return false;
     deal(st);
+  },
+  setTimer(st, pid, sec) {
+    if (st.host !== pid) return "Таймер включает создатель комнаты";
+    if (st.status !== "lobby" && st.status !== "over") return "Таймер можно поменять только между партиями";
+    st.timer = sec === 30 ? 30 : 0;
   },
   addBot(st, pid) {
     if (st.host !== pid) return "Ботов добавляет создатель комнаты";
