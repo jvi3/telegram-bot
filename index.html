@@ -465,6 +465,31 @@ body.tablemode .reacts{justify-content:center}
 /* в полноэкранном режиме Telegram кладёт свои кнопки поверх: отодвигаемся */
 body.fs .hdr{padding-top:calc(8px + var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px))}
 body.fs.tablemode .wrap.app{min-height:calc(100dvh - 54px - var(--tg-safe-area-inset-top,0px) - var(--tg-content-safe-area-inset-top,0px))}
+
+/* ---------- экран выбора трёх карт ---------- */
+.swapstage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.2vh,20px);text-align:center;padding:8px 0}
+.swttl{font-family:var(--display);font-weight:700;font-size:clamp(22px,calc(var(--cwb)*.36),36px);color:#ffe6a0;text-shadow:0 2px 10px #000}
+.swttl.anim{animation:swttl .55s cubic-bezier(.2,.9,.3,1.4) .1s both}
+@keyframes swttl{0%{transform:scale(.5);opacity:0}100%{transform:none;opacity:1}}
+.swsub{font-size:clamp(12px,calc(var(--cwb)*.2),16px);text-shadow:0 1px 3px #000;max-width:30em}
+.swsub.anim{animation:fadein .4s ease-out 1.1s both}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.swdowns{display:flex;gap:clamp(10px,3vw,18px);--cw:calc(var(--cwb)*1.15)}
+.swdowns .card.back{position:relative}
+.swdowns .card.myst{animation:myst 2s ease-in-out infinite}
+.swdowns .card.swdrop{animation:swdrop .5s cubic-bezier(.2,.8,.3,1.2) both,myst 2s ease-in-out .8s infinite}
+@keyframes myst{0%,100%{box-shadow:inset 0 0 0 3px var(--c-back-edge),0 0 0 0 rgba(185,164,255,0)}50%{box-shadow:inset 0 0 0 3px var(--c-back-edge),0 0 22px 6px rgba(185,164,255,.8)}}
+@keyframes swdrop{0%{transform:translateY(-140px) rotate(-15deg) scale(.6);opacity:0}100%{opacity:1}}
+.swq{position:absolute;inset:0;display:grid;place-items:center;font-family:"Press Start 2P",var(--display);font-size:calc(var(--cw)*.36);color:rgba(255,255,255,.9);text-shadow:0 2px 6px #000}
+.swsix{display:grid;grid-template-columns:repeat(3,var(--cw));gap:clamp(10px,2vh,18px) clamp(10px,3vw,18px);--cw:min(calc(var(--cwb)*1.2),calc((100vw - 80px)/3.4));padding-top:12px}
+@media (min-aspect-ratio:1/1){.swsix{grid-template-columns:repeat(6,var(--cw));--cw:min(calc(var(--cwb)*1.2),calc((100vw - 120px)/7))}}
+.swsix .card{transition:transform .3s cubic-bezier(.2,.9,.3,1.4),box-shadow .2s}
+.swsix .card.sel{transform:translateY(-12px)!important;box-shadow:0 0 0 3px var(--mycolor),0 0 20px color-mix(in srgb,var(--mycolor) 70%,transparent)!important}
+.swsix .card.strong::before{content:"сильная";position:absolute;left:50%;top:-10px;transform:translateX(-50%);font:600 10px/1 var(--body);background:var(--brass);color:var(--brass-ink);padding:3px 6px;border-radius:999px;white-space:nowrap;z-index:2}
+.swsix .card.swfly{animation:swfly .55s cubic-bezier(.18,.9,.3,1.25) both}
+@keyframes swfly{0%{transform:translateY(60vh) rotate(18deg) scale(.6);opacity:0}100%{opacity:1}}
+.btn.big.swgo{margin:4px auto 0}
+:root[data-anim="off"] .swdowns .card.myst{animation:none}
 </style>
 </head>
 <body>
@@ -581,6 +606,11 @@ const Sound=(()=>{
     error(){ tone(ctx.currentTime,180,.15,{type:"square",gain:.05}); },
     pick(){ const t=ctx.currentTime; noise(t,.035,{freq:3400,q:1.4,gain:.28}); tone(t,1150,.05,{gain:.035}); },
     unpick(){ const t=ctx.currentTime; noise(t,.035,{freq:1700,q:1.4,gain:.22}); tone(t,620,.05,{gain:.03}); },
+    mystery(){ const t=ctx.currentTime; [220,277,330].forEach((f,i)=>tone(t+i*.12,f,1.1,{type:"triangle",gain:.05})); tone(t+.36,415,1.2,{gain:.04}); noise(t,1.4,{type:"lowpass",freq:600,sweepTo:2400,q:.5,gain:.05}); },
+    whoosh(){ noise(ctx.currentTime,.22,{freq:500,sweepTo:3500,q:.8,gain:.18}); },
+    thud(){ const t=ctx.currentTime; noise(t,.09,{freq:900,q:1,gain:.3}); tone(t,120,.12,{type:"triangle",gain:.18,slideTo:65}); },
+    sparkle(){ const t=ctx.currentTime; [1568,2093,2637].forEach((f,i)=>tone(t+i*.06,f,.25,{gain:.05})); },
+    done(){ const t=ctx.currentTime; [523,659,784,1046].forEach((f,i)=>tone(t+i*.09,f,.3,{type:"triangle",gain:.07})); },
     tick(){ tone(ctx.currentTime,1760+Math.random()*200,.03,{type:"square",gain:.025}); },
     reel(){ noise(ctx.currentTime,.025,{freq:2400+Math.random()*800,q:2,gain:.12}); },
     stop(){ const t=ctx.currentTime; noise(t,.08,{freq:900,q:1,gain:.35}); tone(t,110,.09,{type:"triangle",gain:.18,slideTo:70}); },
@@ -1473,10 +1503,41 @@ function animSeat(seatEl,F,hand){
   if(F.deal){ seatEl.querySelectorAll(".card").forEach((c,i)=>{ c.classList.add("dealin"); c.style.animationDelay=(i*85)+"ms"; }); return; }
   if(F.same&&anim.hand){ let k=0; [...seatEl.querySelectorAll(".hand > .card")].forEach((c,i)=>{ if(hand[i]&&!anim.hand.has(hand[i])){ c.classList.add("drawin"); c.style.animationDelay=(k++*110)+"ms"; } }); }
 }
+/* ---------- начало партии: выбор трёх карт, которые лягут сверху ---------- */
+let swapKey=null, swapSel=[], swapStrong=[];
+const swapScore=c=>{ const r=rk(c); return r==="2"?20:r==="10"?19:r==="8"?16:val(r); };
+function renderSwapStage(st){
+  const six=[...(Array.isArray(st.hands[me.id])?st.hands[me.id]:[]),...(st.up[me.id]||[])];
+  const key=st.code+":"+six.slice().sort().join(",");
+  const fresh=swapKey!==key;
+  if(fresh){ swapKey=key; swapStrong=six.slice().sort((a,b)=>swapScore(b)-swapScore(a)).slice(0,3); swapSel=swapStrong.slice(); }
+  const k=Prefs.get("anim")==="off"?0:Prefs.get("anim")==="fast"?.55:1;
+  const stage=el("div",{class:"swapstage"});
+  const ttl=el("div",{class:"swttl"+(fresh&&k?" anim":""),text:"Выбери карты"});
+  const downs=el("div",{class:"swdowns"},Array.from({length:(st.down[me.id]||0)},(_,i)=>{ const d=backEl(); d.classList.add("myst"); if(fresh&&k){ d.classList.add("swdrop"); d.style.animationDelay=(250+i*160)*k+"ms"; } d.append(el("span",{class:"swq",text:"?"})); return d; }));
+  const sub=el("div",{class:"swsub"+(fresh&&k?" anim":""),text:"Эти 3 лягут поверх закрытых · сильные уже выбраны, можно поменять"});
+  const go=el("button",{class:"btn big swgo",type:"button",onclick:()=>{ if(swapSel.length!==3) return toast("Выбери ровно 3 карты"); Sound.fx("done"); act("arrange",swapSel.slice()); }},`Готово · ${swapSel.length} из 3`);
+  go.disabled=swapSel.length!==3;
+  const toggle=c=>{ const i=swapSel.indexOf(c);
+    if(i>=0){ swapSel.splice(i,1); Sound.fx("unpick"); } else { if(swapSel.length>=3) swapSel.shift(); swapSel.push(c); Sound.fx("pick"); }
+    haptic(); render(); };
+  const grid=el("div",{class:"swsix"},six.map((c,i)=>{ const e=cardEl(c,{onclick:()=>toggle(c),selected:swapSel.includes(c),extra:swapStrong.includes(c)?"strong":""});
+    if(fresh&&k){ e.classList.add("swfly"); e.style.animationDelay=(1300+i*150)*k+"ms"; } return e; }));
+  stage.append(...[ttl,downs,sub,grid,timerBar(st),go].filter(Boolean));
+  app.append(stage);
+  if(fresh&&k){
+    Sound.fx("mystery");
+    [0,1,2].forEach(i=>setTimeout(()=>Sound.fx("thud"),(550+i*160)*k));
+    setTimeout(()=>Sound.fx("whoosh"),1100*k);
+    six.forEach((_,i)=>setTimeout(()=>Sound.fx("play"),(1300+i*150)*k));
+    setTimeout(()=>Sound.fx("sparkle"),(1300+six.length*150+250)*k);
+  }
+}
 function renderTable(){
   const st=room,n=st.players.length,myIdx=st.players.findIndex(p=>p.id===me.id),seated=myIdx>=0;
   const turnId=st.status==="play"?st.players[st.turn].id:null, myTurn=turnId===me.id;
   const F=animFlags(st,turnId);
+  if(st.status==="swap"&&myIdx>=0&&!st.ready[me.id]){ renderSwapStage(st); anim={...anim,code:st.code,status:"swapstage"}; return; }
   const opps=el("div",{class:"opps"});
   for(let k=1;k<=n;k++){
     const p=st.players[((seated?myIdx:-1)+k+n)%n]; if(p.id===me.id) continue;
