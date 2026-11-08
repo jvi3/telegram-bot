@@ -410,6 +410,46 @@ header.wrap,.wrap.app{position:relative;z-index:1}
 .nav .btn{padding:6px 9px;font-size:15px;line-height:1}
 .coins{padding:5px 10px;font-size:14px}
 @media (max-width:420px){.hdr .brand h1{font-size:20px}.hdr .by{font-size:10px}}
+
+/* ---------- стол без коробок, под вертикальный экран ---------- */
+body.tablemode .hdr .brand{display:none}
+body.tablemode .hdr{padding-block:8px 0;justify-content:flex-end}
+body.tablemode .wrap.app{min-height:calc(100dvh - 54px);padding-block:4px 10px;gap:6px}
+body.tablemode .tbar-top .btn.tiny,.btn.tiny{padding:5px 10px;font-size:13px}
+.btn.tiny[aria-pressed="false"]{opacity:.45}
+body.tablemode .opps{display:flex;flex-direction:column;gap:4px}
+body.tablemode .opp,body.tablemode .center,body.tablemode .seat{background:transparent;border:0;box-shadow:none;padding:4px 2px;border-radius:0}
+body.tablemode .opp{flex-direction:row;align-items:center;gap:8px;flex-wrap:nowrap}
+body.tablemode .opp .ntag{min-width:0;flex:0 1 auto}
+body.tablemode .opp>.chip{flex:none}
+body.tablemode .opp.turn::after,body.tablemode .seat.turn::after{display:none}
+body.tablemode .opp.turn .av,body.tablemode .seat.turn .av{animation:avglow 1.6s ease-in-out infinite}
+@keyframes avglow{0%,100%{box-shadow:0 0 0 2px var(--pc)}50%{box-shadow:0 0 0 2px var(--pc),0 0 16px 4px var(--pc)}}
+body.tablemode .name span,body.tablemode .ptitle,body.tablemode .side,body.tablemode .need,body.tablemode .status,body.tablemode .tbar-top{text-shadow:0 1px 3px rgba(0,0,0,.9)}
+.otab{display:flex;gap:5px;margin-left:auto}
+.otab .slot{width:var(--cw);aspect-ratio:5/7;position:relative}
+.otab .slot>.card{position:absolute;inset:0;width:100%}
+.otab .slot>.card.upc{transform:translate(3px,-4px)}
+.ohand{display:flex;align-items:center;gap:4px;flex:none}
+.ohand b{font-size:13px;text-shadow:0 1px 3px #000}
+.ofan{display:flex}
+.ofan .card{margin-left:calc(var(--cw)*-.62)}
+.ofan .card:first-child{margin-left:0}
+body.tablemode .mini{--cw:clamp(22px,calc(var(--cwb)*.48),30px)}
+body.tablemode .center{flex:1;grid-template-columns:auto 1fr auto;align-items:center;padding:6px 4px;gap:6px}
+body.tablemode .center .pilebox{--cw:calc(var(--cwb)*1.45)}
+body.tablemode .center .side{--cw:calc(var(--cwb)*.8)}
+body.tablemode .pile{width:calc(var(--cw)*2.3)}
+body.tablemode .status{font-size:clamp(15px,4.4vw,20px)}
+body.tablemode .seat{margin-top:auto;gap:4px}
+.meline{display:flex;align-items:center;gap:10px}
+.meline .tableau{margin-left:auto;--cw:calc(var(--cwb)*.82);gap:6px;flex-wrap:nowrap}
+body.tablemode .hand{--cw:calc(var(--cwb)*1.35);min-height:calc(var(--cw)*1.4 + 18px)}
+body.tablemode .seat>.row{gap:8px}
+body.tablemode .seat>.row .btn{flex:1;padding:12px 10px}
+body.tablemode .reacts button{padding:4px 8px;font-size:17px}
+:root[data-nohints] .need,:root[data-nohints] .hint{display:none!important}
+@media (max-width:560px){body.tablemode .center{grid-template-columns:auto minmax(0,1fr) auto}}
 </style>
 </head>
 <body>
@@ -597,7 +637,7 @@ const equippedId=t=>(profile&&profile.equipped&&profile.equipped[t])||DEF_EQUIP[
 const equippedKey=t=>{ const it=itemById(equippedId(t)); return it?it.key:null; };
 
 const Prefs=(()=>{
-  const d={liveBg:true,anim:"normal",big:false,hlPlayable:true,hlPile:true,hlTurn:true};
+  const d={liveBg:true,anim:"normal",big:false,hlPlayable:true,hlPile:true,hlTurn:true,hints:true,showLog:false};
   let p; try{ p=Object.assign({},d,JSON.parse(ls.get("durak.prefs")||"{}")); }catch(e){ p={...d}; }
   return { get:k=>p[k], set(k,v){ p[k]=v; ls.set("durak.prefs",JSON.stringify(p)); applyPrefs(); } };
 })();
@@ -606,6 +646,7 @@ function applyPrefs(){
   r.setAttribute("data-anim",Prefs.get("anim"));
   if(Prefs.get("big")) r.setAttribute("data-big","1"); else r.removeAttribute("data-big");
   r.toggleAttribute("data-hlturn",!!Prefs.get("hlTurn"));
+  r.toggleAttribute("data-nohints",!Prefs.get("hints"));
   Bg.setLive(!!Prefs.get("liveBg"));
 }
 function applyCosmetics(){
@@ -1120,7 +1161,8 @@ function renderSettings(){
   app.append(el("div",{class:"panel"},el("h2",{},"Подсветки"),
     check("hlTurn","Ник того, кто ходит, светится его цветом"),
     check("hlPlayable","Подсвечивать карты, которыми можно сходить"),
-    check("hlPile","Показывать цветом, кто положил карту в стопку")));
+    check("hlPile","Показывать цветом, кто положил карту в стопку"),
+    check("hints","Подсказки на столе («Бей 7 или старше» и т.п.)")));
   app.append(el("div",{class:"panel"},el("h2",{},"Анимации"),seg("anim",[["normal","Обычные"],["fast","Быстрые"],["off","Выкл"]]),
     el("h2",{},"Размер карт"),seg("big",[[false,"Обычные"],[true,"Крупные"]])));
   const audioPanel=el("div",{class:"panel"},el("h2",{},"Звук и музыка")); audioPanel.append(audioBox); app.append(audioPanel);
@@ -1267,7 +1309,13 @@ function renderInner(){
   if(view==="settings"){ renderSettings(); return; }
   if(view==="shop"){ renderShop(); return; }
   if(view==="casino"){ renderCasino(); return; }
-  if(room){ app.append(el("div",{class:"top"}, room.practice?el("span",{class:"muted small"},"Тренировка"):el("span",{class:"muted small"},"Комната ",el("span",{class:"code",text:room.code})), el("button",{class:"btn ghost",type:"button",onclick:exitRoom},"В меню"))); }
+  const tableMode=!!(room&&room.status!=="lobby"&&!fatal);
+  document.body.classList.toggle("tablemode",tableMode);
+  if(room){ app.append(el("div",{class:"top tbar-top"}, room.practice?el("span",{class:"muted small"},"Тренировка"):el("span",{class:"muted small"},"Комната ",el("span",{class:"code",text:room.code})),
+    el("div",{class:"row",style:"gap:6px"},
+      tableMode?el("button",{class:"btn ghost tiny","aria-pressed":String(!!Prefs.get("hints")),title:"Подсказки",onclick:()=>{ Prefs.set("hints",!Prefs.get("hints")); Sound.fx("pick"); render(); }},"💡"):null,
+      tableMode?el("button",{class:"btn ghost tiny","aria-pressed":String(!!Prefs.get("showLog")),title:"Ходы",onclick:()=>{ Prefs.set("showLog",!Prefs.get("showLog")); Sound.fx("pick"); render(); }},"📜"):null,
+      el("button",{class:"btn ghost tiny",type:"button",onclick:exitRoom},"В меню")))); }
   if(fatal){ app.append(el("div",{class:"banner",text:fatal})); return; }
   if(conn==="lost") app.append(el("div",{class:"banner"},"Связь с сервером пропала, переподключаюсь…"));
   if(!me){ app.append(el("div",{class:"panel"},el("p",{class:"muted"},"Подключаюсь к серверу… Если сервер спал, это может занять до минуты."))); return; }
@@ -1413,8 +1461,8 @@ function renderTable(){
     opps.append(el("div",{class:"opp"+(p.id===turnId?" turn":""),"data-pid":p.id,style:`--pc:${p.color||"#f2c14e"}`},
       nameTag(p),
       done?el("span",{class:"chip"},`Вышел ${st.finished.indexOf(p.id)+1}-м`):st.status==="swap"?el("span",{class:"chip"},st.ready[p.id]?"Готов":"Меняет карты"):null,
-      el("div",{class:"row"},el("span",{class:"chip"},"В руке ",el("b",{text:cnt(st.hands[p.id])})),el("span",{class:"chip"},"Закрытых ",el("b",{text:downs}))),
-      el("div",{class:"stack mini"},ups.map(c=>cardEl(c)),Array.from({length:Math.max(0,downs-ups.length)},()=>backEl()))));
+      el("div",{class:"otab mini"},Array.from({length:Math.max(downs,ups.length)},(_,i)=>el("div",{class:"slot"},i<downs?backEl():null,ups[i]!==undefined?cardEl(ups[i],{extra:"upc"}):null))),
+      el("div",{class:"ohand",title:"Карт в руке"},el("div",{class:"ofan mini"},Array.from({length:Math.min(5,cnt(st.hands[p.id]))},()=>backEl())),el("b",{text:String(cnt(st.hands[p.id]))}))));
   }
   app.append(opps);
 
@@ -1459,7 +1507,7 @@ function renderTable(){
   if(seated){ const seatEl=renderSeat(st,myTurn); animSeat(seatEl,F,myHandArr); app.append(seatEl); }
   else app.append(el("div",{class:"panel"},el("p",{class:"muted"},"Ты смотришь эту партию. Сесть можно, когда начнётся следующая.")));
   anim={code:st.code,pile:st.pile.length,burned:st.burned,hand:new Set(myHandArr),status:st.status,turn:turnId,shown:st.pile.slice(-4),takeSeq:st.lastTake&&st.lastTake.seq};
-  if((st.log||[]).length) app.append(el("div",{class:"panel"},el("h2",{},"Ходы"),el("div",{class:"log"},st.log.map(l=>el("div",{text:l})))));
+  if((st.log||[]).length&&Prefs.get("showLog")) app.append(el("div",{class:"panel logpanel"},el("h2",{},"Ходы"),el("div",{class:"log"},st.log.map(l=>el("div",{text:l})))));
 }
 
 /* ---------- веер карт в руке, покачивание и 3D-наклон с бликом ---------- */
@@ -1513,16 +1561,16 @@ function renderSeat(st,myTurn){
   fanHand(handBox);
   if(!hand.length) handBox.append(el("span",{class:"muted small",style:"align-self:center"},done?"Ты вышел из игры":"Рука пустая"));
   const actions=el("div",{class:"row"});
-  if(swapping) actions.append(el("button",{class:"btn",type:"button",onclick:()=>act("ready")},"Готов"),el("span",{class:"muted small"},"Нажми карту в руке, потом открытую — они поменяются местами."));
+  if(swapping) actions.append(el("button",{class:"btn",type:"button",onclick:()=>act("ready")},"Готов"),el("span",{class:"muted small hint"},"Нажми карту в руке, потом открытую — они поменяются местами."));
   if(myTurn){
     const canPut=sel.length&&canPlay(rk(sel[0]),st.pile);
     if(src!=="down") actions.append(el("button",{class:"btn",type:"button",disabled:!canPut,onclick:()=>act("play",selSrc,[...sel])},sel.length?`Положить ${sel.map(pretty).join(" ")}`:"Выбери карты"));
-    else actions.append(el("span",{class:"small"},"Открой одну из закрытых карт — вслепую."));
+    else actions.append(el("span",{class:"small hint"},"Открой одну из закрытых карт — вслепую."));
     actions.append(el("button",{class:"btn ghost",type:"button",disabled:!st.pile.length,onclick:()=>act("take")},"Забрать стопку"));
   }
   const reacts=(profile&&profile.reacts||[]).length&&st.players.some(p=>p.id!==me.id)?el("div",{class:"reacts",role:"group","aria-label":"Реакции"},profile.reacts.map(e=>el("button",{type:"button","aria-label":"Реакция "+e,onclick:()=>sendMsg({t:"react",e})},e))):null;
-  seat.append(el("div",{class:"row",style:"justify-content:space-between"},nameTag({...myP,name:me.name,avatar:myP.avatar||(profile&&profile.avatar)||""},{you:true}),el("span",{class:"chip"},"Закрытых ",el("b",{text:downN}))),
-    tab,el("span",{class:"lbl"},"Рука"),handBox,actions,reacts);
+  seat.append(el("div",{class:"meline"},nameTag({...myP,name:me.name,avatar:myP.avatar||(profile&&profile.avatar)||""},{you:true}),tab),
+    handBox,actions,reacts);
   return seat;
 }
 
