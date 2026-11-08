@@ -198,7 +198,8 @@ button.card:disabled{cursor:default}
 #bgcanvas{position:fixed;inset:0;width:100vw;height:100vh;height:100lvh;image-rendering:pixelated;z-index:0;pointer-events:none}
 header.wrap,.wrap.app{position:relative;z-index:1}
 .fxcanvas{position:fixed;inset:0;width:100%;height:100%;image-rendering:pixelated;z-index:40;pointer-events:none}
-.panel,.center,.seat,.opp{background:rgba(6,18,16,.55);-webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px)}
+.panel,.center,.seat,.opp{background:rgba(6,18,16,.72)}
+.opp,.seat{position:relative}
 .nav{display:flex;gap:6px;align-items:center}
 .nav .btn{padding:7px 12px;font-size:14px}
 .coins{background:rgba(0,0,0,.35);color:var(--brass);border:1px solid rgba(226,173,75,.45);border-radius:999px;padding:6px 12px;font-weight:600;font-variant-numeric:tabular-nums}
@@ -209,9 +210,11 @@ header.wrap,.wrap.app{position:relative;z-index:1}
 .name .dot{width:9px;height:9px;border-radius:50%;background:var(--pc,#f2c14e);flex:none;box-shadow:0 0 6px var(--pc,#f2c14e)}
 .ptitle{font-size:11px;color:var(--brass);letter-spacing:.04em;padding-left:15px}
 .hat{display:inline-flex;flex:none;filter:drop-shadow(0 1px 0 rgba(0,0,0,.5))}
-@keyframes glowc{0%,100%{box-shadow:0 0 0 1px var(--pc),0 0 0 0 transparent}50%{box-shadow:0 0 0 1px var(--pc),0 0 16px 2px var(--pc)}}
+@keyframes glowo{0%,100%{opacity:.15}50%{opacity:1}}
 .opp.turn,.seat.turn{animation:none;border-color:rgba(255,255,255,.15)}
-:root[data-hlturn] .opp.turn,:root[data-hlturn] .seat.turn{border-color:var(--pc);animation:glowc 1.8s ease-in-out infinite}
+:root[data-hlturn] .opp.turn,:root[data-hlturn] .seat.turn{border-color:var(--pc)}
+:root[data-hlturn] .opp.turn::after,:root[data-hlturn] .seat.turn::after{content:"";position:absolute;inset:-1px;border-radius:inherit;box-shadow:0 0 0 1px var(--pc),0 0 16px 2px var(--pc);pointer-events:none;animation:glowo 1.8s ease-in-out infinite;will-change:opacity}
+:root[data-anim="off"] .opp.turn::after,:root[data-anim="off"] .seat.turn::after{animation:none;opacity:.6}
 :root[data-hlturn] .opp.turn .name span,:root[data-hlturn] .status b{color:var(--pc)}
 .card.owned{box-shadow:inset 0 0 0 var(--c-edge-w) var(--c-edge),0 0 0 2px var(--own),var(--c-shadow)}
 .card.can{box-shadow:inset 0 0 0 var(--c-edge-w) var(--c-edge),0 0 10px 1px color-mix(in srgb,var(--mycolor) 60%,transparent),var(--c-shadow)}
@@ -225,8 +228,8 @@ header.wrap,.wrap.app{position:relative;z-index:1}
 .tprev.duo .card.special::after{display:none}
 .tprev.emo{font-size:26px;letter-spacing:4px}
 .bgprev{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--felt-line)}
-.bgprev canvas{width:100%;aspect-ratio:16/10;image-rendering:pixelated;display:block}
-.bgprev.locked canvas{filter:brightness(.42) saturate(.6)}
+.bgprev canvas,.bgprev img{width:100%;aspect-ratio:16/10;image-rendering:pixelated;display:block}
+.bgprev.locked canvas,.bgprev.locked img{filter:brightness(.42) saturate(.6)}
 .bgprev .q{position:absolute;inset:0;display:grid;place-items:center;font-family:"Press Start 2P",var(--display);font-size:26px;color:rgba(255,255,255,.85);text-shadow:2px 2px 0 #000}
 .tname{font-size:13px;font-weight:500}
 .btn.small{padding:6px 12px;font-size:13px}
@@ -303,7 +306,7 @@ header.wrap,.wrap.app{position:relative;z-index:1}
 .hand>button.card:not(:disabled):hover,.hand>button.card.tilt{--lift:-10px;--sc:1.06;transform:var(--base) perspective(600px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--sc,1));z-index:3}
 .hand>.card.sel{--lift:-24px;--sc:1.04;transform:var(--base) perspective(600px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--sc,1))!important;z-index:2}
 @keyframes sway{0%,100%{translate:0 0}50%{translate:0 -3px}}
-.hand>.card::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at var(--gx,50%) var(--gy,0%),rgba(255,255,255,.6),rgba(255,255,255,0) 55%);opacity:0;transition:opacity .2s;pointer-events:none;mix-blend-mode:soft-light}
+.hand>.card::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at var(--gx,50%) var(--gy,0%),rgba(255,255,255,.38),rgba(255,255,255,0) 55%);opacity:0;transition:opacity .2s;pointer-events:none}
 .hand>.card.tilt::before{opacity:1}
 .hand>.card.drawin{animation:hdrawin .65s cubic-bezier(.18,.9,.3,1.3) backwards,sway 3.4s ease-in-out .65s infinite}
 .seat .hand>.card.dealin{animation:hdealin .8s cubic-bezier(.18,.85,.3,1.2) backwards,sway 3.4s ease-in-out .8s infinite}
@@ -326,6 +329,87 @@ header.wrap,.wrap.app{position:relative;z-index:1}
 :root[data-anim="fast"] .hand>.card.drawin,:root[data-anim="fast"] .seat .hand>.card.dealin{animation-duration:.3s,3.4s}
 
 :root[data-hlturn] .opp.turn .name span.av,:root[data-hlturn] .seat.turn .name span.av{color:#1c1b19}
+/* ---------- казино ---------- */
+.panel.casino{padding:12px}
+.machine{display:flex;flex-direction:column;gap:12px}
+.mtitle{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.mtitle b{font-family:"Press Start 2P",var(--display);font-size:13px;color:var(--brass);letter-spacing:.06em;text-shadow:2px 2px 0 #000}
+.mwin{position:relative;background:#0a201c;border:3px solid #b9862c;border-radius:14px;padding:8px;box-shadow:inset 0 0 0 2px #5a3a12,0 0 0 2px #2a1a08}
+.reels{display:grid;gap:6px}
+.reels.r3{grid-template-columns:repeat(3,1fr);max-width:320px;margin:0 auto}
+.reels.r5{grid-template-columns:repeat(5,1fr)}
+.reelc{position:relative;overflow:hidden;background:#f7f1e1;border-radius:8px;aspect-ratio:1/3}
+.reelc::after{content:"";position:absolute;inset:0;background:linear-gradient(#0a201c 0,rgba(10,32,28,0) 20%,rgba(10,32,28,0) 80%,#0a201c 100%);opacity:.5;pointer-events:none}
+.reelc.thunk{animation:thunk .28s ease-out}
+@keyframes thunk{0%{transform:translateY(0)}40%{transform:translateY(5px)}100%{transform:translateY(0)}}
+.strip{position:absolute;left:0;top:0;width:100%;will-change:transform}
+.cellc{height:calc(100% / 3);aspect-ratio:1/1;width:100%;display:grid;place-items:center}
+.reelc .cellc{height:auto}
+.strip{display:flex;flex-direction:column}
+.strip .cellc{flex:none;width:100%;aspect-ratio:1/1}
+.cellc .sym{width:78%;height:78%;image-rendering:pixelated;user-select:none}
+.cellc.blur .sym{filter:blur(1px);opacity:.85}
+.cellc.winc{background:radial-gradient(circle,rgba(126,224,181,.55),rgba(126,224,181,0) 70%);animation:winc .5s ease-in-out 4 alternate}
+@keyframes winc{from{transform:scale(1)}to{transform:scale(1.12)}}
+.payline{position:absolute;left:6px;right:6px;top:50%;height:4px;margin-top:-2px;background:#e8664e;opacity:.6;border-radius:2px;z-index:2;pointer-events:none}
+.mbanner{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;background:#1c1b19;color:#ffd27a;border:2px solid var(--brass);font-family:"Press Start 2P",var(--display);font-size:11px;padding:10px 14px;border-radius:10px;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.mbanner.pop{animation:spop .5s cubic-bezier(.2,.9,.3,1.4) both;animation-name:mpop}
+@keyframes mpop{0%{transform:translate(-50%,-50%) scale(.3)}100%{transform:translate(-50%,-50%) scale(1)}}
+.betrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.betrow input{width:84px;padding:8px 10px}
+.btn.big{padding:12px 22px;font-size:15px;margin-left:auto}
+.cout{font-weight:600;min-height:22px}
+.cout.win{color:#7ee0b5}.cout.lose{color:#ff8b7b}
+.pdet summary{cursor:pointer;color:var(--muted);font-size:13px}
+.paytab{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 14px;margin-top:8px;font-size:13px}
+.paytab>div{display:flex;align-items:center;gap:3px}
+.paytab b{margin-left:auto;color:var(--brass)}
+.psym{width:22px;height:22px;image-rendering:pixelated}
+.psym.inl{width:16px;height:16px;vertical-align:-3px}
+.paytab.five{grid-template-columns:1fr}
+.paytab.five .phead,.paytab.five .prow{display:grid;grid-template-columns:40px repeat(3,1fr);align-items:center;text-align:center}
+.paytab.five .phead span{color:var(--muted);font-size:12px}
+.paytab.five .prow b{margin:0}
+.chestpick{display:flex;flex-direction:column;align-items:center;gap:8px}
+.chestrow{display:flex;gap:12px}
+.chestbtn{position:relative;background:#0a201c;border:2px solid #b9862c;border-radius:12px;padding:10px;cursor:pointer;animation:chestbob 1.2s ease-in-out infinite}
+.chestbtn:nth-child(2){animation-delay:-.4s}.chestbtn:nth-child(3){animation-delay:-.8s}
+@keyframes chestbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.chestimg{width:64px;height:64px;image-rendering:pixelated;display:block}
+.chestbtn.chosen{border-color:#7ee0b5;animation:shake .5s ease-in-out}
+.chestbtn.other{opacity:.5;animation:none}
+.chestbtn.open{animation:pop .5s cubic-bezier(.2,.9,.3,1.4);border-color:#7ee0b5;box-shadow:0 0 18px rgba(126,224,181,.6)}
+.chestbtn .prize{position:absolute;left:50%;top:-12px;transform:translateX(-50%);background:var(--brass);color:#2a1d05;font-family:"Press Start 2P",var(--display);font-size:10px;padding:4px 6px;border-radius:6px}
+.chestbtn.other .prize{background:#555;color:#ddd}
+.rstrip{position:relative;height:58px;overflow:hidden;border-radius:10px;background:#0a201c;border:3px solid #b9862c}
+.rrow{position:absolute;top:4px;left:0;display:flex;gap:4px;will-change:transform}
+.rcell{width:44px;height:44px;flex:none;border-radius:6px;display:grid;place-items:center;color:#fff;font-weight:700;font-family:var(--display);font-size:13px}
+.rcell.red{background:#c23a2b}.rcell.black{background:#1c1b19;box-shadow:inset 0 0 0 1px #333}.rcell.green{background:#2e9e6e}
+.rcell.mini{width:26px;height:26px;font-size:10px}
+.rmark{position:absolute;left:50%;top:0;bottom:0;width:3px;margin-left:-1.5px;background:var(--brass);z-index:2;box-shadow:0 0 8px var(--brass)}
+.rhist{display:flex;gap:4px;flex-wrap:wrap;min-height:26px}
+.rpicks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rpick{border:0;border-radius:12px;padding:12px 6px;font-weight:700;color:#fff;font-size:14px}
+.rpick.red{background:#c23a2b}.rpick.black{background:#2a2a2e}.rpick.green{background:#2e9e6e}
+.rpick:disabled{opacity:.45}
+.hrow{display:flex;align-items:center;justify-content:center;gap:24px}
+.hcard{--cw:clamp(70px,22vw,96px)}
+.hcard .card.hflip{animation:hflip .45s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes hflip{0%{transform:rotateY(90deg) scale(.9)}100%{transform:none}}
+.hside{display:flex;flex-direction:column;align-items:center}
+.hmult{font-family:"Press Start 2P",var(--display);font-size:22px;color:var(--brass)}
+.hmult.up{animation:pop .45s cubic-bezier(.2,.9,.3,1.4);color:#7ee0b5}
+.hmult.bust{color:#ff8b7b}
+.htrail{display:flex;gap:4px;justify-content:center;min-height:30px;--cw:24px}
+.htrail .card{padding:1px 2px;border-radius:3px}
+.htrail .card.special::after{display:none}
+.hbtns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.hbtns .btn{padding:12px 6px}
+:root[data-anim="off"] .chestbtn,:root[data-anim="off"] .cellc.winc,:root[data-anim="off"] .reelc.thunk{animation:none}
+.nav{gap:4px}
+.nav .btn{padding:6px 9px;font-size:15px;line-height:1}
+.coins{padding:5px 10px;font-size:14px}
+@media (max-width:420px){.hdr .brand h1{font-size:20px}.hdr .by{font-size:10px}}
 </style>
 </head>
 <body>
@@ -333,6 +417,7 @@ header.wrap,.wrap.app{position:relative;z-index:1}
   <div class="brand"><span class="by">by Кащей</span><h1>Китайский <b>дурак</b></h1></div>
   <nav class="nav" aria-label="Меню">
     <button id="coinsBtn" class="coins" type="button" hidden title="Баланс, открыть магазин">💰 $0</button>
+    <button id="casinoBtn" class="btn ghost" type="button" aria-label="Казино">🎰</button>
     <button id="shopBtn" class="btn ghost" type="button" aria-label="Магазин">🛒</button>
     <button id="setBtn" class="btn ghost" type="button" aria-label="Настройки">⚙</button>
   </nav>
@@ -441,6 +526,10 @@ const Sound=(()=>{
     pick(){ const t=ctx.currentTime; noise(t,.035,{freq:3400,q:1.4,gain:.28}); tone(t,1150,.05,{gain:.035}); },
     unpick(){ const t=ctx.currentTime; noise(t,.035,{freq:1700,q:1.4,gain:.22}); tone(t,620,.05,{gain:.03}); },
     tick(){ tone(ctx.currentTime,1760+Math.random()*200,.03,{type:"square",gain:.025}); },
+    reel(){ noise(ctx.currentTime,.025,{freq:2400+Math.random()*800,q:2,gain:.12}); },
+    stop(){ const t=ctx.currentTime; noise(t,.08,{freq:900,q:1,gain:.35}); tone(t,110,.09,{type:"triangle",gain:.18,slideTo:70}); },
+    win(){ const t=ctx.currentTime; [784,988,1319].forEach((f,i)=>tone(t+i*.08,f,.16,{type:"square",gain:.05})); },
+    bigwin(){ const t=ctx.currentTime; [523,659,784,1046,1319,1568].forEach((f,i)=>tone(t+i*.09,f,.22,{type:"square",gain:.05})); },
     coin(){ const t=ctx.currentTime; tone(t,988,.08,{type:"square",gain:.05}); tone(t+.08,1319,.22,{type:"square",gain:.05}); }
   };
   /* музыка */
@@ -581,17 +670,19 @@ const Bg=(()=>{
       const r=rng(13); for(let i=0;i<w*h/60;i++){ const x0=r()*w, sp=.004+r()*.006, y=((r()*h)+t*sp)%h, x=(x0+Math.sin(t/900+i)*2+w)%w; px(c,x,y,"#ffffff"); } }
   };
   const cv=document.createElement("canvas"); cv.id="bgcanvas"; cv.setAttribute("aria-hidden","true"); document.body.prepend(cv);
-  const c=cv.getContext("2d"); let key="felt", live=true, last=0, W=120, H=200;
+  const c=cv.getContext("2d"); let key="felt", live=true, last=0, W=120, H=200; const thumbCache={};
   function draw(t){ (GEN[key]||GEN.felt)(c,W,H,t); c.fillStyle="rgba(0,0,0,.22)"; c.fillRect(0,0,W,H); }
   function resize(){ W=120; H=Math.max(60,Math.min(400,Math.round(120*innerHeight/Math.max(1,innerWidth)))); cv.width=W; cv.height=H; draw(performance.now()); }
-  function tick(){ const t=performance.now(); if(!live||key==="felt"||document.hidden||t-last<90) return; last=t; draw(t); }
-  function loop(){ requestAnimationFrame(loop); tick(); }
-  addEventListener("resize",resize); resize(); requestAnimationFrame(loop);
-  setInterval(tick,110); // запасной таймер: некоторые встроенные браузеры придерживают requestAnimationFrame
+  let n=0;
+  function tick(){ if(!live||key==="felt"||document.hidden) return; n++; if(key==="swirl"&&n%2) return; draw(performance.now()); }
+  addEventListener("resize",()=>{ clearTimeout(resize.t); resize.t=setTimeout(resize,150); }); resize();
+  setInterval(tick,120); // ~8 кадров в секунду: фону больше не нужно, а телефону легче
   return {
     set(k){ if(k!==key){ key=GEN[k]?k:"felt"; draw(performance.now()); } },
     setLive(v){ live=!!v; draw(performance.now()); },
-    thumb(k){ const t=document.createElement("canvas"); t.width=96; t.height=60; const tc=t.getContext("2d"); (GEN[k]||GEN.felt)(tc,96,60,0); tc.fillStyle="rgba(0,0,0,.18)"; tc.fillRect(0,0,96,60); return t; }
+    thumb(k){ if(!thumbCache[k]){ const t=document.createElement("canvas"); t.width=96; t.height=60; const tc=t.getContext("2d"); (GEN[k]||GEN.felt)(tc,96,60,0); tc.fillStyle="rgba(0,0,0,.18)"; tc.fillRect(0,0,96,60); thumbCache[k]=t.toDataURL(); }
+      return el("img",{src:thumbCache[k],alt:"",class:"bgthumb"}); },
+    thumbOld(k){ const t=document.createElement("canvas"); t.width=96; t.height=60; const tc=t.getContext("2d"); (GEN[k]||GEN.felt)(tc,96,60,0); tc.fillStyle="rgba(0,0,0,.18)"; tc.fillRect(0,0,96,60); return t; }
   };
 })();
 
@@ -759,6 +850,260 @@ function ytPanel(){
     el("p",{class:"muted small"},"Вставь ссылку на видео или плейлист. Внизу появится плеер YouTube, громкость и пауза в нём. 8-битная музыка выключится сама. Реклама и запрет встраивания у некоторых видео — это правила YouTube."),
     el("div",{class:"row"},inp,YT.on?el("button",{class:"btn ghost",type:"button",onclick:()=>{ YT.stop(); render(); }},"Выключить"):el("button",{class:"btn",type:"button",onclick:start},"▶ Включить")));
 }
+/* ---------- казино: пиксельные символы ---------- */
+const SPR=(()=>{
+  function mk(draw){ const c=document.createElement("canvas"); c.width=16; c.height=16; const g=c.getContext("2d"); const P=(x,y,w,h,col)=>{ g.fillStyle=col; g.fillRect(x,y,w||1,h||1); };
+    const disc=(cx,cy,r,col)=>{ for(let y=-r;y<=r;y++) for(let x=-r;x<=r;x++) if(x*x+y*y<=r*r+r*.6) P(Math.round(cx+x),Math.round(cy+y),1,1,col); };
+    draw(P,disc); return c.toDataURL(); }
+  const F3={B:["110","101","110","101","110"],A:["010","101","111","101","101"],R:["110","101","110","101","101"],W:["10001","10001","10101","10101","01010"],I:["1","1","1","1","1"],L:["100","100","100","100","111"],D:["110","101","101","101","110"]};
+  const txt=(P,s,x0,y0,col)=>{ let x=x0; for(const ch of s){ F3[ch].forEach((row,y)=>[...row].forEach((v,i)=>{ if(v==="1") P(x+i,y0+y,1,1,col); })); x+=F3[ch][0].length+1; } };
+  return {
+    cherry:mk((P,disc)=>{ P(8,1,1,1,"#3c7a2a"); P(7,2,1,2,"#3c7a2a"); P(9,2,1,1,"#3c7a2a"); P(10,3,1,2,"#3c7a2a"); P(6,4,1,3,"#3c7a2a"); P(11,5,1,3,"#3c7a2a"); P(9,1,3,1,"#5fae3c"); disc(5,10,3,"#a3172a"); disc(11,11,3,"#a3172a"); disc(5,10,2,"#d8283c"); disc(11,11,2,"#d8283c"); P(4,8,1,1,"#ff9aa6"); P(10,9,1,1,"#ff9aa6"); }),
+    lemon:mk((P)=>{ for(let y=4;y<=12;y++){ const w=Math.round(6*Math.sqrt(Math.max(0,1-((y-8)/4.6)**2))); P(8-w,y,w*2,1,"#f2d23a"); } P(2,8,1,1,"#e0b81e"); P(14,8,1,1,"#e0b81e"); P(5,6,2,1,"#fff3a0"); P(8,4,1,1,"#c9a312"); P(8,12,1,1,"#c9a312"); }),
+    orange:mk((P,disc)=>{ disc(8,9,5,"#d9741c"); disc(8,9,4,"#f29a2e"); P(6,7,2,1,"#ffc77a"); P(8,3,1,2,"#5a3a1a"); P(9,3,3,2,"#4f9a34"); P(10,2,2,1,"#4f9a34"); }),
+    grape:mk((P,disc)=>{ const pts=[[5,6],[8,6],[11,6],[6.5,9],[9.5,9],[8,12],[5,9.5],[11,9.5]]; pts.forEach(([x,y])=>disc(x,y,2,"#5b2d8a")); pts.forEach(([x,y])=>P(Math.round(x)-1,Math.round(y)-1,1,1,"#a37be0")); P(8,2,1,2,"#5a3a1a"); P(9,2,3,1,"#4f9a34"); }),
+    bell:mk((P,disc)=>{ P(7,2,2,1,"#b9862c"); for(let y=3;y<=11;y++){ const w=Math.min(6,2+Math.floor((y-3)*0.7)); P(8-w,y,w*2,1,"#f2c14e"); } P(2,12,12,1,"#b9862c"); disc(8,13,1,"#7a5418"); P(5,5,1,4,"#fff0b0"); }),
+    bar:mk((P)=>{ P(1,4,14,8,"#1c1b19"); P(1,4,14,1,"#f2c14e"); P(1,11,14,1,"#f2c14e"); txt(P,"BAR",2,6,"#ffffff"); }),
+    seven:mk((P)=>{ P(3,2,10,3,"#a3172a"); P(4,3,8,1,"#d8283c"); for(let y=5;y<=13;y++){ const x=10-Math.floor((y-5)*0.55); P(x,y,3,1,"#a3172a"); P(x+1,y,1,1,"#d8283c"); } P(2,2,1,3,"#f2c14e"); P(13,2,1,3,"#f2c14e"); }),
+    wild:mk((P)=>{ P(0,3,16,10,"#5b2d8a"); P(0,3,16,1,"#ff8b7b"); P(0,4,16,1,"#f2c14e"); P(0,11,16,1,"#c7e86a"); P(0,12,16,1,"#7cc4ff"); txt(P,"WILD",1,6,"#ffffff"); }),
+    star:mk((P)=>{ const pts=[[8,1],[7,2],[9,2],[7,3],[9,3],[6,4],[10,4],[1,5],[15,5],[2,6],[14,6],[3,7],[13,7],[4,8],[12,8],[4,9],[12,9],[3,10],[13,10],[3,11],[13,11],[2,12],[14,12],[2,13],[14,13],[5,12],[11,12],[6,11],[10,11],[7,10],[9,10]];
+      for(let y=2;y<=13;y++){ const w=y<5?y-1:y<8?9-(y-5)*1:y<10?4:3; } [[8,1,1],[7,2,3],[7,3,3],[6,4,5],[1,5,15],[2,6,13],[3,7,11],[4,8,9],[4,9,9],[3,10,10],[3,11,4],[10,11,4],[2,12,4],[11,12,4],[2,13,2],[13,13,2]].forEach(([x,y,w])=>P(x,y,w,1,"#f2c14e")); P(6,6,2,2,"#fff3a0"); P(7,9,3,1,"#b9862c"); }),
+    coin:mk((P,disc)=>{ disc(8,8,6,"#b9862c"); disc(8,8,5,"#f2c14e"); P(7,4,2,8,"#b9862c"); P(6,5,4,1,"#b9862c"); P(6,10,4,1,"#b9862c"); P(6,7,1,1,"#b9862c"); P(9,8,1,1,"#b9862c"); P(5,5,1,2,"#fff3a0"); }),
+    clover:mk((P,disc)=>{ disc(5,5,3,"#2e9e4e"); disc(11,5,3,"#2e9e4e"); disc(5,10,3,"#2e9e4e"); disc(11,10,3,"#2e9e4e"); disc(8,7.5,2,"#4fc46e"); P(8,11,1,4,"#2a6a2a"); P(9,14,2,1,"#2a6a2a"); P(4,4,1,1,"#9be8b0"); }),
+    gem:mk((P)=>{ [[5,3,6],[3,4,10],[2,5,12],[1,6,14],[2,7,12],[3,8,10],[4,9,8],[5,10,6],[6,11,4],[7,12,2]].forEach(([x,y,w])=>P(x,y,w,1,"#2a8fd8")); P(5,4,3,1,"#bfe6ff"); P(3,6,4,1,"#7cc4ff"); P(9,6,4,1,"#1a5f9a"); P(7,9,2,2,"#1a5f9a"); }),
+    crown:mk((P)=>{ P(2,6,1,6,"#f2c14e"); P(7,4,2,8,"#f2c14e"); P(13,6,1,6,"#f2c14e"); P(3,8,10,4,"#f2c14e"); P(2,12,12,2,"#b9862c"); P(1,5,2,2,"#d8283c"); P(7,3,2,2,"#2a8fd8"); P(13,5,2,2,"#d8283c"); P(5,9,1,1,"#fff3a0"); P(10,9,1,1,"#fff3a0"); }),
+    chest:mk((P)=>{ P(1,6,14,8,"#7a4a22"); P(1,3,14,4,"#8f5a2a"); P(1,6,14,1,"#f2c14e"); P(1,13,14,1,"#4a2a12"); P(3,3,1,11,"#f2c14e"); P(12,3,1,11,"#f2c14e"); P(7,5,2,4,"#f2c14e"); P(7,7,2,1,"#1c1b19"); P(2,4,8,1,"#a8703a"); })
+  };
+})();
+const SYMNAME={cherry:"Вишни",lemon:"Лимоны",orange:"Апельсины",grape:"Виноград",bell:"Колокола",bar:"BAR",seven:"Семёрки",wild:"WILD",star:"Звезда",coin:"Монеты",clover:"Клевер",gem:"Камни",crown:"Короны",chest:"Сундук"};
+const symImg=(s,cls)=>el("img",{src:SPR[s]||SPR.cherry,alt:SYMNAME[s]||s,class:cls||"sym",draggable:"false"});
+
+/* ---------- казино: общее ---------- */
+let casinoTab="slots", casinoLock=false; const casinoNodes={};
+const CAS_TABS=[["slots","🍒 Кащей Слотс"],["lucky","⭐ Лаки 7"],["chest","🧰 Сундук Кащея"],["roulette","🎡 Рулетка"],["hilo","🃏 Выше/ниже"]];
+function betRow(id,onGo,label){
+  const inp=el("input",{type:"number",id,min:"1",step:"1",value:String(Math.max(1,Math.min(10,profile?profile.coins:10))),"aria-label":"Ставка",inputmode:"numeric"});
+  const clamp=v=>Math.max(1,Math.min(profile?profile.coins:1,Math.floor(v)||1));
+  const go=el("button",{class:"btn big",type:"button",onclick:()=>onGo(clamp(+inp.value))},label||"Крутить");
+  const row=el("div",{class:"betrow"},el("label",{class:"muted small",for:id},"Ставка $"),inp,
+    el("button",{class:"btn ghost small",type:"button",onclick:()=>{ inp.value=clamp((+inp.value||1)/2); Sound.fx("pick"); }},"½"),
+    el("button",{class:"btn ghost small",type:"button",onclick:()=>{ inp.value=clamp((+inp.value||1)*2); Sound.fx("pick"); }},"×2"),
+    el("button",{class:"btn ghost small",type:"button",onclick:()=>{ inp.value=clamp(profile?profile.coins:1); Sound.fx("pick"); }},"Всё"),go);
+  return {row,inp,go,set:d=>{ go.disabled=d; row.querySelectorAll("button").forEach(b=>b.disabled=d); inp.disabled=d; }};
+}
+function spend(bet){ if(profile){ profile.coins-=bet; Coins.animateTo(profile.coins); const wb=document.querySelector(".wallet .bal b"); if(wb) wb.textContent=`💰 $${profile.coins}`; } }
+function settle(coins,win,bet){ if(profile){ profile.coins=coins; Coins.animateTo(coins); const wb=document.querySelector(".wallet .bal b"); if(wb) wb.textContent=`💰 $${coins}`; } if(win>0){ Fx.coinPop(win); Sound.fx(win>=bet*10?"bigwin":"win"); if(win>=bet*20){ Fx.run("coins"); Fx.bigText("ДЖЕКПОТ!"); } } }
+let casinoWait=null; // ждём ответ сервера
+let casinoLast=0;
+async function casinoSend(msg){ const gap=Date.now()-casinoLast; if(gap<320) await new Promise(r=>setTimeout(r,320-gap)); casinoLast=Date.now(); return casinoSend2(msg); }
+function casinoSend2(msg){ return new Promise((res,rej)=>{ casinoWait={res,rej}; sendMsg({t:"casino",...msg}); setTimeout(()=>{ if(casinoWait&&casinoWait.res===res){ casinoWait=null; rej(new Error("Сервер не ответил")); } },8000); }); }
+function onCasinoRes(m){ if(casinoWait){ const w=casinoWait; casinoWait=null; w.res(m); } }
+function onCasinoErr(msg){ if(casinoWait){ const w=casinoWait; casinoWait=null; w.rej(new Error(msg)); return true; } return false; }
+
+/* ---------- барабаны: и для 3×3, и для 5×3 ---------- */
+function makeReels(n){
+  const wrap=el("div",{class:"reels r"+n}); const cols=[];
+  const randSym=pool=>pool[Math.random()*pool.length|0];
+  for(let i=0;i<n;i++){ const strip=el("div",{class:"strip"}); const col=el("div",{class:"reelc"},strip); wrap.append(col); cols.push({col,strip}); }
+  function show(grid){ cols.forEach((c,i)=>{ c.strip.replaceChildren(...grid[i].map(s=>el("div",{class:"cellc"},symImg(s)))); c.strip.style.transition="none"; c.strip.style.transform="translateY(0)"; }); }
+  function spin(grid,pool,fast){
+    const k=Prefs.get("anim")==="off"?0:Prefs.get("anim")==="fast"?.55:fast?.6:1;
+    if(!k){ show(grid); return Promise.resolve(); }
+    return new Promise(res=>{
+      let done=0; const H=cols[0].col.clientHeight/3;
+      cols.forEach((c,i)=>{
+        const cur=[...c.strip.children].slice(-3).map(x=>x.firstChild.getAttribute("alt"));
+        const filler=Array.from({length:14+i*5},()=>randSym(pool));
+        const all=[...c.strip.children].slice(-3).map(x=>x.cloneNode(true));
+        c.strip.replaceChildren(...all,...filler.map(s=>el("div",{class:"cellc blur"},symImg(s))),...grid[i].map(s=>el("div",{class:"cellc"},symImg(s))));
+        c.strip.style.transition="none"; c.strip.style.transform="translateY(0)"; void c.strip.offsetHeight;
+        const dur=(0.9+i*0.32)*k, dist=(3+filler.length)*H;
+        c.strip.style.transition=`transform ${dur}s cubic-bezier(.12,.7,.18,1.06)`; c.strip.style.transform=`translateY(${-dist}px)`;
+        const tk=setInterval(()=>Sound.fx("reel"),90);
+        setTimeout(()=>{ clearInterval(tk); Sound.fx("stop"); c.col.classList.remove("thunk"); void c.col.offsetWidth; c.col.classList.add("thunk"); c.strip.style.transition="none"; c.strip.replaceChildren(...grid[i].map(s=>el("div",{class:"cellc"},symImg(s)))); c.strip.style.transform="translateY(0)"; if(++done===cols.length) res(); },dur*1000+40);
+      });
+    });
+  }
+  function mark(cells){ cols.forEach(c=>[...c.strip.children].forEach(x=>x.classList.remove("winc"))); cells.forEach(([r,row])=>{ const x=cols[r]&&cols[r].strip.children[row]; if(x) x.classList.add("winc"); }); }
+  return {wrap,show,spin,mark};
+}
+const LINES5=[[1,1,1,1,1],[0,0,0,0,0],[2,2,2,2,2],[0,1,2,1,0],[2,1,0,1,2]];
+
+/* ---------- Кащей Слотс (3 барабана) ---------- */
+function slotsNode(){
+  const pool=["cherry","cherry","lemon","lemon","orange","grape","bell","bar","seven"];
+  const R=makeReels(3); R.show([0,1,2].map(()=>[pool[Math.random()*9|0],pool[Math.random()*9|0],pool[Math.random()*9|0]]));
+  const out=el("div",{class:"cout",text:"Три одинаковых по центральной линии — выигрыш"});
+  const P=(catalog&&casinoCfg.classic)||{seven:120,bar:50,bell:25,grape:15,orange:12,lemon:9,cherry:7};
+  const pt=el("div",{class:"paytab"},...["seven","bar","bell","grape","orange","lemon","cherry"].map(s=>el("div",{},symImg(s,"psym"),symImg(s,"psym"),symImg(s,"psym"),el("b",{text:"×"+P[s]}))),
+    el("div",{},symImg("seven","psym"),symImg("seven","psym"),el("span",{class:"muted",text:"+ любой"}),el("b",{text:"×6"})),
+    el("div",{},symImg("cherry","psym"),symImg("cherry","psym"),el("span",{class:"muted",text:"+ любой"}),el("b",{text:"×3"})),
+    el("div",{},symImg("cherry","psym"),el("span",{class:"muted",text:"первой"}),el("b",{text:"×1"})));
+  const B=betRow("bet-slots",async bet=>{
+    if(!profile||bet>profile.coins) return toast("Не хватает денег");
+    casinoLock=true; B.set(true); R.mark([]); out.textContent="Крутим…"; out.className="cout"; spend(bet);
+    try{ const r=await casinoSend({game:"slots",bet}); await R.spin(r.reels,pool);
+      if(r.win>0){ R.mark([[0,1],[1,1],[2,1]]); out.textContent=`${r.mult>=20?"ДЖЕКПОТ! ":""}Выигрыш ×${r.mult}: +$${r.win}`; out.className="cout win"; } else { out.textContent=`Мимо: −$${bet}`; out.className="cout lose"; }
+      settle(r.coins,r.win,bet);
+    }catch(e){ toast(e.message); if(profile) Coins.animateTo(profile.coins+=bet); }
+    casinoLock=false; B.set(false);
+  });
+  return el("div",{class:"machine classic"},el("div",{class:"mtitle"},el("b",{text:"КАЩЕЙ СЛОТС"}),el("span",{class:"muted small",text:"3 барабана · отдача ~95%"})),
+    el("div",{class:"mwin"},el("div",{class:"payline"}),R.wrap),B.row,out,el("details",{class:"pdet"},el("summary",{},"Таблица выплат"),pt));
+}
+
+/* ---------- 5×3 автоматы с бонусами ---------- */
+function bigNode(key){
+  const cfg=(casinoCfg.machines||{})[key]||{};
+  const pools={lucky:["cherry","cherry","cherry","lemon","lemon","grape","grape","bell","bar","seven","wild","star"],chest:["coin","coin","coin","clover","clover","gem","gem","crown","bar","seven","wild","chest"]};
+  const pool=pools[key], scat=key==="lucky"?"star":"chest";
+  const R=makeReels(5); R.show([0,1,2,3,4].map(()=>[0,1,2].map(()=>pool[Math.random()*pool.length|0])));
+  const out=el("div",{class:"cout",text:key==="lucky"?"3 звезды где угодно — бесплатные вращения с ×2":"3 сундука где угодно — выбери сундук с призом до ×100"});
+  const banner=el("div",{class:"mbanner",hidden:true});
+  const chestBox=el("div",{class:"chestpick",hidden:true});
+  const order=key==="lucky"?["seven","bar","bell","grape","lemon","cherry"]:["seven","bar","crown","gem","clover","coin"];
+  const pt=el("div",{class:"paytab five"},
+    el("div",{class:"phead"},el("span",{},""),el("span",{text:"×3"}),el("span",{text:"×4"}),el("span",{text:"×5"})),
+    ...order.map(s=>el("div",{class:"prow"},symImg(s,"psym"),...((cfg.pay&&cfg.pay[s])||[0,0,0]).map(v=>el("b",{text:String(v)})))),
+    el("p",{class:"muted small"},"Выплаты — во сколько раз больше ставки на одну линию (линий 5). WILD заменяет любой символ, кроме ",symImg(scat,"psym inl"),"."),
+    key==="lucky"?el("p",{class:"muted small"},"3/4/5 ",symImg("star","psym inl")," в любом месте — 8/12/20 бесплатных вращений, выигрыши в них ×2."):el("p",{class:"muted small"},"3/4/5 ",symImg("chest","psym inl")," в любом месте — выбор сундука: призы ×5–20 / ×10–40 / ×25–100 от ставки."));
+  const linesCells=lines=>lines.flatMap(l=>LINES5[l.li].slice(0,l.count).map((row,r)=>[r,row]));
+  const scatCells=grid=>grid.flatMap((col,r)=>col.map((s,row)=>s===scat?[r,row]:null).filter(Boolean));
+  const B=betRow("bet-"+key,async bet=>{
+    if(!profile||bet>profile.coins) return toast("Не хватает денег");
+    casinoLock=true; B.set(true); R.mark([]); banner.hidden=true; out.textContent="Крутим…"; out.className="cout"; spend(bet);
+    try{
+      const r=await casinoSend({game:key,bet}); await R.spin(r.grid,pool);
+      R.mark(linesCells(r.lines).concat(r.scat>=3?scatCells(r.grid):[]));
+      out.textContent=r.baseWin>0?`Линии: +$${r.baseWin}`:(r.scat>=3?"Бонус!":`Мимо: −$${bet}`); out.className="cout "+(r.baseWin>0||r.scat>=3?"win":"lose");
+      if(r.free){
+        await wait(700); banner.hidden=false; banner.textContent=`⭐ ${r.free.length} БЕСПЛАТНЫХ ВРАЩЕНИЙ · ×2`; banner.className="mbanner pop"; Sound.fx("bigwin"); await wait(1400);
+        let acc=r.baseWin;
+        for(let i=0;i<r.free.length;i++){ const f=r.free[i]; R.mark([]); banner.textContent=`⭐ Вращение ${i+1} из ${r.free.length} · бонус $${acc-r.baseWin}`; await R.spin(f.grid,pool,true); R.mark(linesCells(f.lines)); if(f.win>0){ acc+=f.win; Sound.fx("win"); Fx.coinPop(f.win); } await wait(f.win>0?650:300); }
+        banner.textContent=`⭐ Бонус закончился: +$${r.win-r.baseWin}`;
+        out.textContent=`Итого: +$${r.win}`; out.className="cout win";
+      }
+      settle(r.coins,r.win,bet);
+      if(r.bonus){
+        await wait(600); banner.hidden=false; banner.textContent="🧰 Выбери один сундук!"; banner.className="mbanner pop"; Sound.fx("bigwin");
+        const res=await pickChest(chestBox);
+        const win=res.win; banner.textContent=`🧰 В сундуке ×${res.prizes[res.i]}: +$${win}`; out.textContent=`Итого: +$${(r.win||0)+win}`; out.className="cout win";
+        settle(res.coins,win,bet);
+      }
+    }catch(e){ toast(e.message); }
+    casinoLock=false; B.set(false);
+  });
+  return el("div",{class:"machine five "+key},el("div",{class:"mtitle"},el("b",{text:key==="lucky"?"ЛАКИ 7":"СУНДУК КАЩЕЯ"}),el("span",{class:"muted small",text:"5 барабанов · 5 линий · бонус"})),
+    el("div",{class:"mwin"},R.wrap,banner),chestBox,B.row,out,el("details",{class:"pdet"},el("summary",{},"Таблица выплат"),pt));
+}
+const wait=ms=>new Promise(r=>setTimeout(r,Prefs.get("anim")==="fast"?ms*.6:ms));
+function pickChest(box){
+  return new Promise(resolve=>{
+    box.hidden=false; box.replaceChildren();
+    const btns=[0,1,2].map(i=>el("button",{class:"chestbtn",type:"button","aria-label":`Сундук ${i+1}`,onclick:async()=>{
+      btns.forEach(b=>b.disabled=true); btns[i].classList.add("chosen"); Sound.fx("pick");
+      try{ const r=await casinoSend({game:"chest",action:"pick",i});
+        btns.forEach((b,k)=>{ const v=el("span",{class:"prize",text:"×"+r.prizes[k]}); b.append(v); b.classList.add(k===r.i?"open":"other"); });
+        await wait(1600); box.hidden=true; resolve(r);
+      }catch(e){ toast(e.message); btns.forEach(b=>b.disabled=false); btns[i].classList.remove("chosen"); }
+    }},symImg("chest","chestimg")));
+    box.append(el("div",{class:"muted small",text:"Один из сундуков — самый богатый"}),el("div",{class:"chestrow"},...btns));
+  });
+}
+
+/* ---------- рулетка ---------- */
+function rouletteNode(){
+  const roul=casinoCfg.roul||Array.from({length:15},(_,i)=>i===0?"green":i<=7?"red":"black");
+  // порядок на ленте как на колесе: красные и чёрные вперемешку
+  const wheel=[0,1,8,2,9,3,10,4,11,5,12,6,13,7,14];
+  const row=el("div",{class:"rrow"}); const REPS=10;
+  for(let k=0;k<REPS;k++) wheel.forEach(n=>row.append(el("div",{class:"rcell "+roul[n],text:String(n)})));
+  const strip=el("div",{class:"rstrip"},el("div",{class:"rmark"}),row);
+  const out=el("div",{class:"cout",text:"Красное или чёрное ×2, зелёное ×14"});
+  const hist=el("div",{class:"rhist"});
+  let pos=0;
+  const B=betRow("bet-roul",()=>{}, "");
+  B.go.remove();
+  const picks=el("div",{class:"rpicks"},...[["red","Красное ×2"],["black","Чёрное ×2"],["green","Зелёное ×14"]].map(([c,l])=>el("button",{class:"rpick "+c,type:"button",onclick:()=>go(c)},l)));
+  async function go(pick){
+    const bet=Math.max(1,Math.floor(+B.inp.value||1)); if(!profile||bet>profile.coins) return toast("Не хватает денег");
+    casinoLock=true; B.set(true); picks.querySelectorAll("button").forEach(b=>b.disabled=true); out.textContent="Крутим…"; out.className="cout"; spend(bet);
+    try{
+      const r=await casinoSend({game:"roulette",bet,pick});
+      const cw=row.firstChild.getBoundingClientRect().width+4, W=strip.clientWidth;
+      const idxInWheel=wheel.indexOf(r.n), target=wheel.length*7+idxInWheel, jitter=(Math.random()*.6-.3)*cw;
+      const k=Prefs.get("anim")==="off"?0:Prefs.get("anim")==="fast"?.55:1;
+      row.style.transition="none"; row.style.transform=`translateX(${-(wheel.length*1)*cw+W/2-cw/2}px)`; void row.offsetWidth;
+      row.style.transition=`transform ${3.2*k}s cubic-bezier(.1,.65,.12,1)`; row.style.transform=`translateX(${-target*cw+W/2-cw/2+jitter}px)`;
+      const tk=setInterval(()=>Sound.fx("reel"),110); await wait(3250*k||10); clearInterval(tk); Sound.fx("stop");
+      const nm={red:"красное",black:"чёрное",green:"зелёное"}[r.color];
+      hist.prepend(el("span",{class:"rcell mini "+r.color,text:String(r.n)})); while(hist.children.length>12) hist.lastChild.remove();
+      if(r.win>0){ out.textContent=`Выпало ${r.n}, ${nm}: +$${r.win}`; out.className="cout win"; } else { out.textContent=`Выпало ${r.n}, ${nm}: −$${bet}`; out.className="cout lose"; }
+      settle(r.coins,r.win,bet);
+    }catch(e){ toast(e.message); }
+    casinoLock=false; B.set(false); picks.querySelectorAll("button").forEach(b=>b.disabled=false);
+  }
+  requestAnimationFrame(()=>{ const cw=(row.firstChild.getBoundingClientRect().width||44)+4; row.style.transform=`translateX(${-(wheel.length)*cw+strip.clientWidth/2-cw/2}px)`; });
+  return el("div",{class:"machine roul"},el("div",{class:"mtitle"},el("b",{text:"РУЛЕТКА"}),el("span",{class:"muted small",text:"15 ячеек · отдача ~93%"})),strip,hist,B.row,picks,out);
+}
+
+/* ---------- выше / ниже ---------- */
+function hiloNode(){
+  const ORD=["3","4","5","6","7","8","9","10","J","Q","K","A","2"];
+  const cardBox=el("div",{class:"hcard"},backEl());
+  const multEl=el("div",{class:"hmult",text:"×1.00"});
+  const trail=el("div",{class:"htrail"});
+  const out=el("div",{class:"cout",text:"Ставь и угадывай: следующая карта старше или младше? Двойка — самая старшая"});
+  const up=el("button",{class:"btn",type:"button",disabled:true,onclick:()=>guess(true)},"▲ Выше");
+  const dn=el("button",{class:"btn",type:"button",disabled:true,onclick:()=>guess(false)},"▼ Ниже");
+  const cash=el("button",{class:"btn ghost",type:"button",disabled:true,onclick:()=>cashOut()},"Забрать");
+  let cur=null, live=false, stake=0;
+  const chance=(c,u)=>{ const i=ORD.indexOf(rk(c)); return (u?12-i:i)/13; };
+  function setCard(c,flip){ const ce=cardEl(c); ce.classList.remove("glass","special"); if(flip){ ce.classList.add("hflip"); } cardBox.replaceChildren(ce); }
+  function hints(){ if(!cur||!live){ up.textContent="▲ Выше"; dn.textContent="▼ Ниже"; return; } const pu=chance(cur,true), pd=chance(cur,false);
+    up.textContent=`▲ Выше · ${Math.round(pu*100)}%`; dn.textContent=`▼ Ниже · ${Math.round(pd*100)}%`; up.disabled=pu<=0; dn.disabled=pd<=0; }
+  function ctl(on){ live=on; B.set(on); up.disabled=dn.disabled=!on; cash.disabled=!on; hints(); }
+  const B=betRow("bet-hilo",async bet=>{
+    if(!profile||bet>profile.coins) return toast("Не хватает денег");
+    casinoLock=true; spend(bet);
+    try{ const r=await casinoSend({game:"hilo",action:"start",bet}); stake=r.stake; cur=r.card; trail.replaceChildren(); setCard(cur,true); Sound.fx("pick"); multEl.textContent="×1.00"; multEl.className="hmult"; out.textContent="Старше или младше?"; out.className="cout"; ctl(true); cash.disabled=true; }
+    catch(e){ toast(e.message); if(profile) Coins.animateTo(profile.coins+=bet); }
+    casinoLock=false;
+  },"Сделать ставку");
+  async function guess(u){
+    up.disabled=dn.disabled=cash.disabled=true; casinoLock=true;
+    try{ const r=await casinoSend({game:"hilo",action:"guess",up:u});
+      const tc=cardEl(r.prev); tc.classList.remove("glass","special"); trail.append(el("div",{class:"tmini"},tc)); while(trail.children.length>7) trail.firstChild.remove();
+      cur=r.card; setCard(cur,true); Sound.fx("pick");
+      if(r.ok){ multEl.textContent="×"+r.mult.toFixed(2); multEl.className="hmult up"; out.textContent=`Угадал! Можно забрать $${r.can}`; out.className="cout win"; Sound.fx("win"); ctl(true); }
+      else { multEl.textContent="×0"; multEl.className="hmult bust"; out.textContent=rk(r.prev)===rk(r.card)?`Такая же карта — сгорело $${r.stake}`:`Не угадал — сгорело $${r.stake}`; out.className="cout lose"; Sound.fx("error"); Fx.shake(); ctl(false); settle(r.coins,0,r.stake); }
+    }catch(e){ toast(e.message); ctl(live); }
+    casinoLock=false;
+  }
+  async function cashOut(){
+    ctl(false); casinoLock=true;
+    try{ const r=await casinoSend({game:"hilo",action:"cash"}); out.textContent=`Забрал $${r.win} (×${r.mult.toFixed(2)})`; out.className="cout win"; settle(r.coins,r.win,stake); }
+    catch(e){ toast(e.message); ctl(true); }
+    casinoLock=false;
+  }
+  // если игра была начата раньше — продолжаем
+  setTimeout(async()=>{ try{ const r=await casinoSend({game:"hilo",action:"resume"}); if(r.live){ stake=r.stake; cur=r.card; setCard(cur); multEl.textContent="×"+r.mult.toFixed(2); out.textContent=r.steps?`Можно забрать $${r.can}`:"Старше или младше?"; ctl(true); cash.disabled=!r.steps; } }catch(e){} },50);
+  return el("div",{class:"machine hilo"},el("div",{class:"mtitle"},el("b",{text:"ВЫШЕ / НИЖЕ"}),el("span",{class:"muted small",text:"угадывай, забирай вовремя · отдача ~95%"})),
+    el("div",{class:"hrow"},cardBox,el("div",{class:"hside"},multEl,el("span",{class:"muted small",text:"множитель"}))),trail,el("div",{class:"hbtns"},up,dn,cash),B.row,out);
+}
+
+/* ---------- экран казино ---------- */
+let casinoCfg={};
+function renderCasino(){
+  app.append(viewHead("🎰 Казино"));
+  if(!profile){ app.append(el("div",{class:"panel"},el("p",{class:"muted"},catalog.length?"Казино работает, когда игра открыта через Telegram.":"Подключаюсь к серверу…"))); return; }
+  app.append(el("div",{class:"panel wallet"},el("div",{class:"bal"},el("span",{class:"muted small",text:"Баланс"}),el("b",{text:`💰 $${profile.coins}`})),
+    el("p",{class:"muted small",style:"flex-basis:100%;margin:0"},"Только игровая валюта. Все броски делает сервер, шансы честные и чуть в пользу казино.")));
+  app.append(el("div",{class:"tabs",role:"tablist"},CAS_TABS.map(([k,n])=>el("button",{type:"button",role:"tab","aria-selected":String(casinoTab===k),class:casinoTab===k?"on":"",onclick:()=>{ if(casinoLock) return toast("Дождись конца раунда"); casinoTab=k; Sound.fx("pick"); render(); }},n))));
+  if(!casinoNodes[casinoTab]) casinoNodes[casinoTab]=casinoTab==="slots"?slotsNode():casinoTab==="roulette"?rouletteNode():casinoTab==="hilo"?hiloNode():bigNode(casinoTab);
+  app.append(el("div",{class:"panel casino"},casinoNodes[casinoTab]));
+}
+
 /* ---------- экран настроек ---------- */
 function seg(key,opts){ return el("div",{class:"seg",role:"group"},opts.map(([v,label])=>el("button",{type:"button",class:Prefs.get(key)===v?"on":"","aria-pressed":String(Prefs.get(key)===v),onclick:()=>{ Prefs.set(key,v); Sound.fx("pick"); render(); }},label))); }
 function check(key,label){ const id="pref-"+key; const i=el("input",{type:"checkbox",id,checked:!!Prefs.get(key)}); i.addEventListener("change",()=>{ Prefs.set(key,i.checked); Sound.fx(i.checked?"pick":"unpick"); render(); }); return el("label",{class:"chk",for:id},i,el("span",{text:label})); }
@@ -870,11 +1215,12 @@ function connect(){
       const code=pendingRoom||store.get("durak.room"); pendingRoom=null;
       if(code) sendMsg({t:"enter",code}); else render();
     } else if(m.t==="catalog"){
-      catalog=m.items||[]; eco=m.eco||null; applyCosmetics(); if(view!=="main"||!room) render();
+      catalog=m.items||[]; eco=m.eco||null; casinoCfg=m.casino||{}; applyCosmetics(); if(view!=="main"||!room) render();
     } else if(m.t==="profile"){
       profile=m; applyCosmetics(); if(view!=="main"||!room) render();
     } else if(m.t==="reward"){
       if(profile) profile.coins=m.coins; Coins.animateTo(m.coins); applyCosmetics(); Fx.coinPop(m.delta); if(m.delta>0) Sound.fx("coin"); if(m.reason) toast(m.reason+(m.delta?` ${m.delta>0?"+":"−"}$${Math.abs(m.delta)}`:""));
+    } else if(m.t==="casinoRes"){ onCasinoRes(m);
     } else if(m.t==="toast"){ toast(m.msg);
     } else if(m.t==="react"){
       const box=document.querySelector(`[data-pid="${CSS.escape(m.from)}"]`); Fx.emoji(m.e,box); if(m.from!==me.id) Sound.fx("pick");
@@ -886,7 +1232,7 @@ function connect(){
       if(room&&room.code===m.code) toast("Комнату закрыли");
       else toast(`Комнаты ${m.code} нет: её закрыли или сервер перезапускался`);
       room=null; store.del("durak.room"); render();
-    } else if(m.t==="error"){ toast(m.msg); haptic("heavy"); Sound.fx("error"); }
+    } else if(m.t==="error"){ if(onCasinoErr(m.msg)) return; toast(m.msg); haptic("heavy"); Sound.fx("error"); }
     else if(m.t==="fatal"){ fatal=m.msg; render(); }
   };
   ws.onclose=()=>{ if(fatal)return; conn="lost"; render(); setTimeout(connect,1500); };
@@ -916,9 +1262,11 @@ function render(){
   if(post.length){ const jobs=post.splice(0); requestAnimationFrame(()=>jobs.forEach(f=>{ try{ f(); }catch(e){} })); }
 }
 function renderInner(){
+  if(view==="casino"&&casinoLock) return; // не трогаем экран, пока крутятся барабаны
   app.replaceChildren();
   if(view==="settings"){ renderSettings(); return; }
   if(view==="shop"){ renderShop(); return; }
+  if(view==="casino"){ renderCasino(); return; }
   if(room){ app.append(el("div",{class:"top"}, room.practice?el("span",{class:"muted small"},"Тренировка"):el("span",{class:"muted small"},"Комната ",el("span",{class:"code",text:room.code})), el("button",{class:"btn ghost",type:"button",onclick:exitRoom},"В меню"))); }
   if(fatal){ app.append(el("div",{class:"banner",text:fatal})); return; }
   if(conn==="lost") app.append(el("div",{class:"banner"},"Связь с сервером пропала, переподключаюсь…"));
@@ -934,7 +1282,7 @@ function renderMenu(){
   const codeIn=el("input",{id:"joincode",maxlength:"4",placeholder:"КОД","aria-label":"Код комнаты",style:"width:6.5em;text-transform:uppercase;letter-spacing:.15em"});
   app.append(el("div",{class:"panel"},
     el("h2",{},`Привет, ${me.name}!`),
-    profile?el("div",{class:"row"},el("span",{class:"coins",text:`💰 $${profile.coins}`}),profile.dailyReady?el("button",{class:"btn small",type:"button",onclick:()=>sendMsg({t:"daily"})},"🎁 Забрать бонус"):null,el("button",{class:"btn ghost small",type:"button",onclick:()=>{view="shop";render();}},"🛒 Магазин")):null,
+    profile?el("div",{class:"row"},el("span",{class:"coins",text:`💰 $${profile.coins}`}),profile.dailyReady?el("button",{class:"btn small",type:"button",onclick:()=>sendMsg({t:"daily"})},"🎁 Забрать бонус"):null,el("button",{class:"btn ghost small",type:"button",onclick:()=>{view="shop";render();}},"🛒 Магазин"),el("button",{class:"btn ghost small",type:"button",onclick:()=>{view="casino";render();}},"🎰 Казино")):null,
     el("p",{class:"muted small"},"Создай комнату и позови друга, или войди по коду, который тебе прислали."),
     el("div",{class:"row"},
       el("button",{class:"btn",type:"button",onclick:()=>sendMsg({t:"create"})},"Создать комнату"),
@@ -1179,9 +1527,10 @@ function renderSeat(st,myTurn){
 }
 
 buildAudioBar();
-document.getElementById("shopBtn").addEventListener("click",()=>{ view=view==="shop"?"main":"shop"; Sound.fx("pick"); render(); scrollTo(0,0); });
-document.getElementById("coinsBtn").addEventListener("click",()=>{ view="shop"; Sound.fx("pick"); render(); scrollTo(0,0); });
-document.getElementById("setBtn").addEventListener("click",()=>{ view=view==="settings"?"main":"settings"; Sound.fx("pick"); render(); scrollTo(0,0); });
+document.getElementById("casinoBtn").addEventListener("click",()=>{ if(casinoLock) return; view=view==="casino"?"main":"casino"; Sound.fx("pick"); render(); scrollTo(0,0); });
+document.getElementById("shopBtn").addEventListener("click",()=>{ if(casinoLock) return toast("Дождись конца раунда"); view=view==="shop"?"main":"shop"; Sound.fx("pick"); render(); scrollTo(0,0); });
+document.getElementById("coinsBtn").addEventListener("click",()=>{ if(casinoLock) return; view="shop"; Sound.fx("pick"); render(); scrollTo(0,0); });
+document.getElementById("setBtn").addEventListener("click",()=>{ if(casinoLock) return toast("Дождись конца раунда"); view=view==="settings"?"main":"settings"; Sound.fx("pick"); render(); scrollTo(0,0); });
 applyPrefs(); applyCosmetics();
 render();
 connect();

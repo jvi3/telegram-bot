@@ -58,7 +58,11 @@ module.exports = function createAdmin(ctx) {
         `Комнат с друзьями: <b>${live.length}</b> (идёт партий: ${playing})`,
         `Тренировок с ботами: <b>${practice}</b>`,
         `Сыграно партий всего: <b>${data.stats.games}</b>`,
-        `Денег у игроков: <b>$${users.reduce((s, u) => s + (u.coins || 0), 0)}</b>`, "",
+        `Денег у игроков: <b>$${users.reduce((s, u) => s + (u.coins || 0), 0)}</b>`,
+        ...(() => { const c = data.casino || {}; const NM = { slots: "Кащей Слотс", lucky: "Лаки 7", chest: "Сундук Кащея", roulette: "Рулетка", hilo: "Выше/ниже" };
+          const rows = Object.entries(c).filter(([, v]) => v.n).map(([k, v]) => `  ${NM[k] || k}: ставок ${v.n}, поставили $${v.bet}, выиграли $${v.paid}`);
+          const bet = Object.values(c).reduce((s, v) => s + (v.bet || 0), 0), paid = Object.values(c).reduce((s, v) => s + (v.paid || 0), 0);
+          return rows.length ? ["", `🎰 Казино: казино в ${bet - paid >= 0 ? "плюсе" : "минусе"} на <b>$${Math.abs(bet - paid)}</b>`, ...rows] : []; })(), "",
         `В бане: <b>${data.banned.length}</b>`,
         `Сервер работает: ${fmtUptime(Date.now() - startedAt)}`,
       ].join("\n"),

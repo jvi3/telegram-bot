@@ -8,6 +8,7 @@ const crypto = require("crypto");
 const { WebSocketServer } = require("ws");
 const R = require("./rules");
 const SHOP = require("./shop");
+const createCasino = require("./casino");
 
 const BOT_TOKEN = process.env.BOT_TOKEN || "";
 const PORT = Number(process.env.PORT) || 3000;
@@ -246,6 +247,7 @@ function decorate(st) {
   });
 }
 function wsOf(tgId) { return [...wss.clients].filter(ws => ws.user && ws.user.id === "tg" + tgId); }
+function profileCoins(tgId) { const u = data.users[tgId]; return u ? u.coins : null; }
 function fullProfile(tgId) {
   const u = data.users[tgId];
   return { ...SHOP.profile(u), nick: u.nick || "", tgName: u.name || "", avatar: avatarUrl(tgId) };
@@ -398,7 +400,7 @@ function handle(ws, msg) {
     if (tgId) { touchUser(tgId, user.from); user.name = displayName(data.users[tgId], user.name).slice(0, 16); }
     ws.user = user;
     send(ws, { t: "board", rows: boardRows() });
-    send(ws, { t: "catalog", items: SHOP.ITEMS, eco: SHOP.ECONOMY });
+    send(ws, { t: "catalog", items: SHOP.ITEMS, eco: SHOP.ECONOMY, casino: { roul: casino.ROUL, classic: casino.PAY3, machines: casino.MACHINES } });
     if (tgId && data.users[tgId]) send(ws, { t: "profile", ...fullProfile(tgId) });
     return send(ws, { t: "me", me: { id: user.id, name: user.name }, bot: botUsername });
   }
@@ -467,6 +469,17 @@ function handle(ws, msg) {
     send(ws, { t: "toast", msg: "Профиль сохранён" });
     return;
   }
+  if (msg.t === "casino") {
+    if (!myU) return send(ws, { t: "error", msg: "Казино работает только в Telegram" });
+    const now = Date.now();
+    if (now - (ws.lastBet || 0) < 200) return send(ws, { t: "error", msg: "Не так быстро" });
+    ws.lastBet = now;
+    let r;
+    try { r = casino.play(myTg, msg); } catch (e) { console.error(e); r = { err: "Что-то пошло не так" }; }
+    if (r.err) return send(ws, { t: "error", msg: r.err });
+    if (profileCoins(myTg) !== null) for (const s of wsOf(myTg)) if (s !== ws) send(s, { t: "profile", ...fullProfile(myTg) });
+    return send(ws, { t: "casinoRes", ...r });
+  }
   if (msg.t === "promo") {
     if (!myU) return send(ws, { t: "error", msg: "Промокоды работают только в Telegram" });
     const now = Date.now();
@@ -534,6 +547,7 @@ function onlineIds() {
   for (const ws of wss.clients) if (ws.user && ws.user.id.startsWith("tg")) s.add(ws.user.id.slice(2));
   return s;
 }
+const casino = createCasino({ data, save, users: new Proxy({}, { get: (_, id) => data.users[id] }) });
 const admin = require("./admin")({ tg, rooms, getData: () => data, data, save, adminIds: ADMIN_IDS, kickUser, closeRoom, onlineIds, startedAt, appUrl, giveCoins, clearAvatar: id => { avatars.delete(String(id)); saveAvatar(String(id)); sendProfile(String(id)); } });
 
 // Чистим комнаты, где давно никто не играл
