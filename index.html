@@ -566,6 +566,19 @@ body:has(.sheet) .toast{bottom:calc(var(--sheeth,230px) + 24px);z-index:31}
 .fitem{display:inline-flex;align-items:center;gap:6px}
 @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 :root[data-anim="off"] .ftrack{animation-duration:90s}
+
+/* ---------- плавающая панель с балансом ---------- */
+.navph{display:none;flex:none}
+header.hdr:has(.nav.float){z-index:24}
+.hdr .nav.float{position:fixed;top:calc(8px + var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px));z-index:25;padding:4px;border-radius:999px;background:rgba(8,18,16,.55);box-shadow:0 6px 18px rgba(0,0,0,.35);animation:navdown .35s cubic-bezier(.2,.9,.3,1.15)}
+@keyframes navdown{from{transform:translateY(-130%);opacity:0}to{transform:none;opacity:1}}
+.hdr .nav>*{transition:opacity .25s}
+.hdr .nav.float{pointer-events:none;transition:background .25s,box-shadow .25s}
+.hdr .nav.float>*{pointer-events:auto}
+.hdr .nav.float>.yield{opacity:.28;pointer-events:none}
+.hdr .nav.float:has(>.yield){background:rgba(8,18,16,.2);box-shadow:none}
+.av.anon{border:1px dashed #7d8b87}
+.eyebtn[aria-pressed="true"]{background:rgba(242,193,78,.25)}
 </style>
 </head>
 <body>
@@ -777,7 +790,7 @@ const equippedId=t=>(profile&&profile.equipped&&profile.equipped[t])||DEF_EQUIP[
 const equippedKey=t=>{ const it=itemById(equippedId(t)); return it?it.key:null; };
 
 const Prefs=(()=>{
-  const d={liveBg:true,anim:"normal",big:false,hlPlayable:true,hlPile:true,hlTurn:true,hints:true,showLog:false,tense:true};
+  const d={liveBg:true,anim:"normal",big:false,hlPlayable:true,hlPile:true,hlTurn:true,hints:true,showLog:false,tense:true,hideNames:false};
   let p; try{ p=Object.assign({},d,JSON.parse(ls.get("durak.prefs")||"{}")); }catch(e){ p={...d}; }
   return { get:k=>p[k], set(k,v){ p[k]=v; ls.set("durak.prefs",JSON.stringify(p)); applyPrefs(); } };
 })();
@@ -918,7 +931,13 @@ const HAT='<svg viewBox="0 0 16 12" width="22" height="16" shape-rendering="cris
 function hatEl(){ const s=el("span",{class:"hat"}); s.innerHTML=HAT; return s; }
 const playerOf=id=>room&&room.players.find(p=>p.id===id);
 const colorOf=id=>{ const p=playerOf(id); return (p&&p.color)||"#f2c14e"; };
+// «Скрыть имена»: за столом вместо имён и аватарок — «Игрок 2», «Игрок 3»…
+const anonOn=()=>!!(Prefs.get("hideNames")&&room);
+function anonIdx(id){ return room?room.players.findIndex(p=>p.id===id):-1; }
+function shownName(p){ if(!anonOn()||!p||!p.id||anonIdx(p.id)<0) return p&&p.name||"Игрок"; return p.id===me.id?"Ты":"Игрок "+(anonIdx(p.id)+1); }
+function anonText(t){ if(!anonOn()) return t; let r=String(t); [...room.players].sort((a,b)=>b.name.length-a.name.length).forEach(p=>{ if(p.name) r=r.split(p.name).join(shownName(p)); }); return r; }
 function avatarEl(p,size){
+  if(anonOn()&&p.id&&anonIdx(p.id)>=0){ const st=`--pc:#7d8b87;width:${size}px;height:${size}px;font-size:${Math.round(size*.45)}px;background:#3a4643;color:#cfd8d4`; return el("span",{class:"av ini anon",style:st,"aria-hidden":"true",text:p.id===me.id?"Я":String(anonIdx(p.id)+1)}); }
   const pc=p.color||"#f2c14e", st=`--pc:${pc};width:${size}px;height:${size}px`;
   if(p.avatar){ const i=el("img",{class:"av",src:p.avatar,alt:"",style:st,loading:"lazy"}); i.addEventListener("error",()=>i.replaceWith(avatarEl({...p,avatar:""},size))); return i; }
   return el("span",{class:"av ini",style:st+`;font-size:${Math.round(size*.45)}px`,"aria-hidden":"true",text:(p.name||"?").trim().charAt(0).toUpperCase()});
@@ -926,8 +945,8 @@ function avatarEl(p,size){
 function nameTag(p,{you=false}={}){
   const wrap=el("div",{class:"ntag"});
   const isFool=room&&(p.id===room.loser||(room.status!=="over"&&p.id===room.prevLoser));
-  wrap.append(el("div",{class:"name",style:`--pc:${p.color||"#f2c14e"}`},avatarEl(p,26),isFool?hatEl():null,el("span",{text:p.name+(you?" (ты)":"")})));
-  if(p.title) wrap.append(el("div",{class:"ptitle",style:"padding-left:32px",text:p.title}));
+  wrap.append(el("div",{class:"name",style:`--pc:${p.color||"#f2c14e"}`},avatarEl(p,26),isFool?hatEl():null,el("span",{text:anonOn()?shownName(p):p.name+(you?" (ты)":"")})));
+  if(p.title&&!anonOn()) wrap.append(el("div",{class:"ptitle",style:"padding-left:32px",text:p.title}));
   return wrap;
 }
 
@@ -1447,7 +1466,7 @@ const act=(a,...args)=>{ sendMsg({t:"act",a,args}); sel=[];selSrc=null;swapHand=
 function effectiveTop(p){ for(let i=p.length-1;i>=0;i--) if(rk(p[i])!=="8") return p[i]; return null; }
 function canPlay(r,p){ if(r==="8"||r==="10"||r==="2")return true; const t=effectiveTop(p); if(!t||rk(t)==="2")return true; return val(r)>=val(rk(t)); }
 const cnt=x=>Array.isArray(x)?x.length:(x||0);
-const nameOf=id=>(room.players.find(p=>p.id===id)||{}).name||"Игрок";
+const nameOf=id=>shownName(room.players.find(p=>p.id===id)||{name:"Игрок"});
 function mySource(){ const h=room.hands[me.id]; if(cnt(h))return"hands"; if((room.up[me.id]||[]).length)return"up"; if(room.down[me.id])return"down"; return null; }
 
 /* ---------- отрисовка ---------- */
@@ -1487,6 +1506,7 @@ function renderInner(){
   if(room){ app.append(el("div",{class:"top tbar-top"}, room.practice?el("span",{class:"muted small"},"Тренировка"):el("span",{class:"muted small"},"Комната ",el("span",{class:"code",text:room.code})),
     el("div",{class:"row",style:"gap:6px"},
       tableMode?el("button",{class:"btn ghost tiny","aria-pressed":String(!!Prefs.get("hints")),title:"Подсказки",onclick:()=>{ Prefs.set("hints",!Prefs.get("hints")); Sound.fx("pick"); render(); }},"💡"):null,
+      el("button",{class:"btn ghost tiny eyebtn","aria-pressed":String(!!Prefs.get("hideNames")),title:Prefs.get("hideNames")?"Показать имена":"Скрыть имена и аватарки","aria-label":Prefs.get("hideNames")?"Показать имена":"Скрыть имена",onclick:()=>{ Prefs.set("hideNames",!Prefs.get("hideNames")); Sound.fx("pick"); toast(Prefs.get("hideNames")?"Имена и аватарки скрыты":"Имена снова видны"); render(); }},Prefs.get("hideNames")?"🙈":"👁"),
       tableMode?el("button",{class:"btn ghost tiny","aria-pressed":String(!!Prefs.get("showLog")),title:"Ходы",onclick:()=>{ Prefs.set("showLog",!Prefs.get("showLog")); Sound.fx("pick"); render(); }},"📜"):null,
       el("button",{class:"btn ghost tiny",type:"button",onclick:exitRoom},"В меню")))); }
   if(fatal){ app.append(el("div",{class:"banner",text:fatal})); return; }
@@ -1571,7 +1591,7 @@ function renderWaiting(){
     el("div",{class:"wtimer","data-since":String(waitAt||Date.now()),text:mmss(Date.now()-(waitAt||Date.now()))}));
   const seats=el("div",{class:"wseats"});
   for(let i=0;i<5;i++){ const p=st.players[i];
-    if(p) seats.append(el("div",{class:"wseat"},avatarEl(p,46),el("span",{class:"wn",text:p.name+(p.id===me.id?" (ты)":"")}),el("span",{class:"muted small",text:p.id===st.host?"создатель":p.bot?"бот":""}),
+    if(p) seats.append(el("div",{class:"wseat"},avatarEl(p,46),el("span",{class:"wn",text:anonOn()?shownName(p):p.name+(p.id===me.id?" (ты)":"")}),el("span",{class:"muted small",text:p.id===st.host?"создатель":p.bot?"бот":""}),
       p.bot&&isHost?el("button",{class:"wkick",type:"button","aria-label":"Убрать бота",onclick:()=>act("kick",p.id)},"×"):null));
     else seats.append(el("button",{class:"wseat empty",type:"button",onclick:invite,"aria-label":"Позвать на свободное место"},el("span",{class:"wplus",text:"+"}),el("span",{class:"muted small",text:"свободно"}))); }
   stage.append(seats);
@@ -1617,7 +1637,7 @@ function flipReveal(lb,nr,done){
   const pileEl=document.querySelector(".pile")||document.querySelector(".center");
   const fromEl=document.querySelector(`[data-pid="${CSS.escape(lb.pid)}"]`);
   const r=pileEl?pileEl.getBoundingClientRect():{left:innerWidth/2-30,top:innerHeight/2-40,width:60,height:80};
-  const who=(nr.players.find(p=>p.id===lb.pid)||{}).name||"Игрок";
+  const who=shownName(nr.players.find(p=>p.id===lb.pid)||{name:"Игрок"});
   const k=Prefs.get("anim")==="fast"?.55:1;
   const box=el("div",{class:"flipbox"}); box.style.left=(r.left+r.width/2)+"px"; box.style.top=(r.top+r.height/2)+"px";
   const hidden=!lb.card; // чужая неподошедшая карта: показываем только рубашку
@@ -1791,7 +1811,7 @@ function renderTable(){
   if(seated){ const seatEl=renderSeat(st,myTurn); animSeat(seatEl,F,myHandArr); app.append(seatEl); }
   else app.append(el("div",{class:"panel"},el("p",{class:"muted"},"Ты смотришь эту партию. Сесть можно, когда начнётся следующая.")));
   anim={code:st.code,pile:st.pile.length,burned:st.burned,hand:new Set(myHandArr),status:st.status,turn:turnId,shown:st.pile.slice(-4),takeSeq:st.lastTake&&st.lastTake.seq};
-  if((st.log||[]).length&&Prefs.get("showLog")) app.append(el("div",{class:"panel logpanel"},el("h2",{},"Ходы"),el("div",{class:"log"},st.log.map(l=>el("div",{text:l})))));
+  if((st.log||[]).length&&Prefs.get("showLog")) app.append(el("div",{class:"panel logpanel"},el("h2",{},"Ходы"),el("div",{class:"log"},st.log.map(l=>el("div",{text:anonText(l)})))));
 }
 
 /* ---------- веер карт в руке, покачивание и 3D-наклон с бликом ---------- */
@@ -1879,6 +1899,26 @@ document.getElementById("setBtn").addEventListener("click",()=>{ if(casinoLock) 
   if(tgFS){ TG.onEvent("fullscreenChanged",sync); TG.onEvent("fullscreenFailed",()=>toast("Telegram не дал открыть на весь экран")); }
   else document.addEventListener("fullscreenchange",sync);
   sync();
+})();
+/* ---------- баланс и кнопки едут вместе с экраном ---------- */
+(()=>{
+  const nav=document.querySelector(".hdr .nav"), hdr=document.querySelector(".hdr");
+  const ph=el("div",{class:"navph","aria-hidden":"true"}); nav.before(ph);
+  let floating=false, raf=0;
+  const SEL="button,input,select,textarea,a[href],[role=button],[tabindex='0'],label.chk";
+  function check(){
+    raf=0;
+    if(!floating){ const r=nav.getBoundingClientRect(); if(r.top<0&&scrollY>4){ floating=true; ph.style.width=r.width+"px"; ph.style.height=r.height+"px"; ph.style.display="block"; nav.style.right=Math.max(8,innerWidth-r.right)+"px"; nav.classList.add("float"); setTimeout(q,380); } }
+    else { const p=ph.getBoundingClientRect(); if(p.top>=0||scrollY<=4){ floating=false; ph.style.display="none"; nav.classList.remove("float"); nav.style.right=""; } }
+    // кнопка под панелью важнее: панель становится прозрачной и пропускает нажатие
+    const btns=[...nav.children].filter(b=>!b.hidden);
+    if(!floating){ btns.forEach(b=>b.classList.remove("yield")); return; }
+    const targets=[...document.querySelectorAll("#app "+SEL.split(",").join(",#app "))].map(e=>e.getBoundingClientRect()).filter(r=>r.width&&r.bottom>0&&r.top<120);
+    btns.forEach(b=>{ const a=b.getBoundingClientRect(); const hit=targets.some(r=>r.left<a.right-2&&r.right>a.left+2&&r.top<a.bottom-2&&r.bottom>a.top+2); b.classList.toggle("yield",hit); });
+  }
+  const q=()=>{ if(!raf) raf=requestAnimationFrame(check); };
+  addEventListener("scroll",q,{passive:true}); addEventListener("resize",()=>{ if(floating){ floating=false; nav.classList.remove("float"); ph.style.display="none"; } q(); });
+  new MutationObserver(q).observe(document.getElementById("app"),{childList:true,subtree:true});
 })();
 applyPrefs(); applyCosmetics();
 render();
