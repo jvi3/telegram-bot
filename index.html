@@ -619,6 +619,16 @@ body.tense .chatbar{display:none}
 .vote{position:relative}.vote .addfr{position:static;width:22px;height:22px}
 .invbox{position:fixed;left:50%;top:calc(10px + var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px));transform:translateX(-50%);width:min(420px,calc(100% - 20px));display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;background:rgba(10,24,20,.96);border:1px solid rgba(242,193,78,.6);box-shadow:0 12px 30px rgba(0,0,0,.55);z-index:40;animation:navdown .4s cubic-bezier(.2,.9,.3,1.15)}
 .invt{flex:1;min-width:0;display:flex;flex-direction:column}
+
+/* ---------- стопки одинаковых карт в руке ---------- */
+.hand>.card.grp2{box-shadow:4px -4px 0 -1px #e6dcc2,4px -4px 0 0 rgba(0,0,0,.28),0 2px 0 rgba(0,0,0,.25),0 6px 14px rgba(0,0,0,.25)}
+.hand>.card.grp3{box-shadow:4px -4px 0 -1px #e6dcc2,4px -4px 0 0 rgba(0,0,0,.28),8px -8px 0 -1px #ddd2b6,8px -8px 0 0 rgba(0,0,0,.28),0 2px 0 rgba(0,0,0,.25),0 6px 14px rgba(0,0,0,.25)}
+.gbadge{position:absolute;left:-6px;bottom:-8px;z-index:3;background:#e8664e;color:#fff;font:700 12px/1 var(--body);padding:4px 6px;border-radius:999px;box-shadow:0 2px 6px rgba(0,0,0,.45);pointer-events:none}
+.seat .hand>.card.grp2.sel{box-shadow:4px -4px 0 -1px #e6dcc2,0 0 0 3px var(--mycolor),0 0 18px 3px color-mix(in srgb,var(--mycolor) 55%,transparent)}
+.seat .hand>.card.grp3.sel{box-shadow:4px -4px 0 -1px #e6dcc2,8px -8px 0 -1px #ddd2b6,0 0 0 3px var(--mycolor),0 0 18px 3px color-mix(in srgb,var(--mycolor) 55%,transparent)}
+.btn.allbtn{flex:none;padding-inline:12px;white-space:nowrap;background:#e8664e;color:#fff;border:0}
+.gbadge.part{background:#f2c14e;color:#2a1c06}
+.hand>.card.special .gbadge{bottom:auto;top:-8px}
 </style>
 </head>
 <body>
@@ -1537,9 +1547,9 @@ function glideSeat(prev){
 function render(){
   const prevSeat=seatRects();
   renderInner();
-  glideSeat(prevSeat);
   chatSync(); showBubbles();
   if(post.length){ const jobs=post.splice(0); requestAnimationFrame(()=>jobs.forEach(f=>{ try{ f(); }catch(e){} })); }
+  requestAnimationFrame(()=>glideSeat(prevSeat)); // после того, как веер посчитал нахлёст
 }
 function renderInner(){
   if(view==="casino"&&casinoLock) return; // не трогаем экран, пока крутятся барабаны
@@ -1716,7 +1726,7 @@ function animFlags(st,turnId){
 }
 function animSeat(seatEl,F,hand){
   if(F.deal){ seatEl.querySelectorAll(".card").forEach((c,i)=>{ c.classList.add("dealin"); c.style.animationDelay=(i*85)+"ms"; }); return; }
-  if(F.same&&anim.hand){ let k=0; [...seatEl.querySelectorAll(".hand > .card")].forEach((c,i)=>{ if(hand[i]&&!anim.hand.has(hand[i])){ c.classList.add("drawin"); c.style.animationDelay=(k++*110)+"ms"; } }); }
+  if(F.same&&anim.hand){ let k=0; [...seatEl.querySelectorAll(".hand > .card")].forEach((c,i)=>{ const id=c.dataset.card; if(id&&hand.includes(id)&&!anim.hand.has(id)){ c.classList.add("drawin"); c.style.animationDelay=(k++*110)+"ms"; } }); }
 }
 /* ---------- чат за столом: пузырьки над ником ---------- */
 const CHAT_MS=6500;
@@ -1937,7 +1947,7 @@ function renderTable(){
 /* ---------- веер карт в руке, покачивание и 3D-наклон с бликом ---------- */
 function fanHand(box){
   const cards=[...box.children].filter(c=>c.classList.contains("card")), n=cards.length; if(!n) return;
-  if(n>8){ // много карт — два ряда, номиналы всегда видны
+  if(n>14){ // запасной вариант на очень большую руку — два ряда
     const top=Math.ceil(n/2); box.classList.add("rows2"); box.style.setProperty("--cols",top);
     cards.forEach((c,i)=>{ const r2=i>=top; c.style.gridRow=r2?"2":"1"; c.style.gridColumn=String((r2?i-top:i)+1); if(r2) c.classList.add("r2"); c.style.setProperty("--i",i); if(c.tagName==="BUTTON") addTilt(c); });
     post.push(()=>{ const h=document.querySelector(".hand.rows2"); if(!h) return; const c0=h.querySelector(":scope > .card"); if(!c0) return;
@@ -1945,12 +1955,16 @@ function fanHand(box){
     return;
   }
   box.classList.add("fan");
-  const mid=(n-1)/2, spread=Math.min(5,32/n), lift=Math.min(1.8,9/n);
-  box.style.paddingBottom=Math.round(mid*mid*lift+Math.min(14,n*1.6)+6)+"px";
+  const mid=(n-1)/2, spread=Math.min(5,28/n), lift=Math.min(1.8,5/n);
+  box.style.paddingBottom=Math.min(28,Math.round(mid*mid*lift*.6+Math.min(10,n)+4))+"px";
   cards.forEach((c,i)=>{ const d=i-mid; c.style.setProperty("--fr",(d*spread).toFixed(2)+"deg"); c.style.setProperty("--fy",(d*d*lift).toFixed(1)+"px"); c.style.setProperty("--i",i); if(c.tagName==="BUTTON") addTilt(c); });
   post.push(()=>{ const h=document.querySelector(".hand.fan"); if(!h) return; const cs=[...h.querySelectorAll(":scope > .card")]; if(cs.length<2) return;
-    const W=h.clientWidth, cw=cs[0].getBoundingClientRect().width; const need=cs.length*cw+(cs.length-1)*6;
-    h.style.setProperty("--ov",need>W?((W-cs.length*cw)/(cs.length-1)-2).toFixed(1)+"px":"6px"); });
+    // меряем без трансформаций (offsetWidth), чтобы выбранная/прилетающая карта не сбивала расчёт
+    h.style.removeProperty("--cw"); const n=cs.length, W=h.clientWidth-10; let cw=cs[0].offsetWidth;
+    // не влезает даже с нахлёстом, при котором видно номинал, — уменьшаем карты, а не растягиваем вниз
+    const minStep=.42; if(cw*(1+minStep*(n-1))>W){ cw=Math.max(30,W/(1+minStep*(n-1))); h.style.setProperty("--cw",cw.toFixed(1)+"px"); }
+    const need=n*cw+(n-1)*6;
+    h.style.setProperty("--ov",need>W?((W-n*cw)/(n-1)).toFixed(1)+"px":"6px"); });
 }
 function addTilt(c){
   if(Prefs.get("anim")==="off") return;
@@ -1984,12 +1998,22 @@ function renderSeat(st,myTurn){
     tab.append(slot);
   }
   const handBox=el("div",{class:"hand"});
-  hand.forEach((c,i)=>{
-    if(swapping) handBox.append(cardEl(c,{onclick:()=>{swapHand=swapHand===i?null:i;Sound.fx(swapHand===null?"unpick":"pick");haptic();render();},selected:swapHand===i}));
-    else if(myTurn&&src==="hands") handBox.append(cardEl(c,{extra:glowOk(c),onclick:()=>toggle("hands",c),selected:selSrc==="hands"&&sel.includes(c),dim:!canPlay(rk(c),st.pile)}));
-    else handBox.append(cardEl(c));
-  });
-  if(upInHand) up.forEach(c=>handBox.append(myTurn?cardEl(c,{extra:glowOk(c),onclick:()=>toggle("up",c),selected:selSrc==="up"&&sel.includes(c),dim:!canPlay(rk(c),st.pile)}):cardEl(c)));
+  // одинаковые карты лежат одной стопкой «×3»: 1 тап — одна карта, 2 тапа — две, 3 — три, ещё тап — снять выбор
+  const groupTap=(source,cards)=>{
+    if(selSrc!==source||!sel.length||rk(sel[0])!==rk(cards[0])){ sel=[cards[0]]; selSrc=source; Sound.fx("pick"); }
+    else { const k=sel.length; if(k>=cards.length){ sel=[]; Sound.fx("unpick"); } else { sel=cards.slice(0,k+1); Sound.fx("pick"); } }
+    haptic(); render();
+  };
+  const groupsOf=arr=>{ const m=[]; arr.forEach(c=>{ const g=m.find(x=>rk(x[0])===rk(c)); if(g) g.push(c); else m.push([c]); }); return m; };
+  const grpEl=(source,cards,can)=>{
+    const c=cards[0], n=cards.length, k=selSrc===source?sel.filter(x=>cards.includes(x)).length:0;
+    const e=can?cardEl(c,{extra:glowOk(c)+(n>1?" grp grp"+Math.min(n,3):""),onclick:()=>groupTap(source,cards),selected:k>0,dim:!canPlay(rk(c),st.pile)}):cardEl(c,{extra:n>1?"grp grp"+Math.min(n,3):""});
+    if(n>1){ e.append(el("span",{class:"gbadge"+(k&&k<n?" part":""),text:k&&k<n?`${k}/${n}`:`×${n}`})); e.setAttribute("aria-label",`${rk(c)} ×${n}`+(k?`, выбрано ${k}`:"")); }
+    return e;
+  };
+  if(swapping) hand.forEach((c,i)=>handBox.append(cardEl(c,{onclick:()=>{swapHand=swapHand===i?null:i;Sound.fx(swapHand===null?"unpick":"pick");haptic();render();},selected:swapHand===i})));
+  else groupsOf(hand).forEach(g=>handBox.append(grpEl("hands",g,myTurn&&src==="hands")));
+  if(upInHand) groupsOf(up).forEach(g=>handBox.append(grpEl("up",g,myTurn)));
   if(downInHand) for(let i=0;i<downN;i++) handBox.append(backEl(myTurn?()=>act("blind",i):null,!myTurn,"D"+i));
   fanHand(handBox);
   if(!hand.length&&!upInHand&&!downInHand) handBox.append(el("span",{class:"muted small",style:"align-self:center"},done?"Ты вышел из игры":"Рука пустая"));
@@ -1997,7 +2021,12 @@ function renderSeat(st,myTurn){
   if(swapping) actions.append(el("button",{class:"btn",type:"button",onclick:()=>act("ready")},"Готов"),el("span",{class:"muted small hint"},"Нажми карту в руке, потом открытую — они поменяются местами."));
   if(myTurn){
     const canPut=sel.length&&canPlay(rk(sel[0]),st.pile);
-    if(src!=="down") actions.append(el("button",{class:"btn",type:"button",disabled:!canPut,onclick:()=>act("play",selSrc,[...sel])},sel.length?`Положить ${sel.map(pretty).join(" ")}`:"Выбери карты"));
+    if(src!=="down"){
+      const pool=selSrc==="up"?up:hand, all=sel.length?pool.filter(c=>rk(c)===rk(sel[0])):[];
+      const lbl=sel.length>1?`Положить ${sel.length}×${rk(sel[0])}`:sel.length?`Положить ${pretty(sel[0])}`:"Выбери карты";
+      actions.append(el("button",{class:"btn",type:"button",disabled:!canPut,onclick:()=>act("play",selSrc,[...sel])},lbl));
+      if(canPut&&all.length>1&&sel.length<all.length) actions.append(el("button",{class:"btn allbtn",type:"button",onclick:()=>{ Sound.fx("pick"); act("play",selSrc,all); }},`Все ×${all.length}`));
+    }
     else actions.append(el("span",{class:"small hint"},"Открой одну из закрытых карт — вслепую."));
     actions.append(el("button",{class:"btn ghost",type:"button",disabled:!st.pile.length,onclick:()=>act("take")},"Забрать стопку"));
   }
