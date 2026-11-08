@@ -629,6 +629,34 @@ body.tense .chatbar{display:none}
 .btn.allbtn{flex:none;padding-inline:12px;white-space:nowrap;background:#e8664e;color:#fff;border:0}
 .gbadge.part{background:#f2c14e;color:#2a1c06}
 .hand>.card.special .gbadge{bottom:auto;top:-8px}
+
+/* ---------- перетаскивание карт ---------- */
+.hand button.card[data-grp]{touch-action:none;-webkit-user-select:none;user-select:none}
+.hand>.card.dragsrc{opacity:.35}
+.dragghost{position:fixed;left:0;top:0;z-index:60;pointer-events:none;filter:drop-shadow(0 14px 18px rgba(0,0,0,.5))}
+.dragghost>.card{position:relative;width:100%!important;transform:scale(1.08)!important;animation:none!important}
+.dragghost .gcount{position:absolute;right:-8px;top:-10px;background:#e8664e;color:#fff;font:700 13px/1 var(--body);padding:4px 7px;border-radius:999px;box-shadow:0 2px 6px rgba(0,0,0,.45)}
+.pile.dropok{outline:3px dashed rgba(168,224,126,.9);outline-offset:6px;border-radius:12px}
+#frBtn{position:relative}
+.frdot{position:absolute;top:3px;right:3px;width:8px;height:8px;border-radius:50%;background:#4cd98a;box-shadow:0 0 0 2px #0e1f1b}
+
+/* ---------- личные сообщения ---------- */
+.frn{background:none;border:0;color:inherit;text-align:left;padding:0;cursor:pointer;font:inherit}
+.frmsg{position:relative}
+.unb{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:999px;background:#e8664e;color:#fff;font:700 11px/18px var(--body);padding:0 4px}
+.frdot.unread{width:16px;height:16px;top:-2px;right:-2px;background:#e8664e;color:#fff;font:700 10px/16px var(--body);text-align:center}
+.dmhead{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.dmpanel{display:flex;flex-direction:column;gap:10px;height:calc(100dvh - 210px);min-height:300px}
+.dmlist{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:4px 2px}
+.dmm{align-self:flex-start;max-width:78%;background:rgba(255,255,255,.12);border-radius:16px 16px 16px 4px;padding:7px 11px;display:flex;flex-direction:column;gap:2px}
+.dmm.mine{align-self:flex-end;background:#e8b04a;color:#2a1c06;border-radius:16px 16px 4px 16px}
+.dmt{overflow-wrap:anywhere;font-size:14px;line-height:1.35}
+.dmm time{font-size:10px;opacity:.6;align-self:flex-end}
+.dmform{display:flex;gap:6px}
+.dmform input{flex:1;min-width:0}
+.dmtoast{position:fixed;left:50%;top:calc(58px + var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px));transform:translateX(-50%);width:min(400px,calc(100% - 20px));display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:14px;background:rgba(10,24,20,.96);border:1px solid rgba(126,224,181,.5);color:var(--text,#e9efe9);text-align:left;z-index:41;box-shadow:0 10px 26px rgba(0,0,0,.5);animation:navdown .35s cubic-bezier(.2,.9,.3,1.15)}
+.dmtt{display:flex;flex-direction:column;min-width:0;font-size:13px}
+.dmtt span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -638,6 +666,7 @@ body.tense .chatbar{display:none}
     <button id="coinsBtn" class="coins" type="button" hidden title="Баланс, открыть магазин">💰 $0</button>
     <button id="casinoBtn" class="btn ghost" type="button" aria-label="Казино">🎰</button>
     <button id="shopBtn" class="btn ghost" type="button" aria-label="Магазин">🛒</button>
+    <button id="frBtn" class="btn ghost" type="button" aria-label="Друзья" title="Друзья">👥<span class="frdot" hidden></span></button>
     <button id="setBtn" class="btn ghost" type="button" aria-label="Настройки">⚙</button>
     <button id="fsBtn" class="btn ghost" type="button" aria-label="На весь экран" title="На весь экран" hidden>⛶</button>
   </nav>
@@ -1433,7 +1462,7 @@ function buildAudioBar(){
 
 
 /* ---------- очередь состояний: даём доиграть перевороту закрытой карты ---------- */
-let chatB={}, friends=[], myFcode="", pendingInvite=null, delFr=null;
+let chatB={}, friends=[], myFcode="", pendingInvite=null, delFr=null, dmWith=null, dmItems={}, dmDraft={};
 let holding=false; const stateQ=[]; let blindSeen=null, celebrated=null, exitSheet=false, countAt=null, waitAt=null, openTables=[], feed=[];
 function queueState(nr,at){ stateQ.push([nr,at]); if(!holding) pumpStates(); }
 function pumpStates(){
@@ -1496,8 +1525,14 @@ function connect(){
     } else if(m.t==="casinoRes"){ onCasinoRes(m);
     } else if(m.t==="toast"){ toast(m.msg);
     } else if(m.t==="chat"){ chatB[m.from]={text:m.text,at:Date.now()}; if(m.from!==me.id) Sound.fx("pick"); showBubbles();
-    } else if(m.t==="friends"){ friends=m.list||[]; myFcode=m.code||""; if(!room&&view==="main"){ const o=document.querySelector(".friendsp"); if(o) o.replaceWith(friendsPanel()); } else if(room&&room.status==="lobby"){ const o=document.querySelector(".wfriends"); if(o) o.replaceWith(lobbyFriends()); }
+    } else if(m.t==="friends"){ friends=m.list||[]; myFcode=m.code||""; updFrDot(); if(view==="dm"){ const f=frById(dmWith), st=document.querySelector(".dmst"); if(f&&st) st.textContent=stText(f); } if(view==="friends"||(!room&&view==="main")){ const o=document.querySelector(".friendsp"); if(o) o.replaceWith(friendsPanel()); } else if(room&&room.status==="lobby"){ const o=document.querySelector(".wfriends"); if(o) o.replaceWith(lobbyFriends()); }
     } else if(m.t==="invite"){ showInvite(m);
+    } else if(m.t==="dmHistory"){ dmItems[m.with]=m.items||[]; if(view==="dm"&&dmWith===m.with){ const l=document.querySelector(".dmlist"); if(l){ l.replaceChildren(...(m.items.length?m.items.map(dmMsgEl):[el("p",{class:"muted small dmempty",text:"Сообщений пока нет. Напиши первым 👋"})])); l.scrollTop=l.scrollHeight; } }
+    } else if(m.t==="dm"){
+      (dmItems[m.with]=dmItems[m.with]||[]).push(m.m);
+      if(view==="dm"&&dmWith===m.with){ const l=document.querySelector(".dmlist"); if(l){ l.querySelector(".dmempty")?.remove(); l.append(dmMsgEl(m.m)); l.scrollTop=l.scrollHeight; } if(m.from){ Sound.fx("pick"); sendMsg({t:"dmHistory",with:m.with}); } }
+      else if(m.from){ const f=frById(m.with); if(f) f.unread=(f.unread||0)+1; updFrDot(); Sound.fx("coin"); dmToast(m);
+        if(view==="friends"||(!room&&view==="main")){ const o=document.querySelector(".friendsp"); if(o) o.replaceWith(friendsPanel()); } }
     } else if(m.t==="react"){
       const box=document.querySelector(`[data-pid="${CSS.escape(m.from)}"]`); Fx.emoji(m.e,box); if(m.from!==me.id) Sound.fx("pick");
     } else if(m.t==="openTables"){ openTables=m.list||[]; if(!room&&view==="main") render();
@@ -1556,6 +1591,8 @@ function renderInner(){
   if(tenseLock&&view==="main") return;  // идёт напряжённый момент
   app.replaceChildren();
   if(view==="settings"){ renderSettings(); return; }
+  if(view==="friends"){ app.append(viewHead("👥 Друзья"),friendsPanel()); return; }
+  if(view==="dm"){ renderDm(); return; }
   if(view==="shop"){ renderShop(); return; }
   if(view==="casino"){ renderCasino(); return; }
   const tableMode=!!(room&&room.status!=="lobby"&&!fatal);
@@ -1577,7 +1614,7 @@ function renderInner(){
 function exitRoom(){ sendMsg({t:"exit"}); room=null; store.del("durak.room"); render(); }
 
 function renderMenu(){
-  const codeIn=el("input",{id:"joincode",maxlength:"4",placeholder:"КОД","aria-label":"Код комнаты",style:"width:6.5em;text-transform:uppercase;letter-spacing:.15em"});
+  const codeIn=el("input",{id:"joincode",maxlength:"6",placeholder:"КОД","aria-label":"Код комнаты",style:"width:6.5em;text-transform:uppercase;letter-spacing:.15em"});
   app.append(feedPanel());
   app.append(el("div",{class:"panel"},
     el("h2",{},`Привет, ${me.name}!`),
@@ -1586,7 +1623,7 @@ function renderMenu(){
     el("div",{class:"row"},
       el("button",{class:"btn",type:"button",onclick:()=>sendMsg({t:"create"})},"Создать комнату"),
       codeIn,
-      el("button",{class:"btn ghost",type:"button",onclick:()=>{const c=codeIn.value.trim().toUpperCase(); if(!/^[A-Z0-9]{4}$/.test(c)) return toast("Код комнаты — 4 символа"); sendMsg({t:"enter",code:c});}},"Войти"))));
+      el("button",{class:"btn ghost",type:"button",onclick:()=>{const c=codeIn.value.trim().toUpperCase(); if(/^[A-Z0-9]{6}$/.test(c)){ codeIn.value=""; return sendMsg({t:"addFriend",code:c}); } if(!/^[A-Z0-9]{4}$/.test(c)) return toast("Код комнаты — 4 символа, код друга — 6"); sendMsg({t:"enter",code:c});}},"Войти"))));
   app.append(el("div",{class:"panel"},
     el("h2",{},"Тренировка с ботами"),
     el("p",{class:"muted small"},"Партия только для тебя. Боты ходят сами."),
@@ -1759,6 +1796,27 @@ function chatSync(){
 /* ---------- друзья ---------- */
 const isFriend=pid=>friends.some(f=>"tg"+f.id===pid);
 const ST_TXT={online:"в сети",game:"играет",offline:"не в сети"};
+function ago(ts){ if(!ts) return ""; const m=Math.floor((Date.now()-ts)/60000); if(m<1) return "только что"; if(m<60) return m+" мин назад"; const h=Math.floor(m/60); if(h<24) return h+" ч назад"; const d=Math.floor(h/24); return d===1?"вчера":d+" дн назад"; }
+const stText=f=>f.status==="offline"?(f.last?"был "+ago(f.last):"не в сети"):f.status==="game"?"в сети · играет":"в сети";
+const frById=id=>friends.find(f=>f.id===id);
+function updFrDot(){ const d=document.querySelector("#frBtn .frdot"); if(!d) return; const un=friends.reduce((a,f)=>a+(f.unread||0),0); d.hidden=!(un||friends.some(f=>f.status!=="offline")); d.classList.toggle("unread",un>0); d.textContent=un?String(Math.min(un,9)):""; }
+function openDm(id){ dmWith=id; view="dm"; const f=frById(id); if(f) f.unread=0; updFrDot(); sendMsg({t:"dmHistory",with:id}); Sound.fx("pick"); render(); scrollTo(0,0); }
+function dmMsgEl(m){ const mine=m.f!==dmWith; return el("div",{class:"dmm"+(mine?" mine":"")},el("span",{class:"dmt",text:m.text}),el("time",{text:new Date(m.ts).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})})); }
+function renderDm(){
+  const f=frById(dmWith); if(!f){ view="friends"; return render(); }
+  app.append(el("div",{class:"top"},el("button",{class:"btn ghost",type:"button",onclick:()=>{ view="friends"; dmWith=null; render(); }},"← Друзья"),
+    el("div",{class:"dmhead"},el("span",{class:"frav"},avatarEl({name:f.name,avatar:f.avatar,color:"#2a5a50"},34),el("i",{class:"dot "+f.status})),el("div",{class:"frn"},el("b",{text:f.name}),el("span",{class:"muted small dmst",text:stText(f)}))),
+    el("button",{class:"btn small",type:"button",onclick:()=>inviteFriend(f)},"🃏 Позвать")));
+  const list=el("div",{class:"dmlist",role:"log","aria-live":"polite"});
+  const items=dmItems[dmWith]||[];
+  if(!items.length) list.append(el("p",{class:"muted small dmempty",text:"Сообщений пока нет. Напиши первым 👋"}));
+  items.forEach(m=>list.append(dmMsgEl(m)));
+  const inp=el("input",{type:"text",maxlength:"200",placeholder:"Сообщение для "+f.name+"…","aria-label":"Сообщение",autocomplete:"off",enterkeyhint:"send",value:dmDraft[dmWith]||""});
+  inp.addEventListener("input",()=>{ dmDraft[dmWith]=inp.value; });
+  const go=()=>{ const t=inp.value.replace(/\s+/g," ").trim(); if(!t) return; sendMsg({t:"dm",to:dmWith,text:t}); inp.value=""; dmDraft[dmWith]=""; inp.focus(); };
+  app.append(el("div",{class:"panel dmpanel"},list,el("form",{class:"dmform",onsubmit:e=>{ e.preventDefault(); go(); }},inp,el("button",{class:"btn",type:"submit","aria-label":"Отправить"},"➤"))));
+  post.push(()=>{ list.scrollTop=list.scrollHeight; });
+}
 function inviteFriend(f){
   Sound.fx("pick");
   if(room&&!room.practice&&room.status==="lobby") return sendMsg({t:"inviteFriend",id:f.id});
@@ -1770,13 +1828,14 @@ function friendsPanel(){
   const inp=el("input",{id:"frcode",maxlength:"8",placeholder:"Код друга","aria-label":"Код друга",style:"width:8em;text-transform:uppercase;letter-spacing:.12em"});
   const add=()=>{ const c=inp.value.trim(); if(c.length<4) return toast("Введи код друга"); sendMsg({t:"addFriend",code:c}); inp.value=""; };
   inp.addEventListener("keydown",e=>{ if(e.key==="Enter") add(); });
-  box.append(el("div",{class:"row frhead"},el("span",{class:"muted small"},"Твой код: ",el("b",{class:"code",text:myFcode||"…"})),
+  box.append(el("div",{class:"row frhead"},el("span",{class:"muted small"},"Твой код друга: ",el("b",{class:"code",text:myFcode||"…"})),
     myFcode?el("button",{class:"btn ghost tiny",type:"button",onclick:()=>{ const t=`Добавь меня в друзья в «Китайском дураке»: мой код ${myFcode}`; if(navigator.clipboard) navigator.clipboard.writeText(t).then(()=>toast("Код скопирован")); else toast(myFcode); }},"Копировать"):null),
     el("div",{class:"row"},inp,el("button",{class:"btn small",type:"button",onclick:add},"Добавить")));
-  if(!friends.length) box.append(el("p",{class:"muted small",text:"Пока никого. Дай другу свой код или добавь игрока прямо за столом кнопкой 🤝."}));
+  if(!friends.length) box.append(el("p",{class:"muted small",text:"Пока никого. Отправь другу свой код друга (6 символов) — это не код комнаты, он не меняется. Или добавь игрока прямо за столом кнопкой 🤝."}));
   else box.append(el("div",{class:"frlist"},friends.map(f=>el("div",{class:"frrow"},
     el("span",{class:"frav"},avatarEl({name:f.name,avatar:f.avatar,color:"#2a5a50"},34),el("i",{class:"dot "+f.status})),
-    el("div",{class:"frn"},el("b",{text:f.name}),el("span",{class:"muted small",text:ST_TXT[f.status]})),
+    el("button",{class:"frn",type:"button",onclick:()=>openDm(f.id),"aria-label":"Написать "+f.name},el("b",{text:f.name}),el("span",{class:"muted small",text:stText(f)})),
+    el("button",{class:"btn ghost tiny frmsg",type:"button",onclick:()=>openDm(f.id),"aria-label":"Написать "+f.name},"💬",f.unread?el("span",{class:"unb",text:String(Math.min(f.unread,99))}):null),
     delFr===f.id?el("button",{class:"btn ghost tiny",type:"button",onclick:()=>{ delFr=null; sendMsg({t:"delFriend",id:f.id}); }},"Удалить?"):el("button",{class:"btn ghost tiny frx",type:"button","aria-label":"Удалить из друзей",onclick:()=>{ delFr=f.id; const o=document.querySelector(".friendsp"); if(o) o.replaceWith(friendsPanel()); setTimeout(()=>{ if(delFr===f.id){ delFr=null; const o2=document.querySelector(".friendsp"); if(o2) o2.replaceWith(friendsPanel()); } },3000); }},"✕"),
     el("button",{class:"btn small",type:"button",onclick:()=>inviteFriend(f)},f.status==="offline"?"📨 Позвать":"Позвать")))));
   return box;
@@ -1788,6 +1847,13 @@ function lobbyFriends(){
     el("div",{class:"wfrow"},list.slice(0,8).map(f=>el("button",{class:"frchip "+f.status,type:"button",onclick:()=>inviteFriend(f),title:ST_TXT[f.status]},avatarEl({name:f.name,avatar:f.avatar,color:"#2a5a50"},22),el("span",{text:f.name}),el("i",{class:"dot "+f.status})))));
 }
 const addFrBtn=p=>(!p.bot&&p.id!==me.id&&p.id.startsWith("tg")&&!isFriend(p.id))?el("button",{class:"addfr",type:"button",title:"Добавить в друзья","aria-label":"Добавить "+p.name+" в друзья",onclick:e=>{ e.stopPropagation(); sendMsg({t:"addFriend",pid:p.id}); Sound.fx("pick"); }},"🤝"):null;
+function dmToast(m){
+  document.querySelectorAll(".dmtoast").forEach(x=>x.remove());
+  const b=el("button",{class:"dmtoast",type:"button",onclick:()=>{ b.remove(); openDm(m.with); }},
+    m.from.avatar?el("img",{class:"av",src:m.from.avatar,alt:"",style:"width:28px;height:28px"}):el("span",{class:"av ini",style:"width:28px;height:28px;font-size:13px",text:(m.from.name||"?").charAt(0)}),
+    el("span",{class:"dmtt"},el("b",{text:m.from.name}),el("span",{text:m.m.text})));
+  document.body.append(b); setTimeout(()=>b.remove(),6000);
+}
 function showInvite(m){
   document.querySelectorAll(".invbox").forEach(x=>x.remove());
   if(room&&room.code===m.code) return;
@@ -1799,7 +1865,7 @@ function showInvite(m){
     el("button",{class:"btn ghost tiny",type:"button","aria-label":"Закрыть",onclick:()=>b.remove()},"✕"));
   document.body.append(b); setTimeout(()=>b.remove(),25000);
 }
-setInterval(()=>{ if(conn==="ok"&&me&&((!room&&view==="main")||(room&&room.status==="lobby"))) sendMsg({t:"friends"}); },20000);
+setInterval(()=>{ if(conn==="ok"&&me&&(view==="friends"||(!room&&view==="main")||(room&&room.status==="lobby"))) sendMsg({t:"friends"}); },20000);
 /* ---------- конец партии: «Ещё партию?» ---------- */
 function mmss(ms){ const s=Math.max(0,Math.ceil(ms/1000)); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
 function rematchSheet(st){
@@ -1944,6 +2010,50 @@ function renderTable(){
   if((st.log||[]).length&&Prefs.get("showLog")) app.append(el("div",{class:"panel logpanel"},el("h2",{},"Ходы"),el("div",{class:"log"},st.log.map(l=>el("div",{text:anonText(l)})))));
 }
 
+/* ---------- жесты руки: зажал и провёл — выбрал одинаковые, потянул вверх — бросил ---------- */
+function handGestures(box,step,st){
+  let g=null, swallow=false;
+  const grpBtn=t=>t&&t.closest&&t.closest(".hand button.card[data-grp]");
+  const at=(x,y)=>{ const e=document.elementFromPoint(x,y); return grpBtn(e); };
+  const info=b=>({src:b.dataset.src,cards:b.dataset.grp.split(",")});
+  function paint(){ // обновляем выделение прямо в DOM, без перерисовки, чтобы жест не прерывался
+    box.querySelectorAll("button.card[data-grp]").forEach(b=>{ const cs=b.dataset.grp.split(","), n=cs.length, k=selSrc===b.dataset.src?sel.filter(x=>cs.includes(x)).length:0;
+      b.classList.toggle("sel",k>0); const bd=b.querySelector(".gbadge"); if(bd){ bd.textContent=k&&k<n?`${k}/${n}`:`×${n}`; bd.classList.toggle("part",!!(k&&k<n)); } });
+  }
+  function ghostAt(x,y){ if(!g.ghost){ const src=g.btn.cloneNode(true); src.classList.remove("drawin","dealin","tilt"); src.removeAttribute("style"); src.querySelectorAll(".gbadge").forEach(x=>x.remove()); const r=g.btn.getBoundingClientRect();
+      g.ghost=el("div",{class:"dragghost"},src); g.ghost.style.width=g.btn.offsetWidth+"px"; document.body.append(g.ghost); g.btn.classList.add("dragsrc"); }
+    const c=sel.length>1?`×${sel.length}`:""; let b=g.ghost.querySelector(".gcount"); if(c){ if(!b){ b=el("span",{class:"gcount"}); g.ghost.append(b); } b.textContent=c; } else if(b) b.remove();
+    g.ghost.style.transform=`translate(${x-g.btn.offsetWidth/2}px,${y-g.btn.offsetWidth*.7}px) rotate(${Math.max(-12,Math.min(12,(x-g.x)/12))}deg)`;
+    const p=document.querySelector(".pile"); if(p) p.classList.toggle("dropok",y<box.getBoundingClientRect().top-20); }
+  function end(cancel){
+    if(!g) return; clearTimeout(g.hold); const G=g; g=null;
+    if(G.ghost) G.ghost.remove(); const p=document.querySelector(".pile"); if(p) p.classList.remove("dropok");
+    if(!cancel&&G.throwing&&G.lastY<box.getBoundingClientRect().top-20&&sel.length){
+      if(canPlay(rk(sel[0]),st.pile)){ Sound.fx("whoosh"); act("play",selSrc,[...sel]); return; }
+      toast("Эти карты сейчас не бьют"); Sound.fx("error");
+    }
+    render();
+  }
+  box.addEventListener("click",e=>{ if(swallow&&e.detail!==0){ e.stopPropagation(); e.preventDefault(); } swallow=false; },true);
+  box.addEventListener("pointerdown",e=>{
+    const b=grpBtn(e.target); if(!b||b.disabled||(e.pointerType==="mouse"&&e.button!==0)) return;
+    swallow=true; const I=info(b); step(I.src,I.cards); paint();
+    g={btn:b,x:e.clientX,y:e.clientY,lastY:e.clientY,src:I.src,rank:rk(I.cards[0]),last:b,moved:false,throwing:false,ghost:null,id:e.pointerId};
+    try{ box.setPointerCapture(e.pointerId); }catch(_){}
+    g.hold=setTimeout(()=>{ if(g&&!g.moved){ sel=I.cards.slice(); selSrc=I.src; paint(); haptic("medium"); Sound.fx("pick"); } },450); // долгое нажатие — вся стопка
+  });
+  box.addEventListener("pointermove",e=>{
+    if(!g||e.pointerId!==g.id) return; const dx=e.clientX-g.x, dy=e.clientY-g.y; g.lastY=e.clientY;
+    if(!g.moved&&Math.hypot(dx,dy)>8){ g.moved=true; clearTimeout(g.hold); }
+    if(!g.moved) return;
+    if(g.throwing||dy<-60){ g.throwing=true; ghostAt(e.clientX,e.clientY); return; }
+    const b=at(e.clientX,e.clientY); if(!b||b===g.last) return; g.last=b;
+    const I=info(b); if(I.src!==g.src||rk(I.cards[0])!==g.rank) return; // другая карта — не сбрасываем, просто пропускаем
+    const k=sel.filter(x=>I.cards.includes(x)).length; if(k<I.cards.length){ sel=[...sel,I.cards[k]]; selSrc=I.src; paint(); haptic(); Sound.fx("pick"); }
+  });
+  box.addEventListener("pointerup",e=>{ if(g&&e.pointerId===g.id) end(false); });
+  box.addEventListener("pointercancel",()=>end(true));
+}
 /* ---------- веер карт в руке, покачивание и 3D-наклон с бликом ---------- */
 function fanHand(box){
   const cards=[...box.children].filter(c=>c.classList.contains("card")), n=cards.length; if(!n) return;
@@ -1999,16 +2109,18 @@ function renderSeat(st,myTurn){
   }
   const handBox=el("div",{class:"hand"});
   // одинаковые карты лежат одной стопкой «×3»: 1 тап — одна карта, 2 тапа — две, 3 — три, ещё тап — снять выбор
-  const groupTap=(source,cards)=>{
+  const groupStep=(source,cards)=>{
     if(selSrc!==source||!sel.length||rk(sel[0])!==rk(cards[0])){ sel=[cards[0]]; selSrc=source; Sound.fx("pick"); }
-    else { const k=sel.length; if(k>=cards.length){ sel=[]; Sound.fx("unpick"); } else { sel=cards.slice(0,k+1); Sound.fx("pick"); } }
-    haptic(); render();
+    else { const k=sel.filter(x=>cards.includes(x)).length; if(k>=cards.length){ sel=sel.filter(x=>!cards.includes(x)); Sound.fx("unpick"); } else { sel=[...sel.filter(x=>!cards.includes(x)),...cards.slice(0,k+1)]; Sound.fx("pick"); } }
+    haptic();
   };
+  const groupTap=(source,cards)=>{ groupStep(source,cards); render(); };
   const groupsOf=arr=>{ const m=[]; arr.forEach(c=>{ const g=m.find(x=>rk(x[0])===rk(c)); if(g) g.push(c); else m.push([c]); }); return m; };
   const grpEl=(source,cards,can)=>{
     const c=cards[0], n=cards.length, k=selSrc===source?sel.filter(x=>cards.includes(x)).length:0;
     const e=can?cardEl(c,{extra:glowOk(c)+(n>1?" grp grp"+Math.min(n,3):""),onclick:()=>groupTap(source,cards),selected:k>0,dim:!canPlay(rk(c),st.pile)}):cardEl(c,{extra:n>1?"grp grp"+Math.min(n,3):""});
     if(n>1){ e.append(el("span",{class:"gbadge"+(k&&k<n?" part":""),text:k&&k<n?`${k}/${n}`:`×${n}`})); e.setAttribute("aria-label",`${rk(c)} ×${n}`+(k?`, выбрано ${k}`:"")); }
+    if(can){ e.dataset.grp=cards.join(","); e.dataset.src=source; }
     return e;
   };
   if(swapping) hand.forEach((c,i)=>handBox.append(cardEl(c,{onclick:()=>{swapHand=swapHand===i?null:i;Sound.fx(swapHand===null?"unpick":"pick");haptic();render();},selected:swapHand===i})));
@@ -2017,6 +2129,7 @@ function renderSeat(st,myTurn){
   if(downInHand) for(let i=0;i<downN;i++) handBox.append(backEl(myTurn?()=>act("blind",i):null,!myTurn,"D"+i));
   fanHand(handBox);
   if(!hand.length&&!upInHand&&!downInHand) handBox.append(el("span",{class:"muted small",style:"align-self:center"},done?"Ты вышел из игры":"Рука пустая"));
+  if(myTurn&&(src==="hands"||src==="up")) handGestures(handBox,groupStep,st);
   const actions=el("div",{class:"row"});
   if(swapping) actions.append(el("button",{class:"btn",type:"button",onclick:()=>act("ready")},"Готов"),el("span",{class:"muted small hint"},"Нажми карту в руке, потом открытую — они поменяются местами."));
   if(myTurn){
@@ -2040,6 +2153,7 @@ buildAudioBar();
 document.getElementById("casinoBtn").addEventListener("click",()=>{ if(casinoLock) return; view=view==="casino"?"main":"casino"; Sound.fx("pick"); render(); scrollTo(0,0); });
 document.getElementById("shopBtn").addEventListener("click",()=>{ if(casinoLock) return toast("Дождись конца раунда"); view=view==="shop"?"main":"shop"; Sound.fx("pick"); render(); scrollTo(0,0); });
 document.getElementById("coinsBtn").addEventListener("click",()=>{ if(casinoLock) return; view="shop"; Sound.fx("pick"); render(); scrollTo(0,0); });
+document.getElementById("frBtn").addEventListener("click",()=>{ if(casinoLock) return toast("Дождись конца раунда"); view=view==="friends"?"main":"friends"; Sound.fx("pick"); sendMsg({t:"friends"}); render(); scrollTo(0,0); });
 document.getElementById("setBtn").addEventListener("click",()=>{ if(casinoLock) return toast("Дождись конца раунда"); view=view==="settings"?"main":"settings"; Sound.fx("pick"); render(); scrollTo(0,0); });
 /* ---------- полный экран: официальный режим Telegram (Bot API 8.0+), иначе браузерный ---------- */
 (function setupFullscreen(){

@@ -259,9 +259,18 @@ function friendStatus(fid) {
 }
 function friendList(tgId) {
   const u = data.users[tgId]; if (!u) return [];
-  return (u.friends || []).filter(id => data.users[id]).map(id => ({ id, name: displayName(data.users[id]), avatar: avatarUrl(id), ...friendStatus(id), last: data.users[id].last || 0 }))
+  return (u.friends || []).filter(id => data.users[id]).map(id => ({ id, name: displayName(data.users[id]), avatar: avatarUrl(id), ...friendStatus(id), last: data.users[id].last || 0, unread: (u.unread || {})[id] || 0 }))
     .sort((a, b) => ({ online: 0, game: 1, offline: 2 }[a.status] - { online: 0, game: 1, offline: 2 }[b.status]) || b.last - a.last);
 }
+// когда друг зашёл или вышел — обновляем список у тех, кто сейчас в игре
+const notifyT = new Map();
+function notifyFriends(tgId) {
+  clearTimeout(notifyT.get(tgId));
+  notifyT.set(tgId, setTimeout(() => { notifyT.delete(tgId); const u = data.users[tgId]; if (!u) return; for (const f of u.friends || []) if (wsOf(f).length) sendFriends(f); }, 1500));
+}
+/* ---------- личные сообщения между друзьями ---------- */
+const dmKey = (a, b) => [String(a), String(b)].sort().join("_");
+const dmBotT = new Map();
 function sendFriends(tgId) { const list = friendList(tgId), code = friendCode(tgId); for (const w of wsOf(tgId)) send(w, { t: "friends", list, code }); }
 function makeFriends(a, b) {
   const ua = data.users[a], ub = data.users[b]; if (!ua || !ub || a === b) return "Нельзя";
@@ -578,7 +587,33 @@ function handle(ws, msg) {
     giveCoins(myTg, r.amount, `Промокод ${r.code}`);
     return;
   }
-  if (msg.t === "friends") { if (myU) sendFriends(myTg); return; }
+  if (msg.t === "friends") { if (myU) { sendFriends(myTg); if (!ws.seenOnline) { ws.seenOnline = true; notifyFriends(myTg); } } return; }
+  if (msg.t === "dmHistory") {
+    const fid = String(msg.with || ""); if (!myU || !(myU.friends || []).includes(fid)) return;
+    data.dm = data.dm || {}; const items = (data.dm[dmKey(myTg, fid)] || []).slice(-60);
+    if (myU.unread && myU.unread[fid]) { delete myU.unread[fid]; save(); }
+    return send(ws, { t: "dmHistory", with: fid, items });
+  }
+  if (msg.t === "dm") {
+    const fid = String(msg.to || ""); if (!myU || !(myU.friends || []).includes(fid)) return send(ws, { t: "error", msg: "Писать можно только друзьям" });
+    const text = String(msg.text || "").replace(/[\u0000-\u001f\u200b-\u200f\u202a-\u202e]/g, "").replace(/\s+/g, " ").trim().slice(0, 200);
+    if (!text) return;
+    const now = Date.now(); if (now - (ws.lastDm || 0) < 700) return send(ws, { t: "error", msg: "Не так быстро" });
+    ws.lastDm = now;
+    data.dm = data.dm || {}; const k = dmKey(myTg, fid), m = { f: myTg, text, ts: now };
+    data.dm[k] = [...(data.dm[k] || []), m].slice(-100);
+    const fu = data.users[fid]; fu.unread = fu.unread || {}; fu.unread[myTg] = Math.min(99, (fu.unread[myTg] || 0) + 1);
+    save();
+    for (const w of wsOf(myTg)) send(w, { t: "dm", with: fid, m });
+    const online = wsOf(fid);
+    for (const w of online) send(w, { t: "dm", with: myTg, m, from: { name: displayName(myU), avatar: avatarUrl(myTg) } });
+    // не в игре — бот напомнит, но не чаще раза в 10 минут
+    if (!online.length && BOT_TOKEN && now - (dmBotT.get(k + fid) || 0) > 600000) {
+      dmBotT.set(k + fid, now);
+      tg("sendMessage", { chat_id: fid, text: `💬 ${displayName(myU)}: ${text}`, reply_markup: { inline_keyboard: [[{ text: "Ответить в игре", web_app: { url: appUrl() } }]] } }, { quiet: true });
+    }
+    return;
+  }
   if (msg.t === "addFriend") {
     if (!myU) return send(ws, { t: "error", msg: "Друзья работают в Telegram" });
     let fid = null;
@@ -755,7 +790,11 @@ wss.on("connection", ws => {
     let msg; try { msg = JSON.parse(data); } catch (e) { return; }
     try { handle(ws, msg); } catch (e) { console.error(e); }
   });
-  ws.on("close", () => { if (ws.room) ws.room.subs.delete(ws); });
+  ws.on("close", () => {
+    if (ws.room) ws.room.subs.delete(ws);
+    const id = ws.user && ws.user.id && ws.user.id.startsWith("tg") ? ws.user.id.slice(2) : null;
+    if (id && data.users[id]) { data.users[id].last = Date.now(); if (!wsOf(id).length) notifyFriends(id); }
+  });
 });
 setInterval(() => {
   for (const ws of wss.clients) {
