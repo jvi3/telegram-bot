@@ -578,6 +578,7 @@ header.hdr:has(.nav.float){z-index:24}
 .hdr .nav.float>.yield{opacity:.28;pointer-events:none}
 .hdr .nav.float:has(>.yield){background:rgba(8,18,16,.2);box-shadow:none}
 .av.anon{border:1px dashed #7d8b87}
+.ntag.gone{min-width:0;min-height:0;padding:0}
 .eyebtn[aria-pressed="true"]{background:rgba(242,193,78,.25)}
 </style>
 </head>
@@ -934,7 +935,7 @@ const colorOf=id=>{ const p=playerOf(id); return (p&&p.color)||"#f2c14e"; };
 // «Скрыть имена»: за столом вместо имён и аватарок — «Игрок 2», «Игрок 3»…
 const anonOn=()=>!!(Prefs.get("hideNames")&&room);
 function anonIdx(id){ return room?room.players.findIndex(p=>p.id===id):-1; }
-function shownName(p){ if(!anonOn()||!p||!p.id||anonIdx(p.id)<0) return p&&p.name||"Игрок"; return p.id===me.id?"Ты":"Игрок "+(anonIdx(p.id)+1); }
+function shownName(p){ if(!anonOn()||!p||!p.id||anonIdx(p.id)<0) return p&&p.name||"Игрок"; return p.id===me.id?"Ты":"соперник"; }
 function anonText(t){ if(!anonOn()) return t; let r=String(t); [...room.players].sort((a,b)=>b.name.length-a.name.length).forEach(p=>{ if(p.name) r=r.split(p.name).join(shownName(p)); }); return r; }
 function avatarEl(p,size){
   if(anonOn()&&p.id&&anonIdx(p.id)>=0){ const st=`--pc:#7d8b87;width:${size}px;height:${size}px;font-size:${Math.round(size*.45)}px;background:#3a4643;color:#cfd8d4`; return el("span",{class:"av ini anon",style:st,"aria-hidden":"true",text:p.id===me.id?"Я":String(anonIdx(p.id)+1)}); }
@@ -943,6 +944,7 @@ function avatarEl(p,size){
   return el("span",{class:"av ini",style:st+`;font-size:${Math.round(size*.45)}px`,"aria-hidden":"true",text:(p.name||"?").trim().charAt(0).toUpperCase()});
 }
 function nameTag(p,{you=false}={}){
+  if(anonOn()&&room&&room.status!=="lobby") return el("div",{class:"ntag gone","aria-label":p.id===me.id?"Ты":"Соперник"});
   const wrap=el("div",{class:"ntag"});
   const isFool=room&&(p.id===room.loser||(room.status!=="over"&&p.id===room.prevLoser));
   wrap.append(el("div",{class:"name",style:`--pc:${p.color||"#f2c14e"}`},avatarEl(p,26),isFool?hatEl():null,el("span",{text:anonOn()?shownName(p):p.name+(you?" (ты)":"")})));
