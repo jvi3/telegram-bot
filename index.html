@@ -173,8 +173,8 @@ button.card:disabled{cursor:default}
 .center .side{--cw:calc(var(--cwb)*.72)}
 .hdr .gear{padding:7px 14px;font-size:13px}
 .hdr .audio{flex-basis:100%}
-@keyframes flyin{0%{transform:translate(0,110%) rotate(-14deg) scale(.7);opacity:0}70%{opacity:1}100%{transform:var(--rot,none);opacity:1}}
-@keyframes drawin{0%{transform:translate(0,-60px) scale(.75) rotate(6deg);opacity:0}100%{transform:none;opacity:1}}
+@keyframes flyin{0%{transform:translate(0,120%) rotate(-18deg) scale(.65);opacity:0}55%{transform:translate(0,-8%) rotate(3deg) scale(1.12);opacity:1}78%{transform:translate(0,2%) rotate(-1deg) scale(.97)}100%{transform:var(--rot,none);opacity:1}}
+@keyframes drawin{0%{transform:translate(0,-70px) scale(.7) rotate(8deg);opacity:0}60%{transform:translate(0,6px) scale(1.08) rotate(-2deg);opacity:1}100%{transform:none;opacity:1}}
 @keyframes dealin{0%{transform:translate(0,-160px) rotate(18deg) scale(.6);opacity:0}100%{opacity:1}}
 @keyframes burnfx{0%{transform:scale(.3);opacity:.95}60%{opacity:.7}100%{transform:scale(2.4);opacity:0}}
 @keyframes burntxt{0%{transform:translate(-50%,-30%) scale(.6);opacity:0}25%{transform:translate(-50%,-50%) scale(1.15);opacity:1}75%{opacity:1}100%{transform:translate(-50%,-90%) scale(1);opacity:0}}
@@ -182,22 +182,23 @@ button.card:disabled{cursor:default}
 @keyframes pop{0%{transform:scale(.85);opacity:.4}60%{transform:scale(1.08);opacity:1}100%{transform:none}}
 @keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(226,173,75,.0)}50%{box-shadow:0 0 0 6px rgba(226,173,75,.22)}}
 .pile .card{transform:var(--rot,none)}
-.pile .card.fresh{animation:flyin .42s cubic-bezier(.2,.9,.25,1.15) both}
-.hand>.card.drawin{animation:drawin .38s cubic-bezier(.2,.9,.3,1.2) both}
-.seat .card.dealin{animation:dealin .45s cubic-bezier(.2,.8,.3,1.1) both}
-.pile.burning{animation:shake .45s ease-in-out}
-.burnfx{position:absolute;left:50%;top:50%;width:calc(var(--cw)*1.6);height:calc(var(--cw)*1.6);margin:calc(var(--cw)*-.8) 0 0 calc(var(--cw)*-.8);border-radius:50%;background:radial-gradient(circle,#fff3c4 0%,#ffb340 30%,#e2522b 60%,transparent 72%);animation:burnfx .8s ease-out forwards;pointer-events:none}
-.burntxt{position:absolute;left:50%;top:50%;font-family:var(--display);font-weight:700;font-size:15px;color:#ffd27a;text-shadow:0 2px 8px rgba(0,0,0,.6);white-space:nowrap;animation:burntxt 1.3s ease-out forwards;pointer-events:none}
-.status.pop{animation:pop .4s ease-out}
+.pile .card.fresh{animation:flyin .7s cubic-bezier(.18,.9,.25,1.25) both}
+.hand>.card.drawin{animation:drawin .6s cubic-bezier(.18,.9,.3,1.3) both}
+.seat .card.dealin{animation:dealin .75s cubic-bezier(.18,.85,.3,1.2) both}
+.pile.burning{animation:shake .6s ease-in-out}
+.burnfx{position:absolute;left:50%;top:50%;width:calc(var(--cw)*1.6);height:calc(var(--cw)*1.6);margin:calc(var(--cw)*-.8) 0 0 calc(var(--cw)*-.8);border-radius:50%;background:radial-gradient(circle,#fff3c4 0%,#ffb340 30%,#e2522b 60%,transparent 72%);animation:burnfx 1.1s ease-out forwards;pointer-events:none}
+.burntxt{position:absolute;left:50%;top:50%;font-family:var(--display);font-weight:700;font-size:15px;color:#ffd27a;text-shadow:0 2px 8px rgba(0,0,0,.6);white-space:nowrap;animation:burntxt 1.7s ease-out forwards;pointer-events:none}
+.status.pop{animation:pop .55s cubic-bezier(.2,.9,.3,1.4)}
 .seat.turn,.opp.turn{animation:glow 1.8s ease-in-out infinite}
 .loser{animation:pop .5s ease-out}
 @media (prefers-reduced-motion:reduce){.pile .card.fresh,.hand>.card.drawin,.seat .card.dealin,.pile.burning,.burnfx,.burntxt,.status.pop,.seat.turn,.opp.turn,.loser{animation:none!important}.burnfx,.burntxt{display:none}}
 
 
 /* ---------- фоны, экраны настроек и магазина, подсветки, эффекты ---------- */
-#bgcanvas{position:fixed;inset:0;width:100%;height:100%;image-rendering:pixelated;z-index:-1;pointer-events:none}
+#bgcanvas{position:fixed;inset:0;width:100vw;height:100vh;height:100lvh;image-rendering:pixelated;z-index:0;pointer-events:none}
+header.wrap,.wrap.app{position:relative;z-index:1}
 .fxcanvas{position:fixed;inset:0;width:100%;height:100%;image-rendering:pixelated;z-index:40;pointer-events:none}
-.panel,.center,.seat,.opp{background:rgba(6,18,16,.62);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.panel,.center,.seat,.opp{background:rgba(6,18,16,.55);-webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px)}
 .nav{display:flex;gap:6px;align-items:center}
 .nav .btn{padding:7px 12px;font-size:14px}
 .coins{background:rgba(0,0,0,.35);color:var(--brass);border:1px solid rgba(226,173,75,.45);border-radius:999px;padding:6px 12px;font-weight:600;font-variant-numeric:tabular-nums}
@@ -259,10 +260,38 @@ button.card:disabled{cursor:default}
 @keyframes shakeall{0%,100%{transform:none}15%{transform:translate(-6px,2px)}30%{transform:translate(6px,-2px)}45%{transform:translate(-4px,1px)}60%{transform:translate(4px,0)}80%{transform:translate(-2px,0)}}
 .shakeall{animation:shakeall .5s ease-in-out}
 :root[data-big]{--cwb:clamp(44px,min(15vw,8.6vh),84px)}
-:root[data-anim="fast"] .pile .card.fresh,:root[data-anim="fast"] .hand>.card.drawin,:root[data-anim="fast"] .seat .card.dealin{animation-duration:.2s}
+:root[data-anim="fast"] .pile .card.fresh,:root[data-anim="fast"] .hand>.card.drawin,:root[data-anim="fast"] .seat .card.dealin{animation-duration:.3s}
 :root[data-anim="off"] .pile .card.fresh,:root[data-anim="off"] .hand>.card.drawin,:root[data-anim="off"] .seat .card.dealin,:root[data-anim="off"] .pile.burning,:root[data-anim="off"] .status.pop,:root[data-anim="off"] .loser{animation:none!important}
 :root[data-anim="off"] .burnfx,:root[data-anim="off"] .burntxt{display:none}
-@media (prefers-reduced-motion:reduce){#bgcanvas{display:none}.floatemoji,.bigtxt,.coinpop,.shakeall,.opp.turn,.seat.turn{animation:none!important}}
+@media (prefers-reduced-motion:reduce){.floatemoji,.bigtxt,.coinpop,.shakeall,.opp.turn,.seat.turn{animation:none!important}}
+
+.flying{position:fixed;z-index:42;margin:0;pointer-events:none}
+.discard{position:relative;width:var(--cw);aspect-ratio:5/7}
+.discard>.card{position:absolute;inset:0;width:100%}
+.discard.bump{animation:bump .35s ease-out}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+.flipbox{position:fixed;z-index:43;transform:translate(-50%,-50%) scale(1.25);display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;--cw:var(--cwb)}
+.flipinner{position:relative;width:var(--cw);aspect-ratio:5/7;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.3,.7,.3,1.35)}
+.flipinner.open{transform:rotateY(180deg)}
+.fface{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.fface>.card{width:100%;height:100%}
+.ffront{transform:rotateY(180deg)}
+.fliplabel{font-family:var(--display);font-size:11px;white-space:nowrap;background:rgba(0,0,0,.75);color:#fff;padding:5px 10px;border-radius:999px}
+.fliplabel.good{background:#2e9e6e}
+.fliplabel.bad{background:#c23a2b}
+
+.av{border-radius:50%;object-fit:cover;flex:none;box-shadow:0 0 0 2px var(--pc,#f2c14e);background:#0c2b26}
+.av.ini{display:inline-grid;place-items:center;background:var(--pc,#f2c14e);color:#1c1b19;font-weight:700;font-family:var(--display);line-height:1}
+.avbig{flex:none}
+.avbig .av{box-shadow:0 0 0 3px var(--pc,#f2c14e),0 6px 18px rgba(0,0,0,.4)}
+.profrow{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.profbtns{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.profed.welcome{border-color:var(--brass)}
+.name .dot{display:none}
+
+.ytmini{position:fixed;right:max(10px,env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:35;width:200px;height:200px;border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.5);border:1px solid var(--felt-line);background:#000}
+.ytmini iframe{width:100%;height:100%;border:0;display:block}
+.ytclose{position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(0,0,0,.7);color:#fff;font-size:13px;line-height:1;display:grid;place-items:center;padding:0}
 </style>
 </head>
 <body>
@@ -453,7 +482,8 @@ function applyPrefs(){
   r.setAttribute("data-anim",Prefs.get("anim"));
   if(Prefs.get("big")) r.setAttribute("data-big","1"); else r.removeAttribute("data-big");
   r.toggleAttribute("data-hlturn",!!Prefs.get("hlTurn"));
-  Bg.setLive(Prefs.get("liveBg"));
+  const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  Bg.setLive(Prefs.get("liveBg")&&!rm);
 }
 function applyCosmetics(){
   document.documentElement.setAttribute("data-cards",equippedKey("deck")||"classic");
@@ -546,11 +576,16 @@ const HAT='<svg viewBox="0 0 16 12" width="22" height="16" shape-rendering="cris
 function hatEl(){ const s=el("span",{class:"hat"}); s.innerHTML=HAT; return s; }
 const playerOf=id=>room&&room.players.find(p=>p.id===id);
 const colorOf=id=>{ const p=playerOf(id); return (p&&p.color)||"#f2c14e"; };
+function avatarEl(p,size){
+  const pc=p.color||"#f2c14e", st=`--pc:${pc};width:${size}px;height:${size}px`;
+  if(p.avatar){ const i=el("img",{class:"av",src:p.avatar,alt:"",style:st,loading:"lazy"}); i.addEventListener("error",()=>i.replaceWith(avatarEl({...p,avatar:""},size))); return i; }
+  return el("span",{class:"av ini",style:st+`;font-size:${Math.round(size*.45)}px`,"aria-hidden":"true",text:(p.name||"?").trim().charAt(0).toUpperCase()});
+}
 function nameTag(p,{you=false}={}){
   const wrap=el("div",{class:"ntag"});
   const isFool=room&&(p.id===room.loser||(room.status!=="over"&&p.id===room.prevLoser));
-  wrap.append(el("div",{class:"name",style:`--pc:${p.color||"#f2c14e"}`},el("i",{class:"dot"}),isFool?hatEl():null,el("span",{text:p.name+(you?" (ты)":"")})));
-  if(p.title) wrap.append(el("div",{class:"ptitle",text:p.title}));
+  wrap.append(el("div",{class:"name",style:`--pc:${p.color||"#f2c14e"}`},avatarEl(p,26),isFool?hatEl():null,el("span",{text:p.name+(you?" (ты)":"")})));
+  if(p.title) wrap.append(el("div",{class:"ptitle",style:"padding-left:32px",text:p.title}));
   return wrap;
 }
 
@@ -583,12 +618,94 @@ function itemTile(it){
 }
 const tilesOf=t=>el("div",{class:"tiles"},itemsOf(t).map(itemTile));
 
+/* ---------- профиль: ник и аватарка ---------- */
+let editNick=null, editAvatar; // editAvatar: undefined — не менялась, "" — убрать, data: — новая
+function resizeImage(file){
+  return new Promise((res,rej)=>{
+    if(!file||!/^image\//.test(file.type)) return rej(new Error("Это не картинка"));
+    const url=URL.createObjectURL(file), img=new Image();
+    img.onload=()=>{ const S=160, c=document.createElement("canvas"); c.width=S; c.height=S; const g=c.getContext("2d");
+      const m=Math.min(img.naturalWidth,img.naturalHeight), sx=(img.naturalWidth-m)/2, sy=(img.naturalHeight-m)/2;
+      g.fillStyle="#123a33"; g.fillRect(0,0,S,S); g.drawImage(img,sx,sy,m,m,0,0,S,S); URL.revokeObjectURL(url);
+      let q=.86, d=c.toDataURL("image/jpeg",q); while(d.length>70000&&q>.4){ q-=.12; d=c.toDataURL("image/jpeg",q); } res(d); };
+    img.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error("Не получилось открыть картинку")); };
+    img.src=url;
+  });
+}
+function profileEditor(welcome){
+  if(editNick===null) editNick=(profile&&(profile.nick||profile.tgName))||(me&&me.name)||"";
+  const cur=editAvatar!==undefined?editAvatar:(profile&&profile.avatar)||"";
+  const col=equippedKey("color")||"#f2c14e";
+  const big=el("div",{class:"avbig"},avatarEl({name:editNick||"?",avatar:cur,color:col},104));
+  const file=el("input",{type:"file",id:"avfile",accept:"image/*",hidden:true});
+  file.addEventListener("change",async()=>{ const f=file.files&&file.files[0]; if(!f) return; try{ editAvatar=await resizeImage(f); Sound.fx("pick"); render(); }catch(e){ toast(e.message); } });
+  const nick=el("input",{id:"nick",value:editNick,maxlength:"16",placeholder:"Например, Кащей","aria-label":"Ник",autocomplete:"off",style:"flex:1;min-width:0"});
+  nick.addEventListener("input",()=>{ editNick=nick.value; });
+  const save=()=>{ const n=editNick.trim(); if(n.length<2) return toast("Ник — хотя бы 2 символа"); const m={t:"setProfile",nick:n}; if(editAvatar!==undefined) m.avatar=editAvatar; sendMsg(m); editAvatar=undefined; editNick=null; };
+  nick.addEventListener("keydown",e=>{ if(e.key==="Enter") save(); });
+  return el("div",{class:"panel profed"+(welcome?" welcome":"")},
+    welcome?el("h2",{},"Добро пожаловать за стол!"):el("h2",{},"Профиль"),
+    welcome?el("p",{class:"muted small"},"Как тебя будут видеть другие игроки. Поменять можно потом в настройках."):null,
+    el("div",{class:"profrow"},big,el("div",{class:"profbtns"},
+      el("label",{class:"btn ghost small",for:"avfile",role:"button",tabindex:"0"},"📷 Загрузить фото"),file,
+      cur?el("button",{class:"btn ghost small",type:"button",onclick:()=>{ editAvatar=""; render(); }},"Убрать фото"):null,
+      el("span",{class:"muted small",text:"Фото обрежется до квадрата и сожмётся"}))),
+    el("label",{class:"muted small",for:"nick"},"Ник (2–16 символов)"),
+    el("div",{class:"row"},nick,el("button",{class:"btn",type:"button",onclick:save},welcome?"Готово, играть!":"Сохранить")));
+}
+/* ---------- своя музыка с YouTube (официальный встроенный плеер) ---------- */
+function parseYT(u){
+  u=String(u||"").trim(); if(!u) return null;
+  let url; try{ url=new URL(/^https?:/i.test(u)?u:"https://"+u); }catch(e){ return null; }
+  const host=url.hostname.replace(/^www\.|^m\.|^music\./,"");
+  const ok=/^[\w-]{6,}$/;
+  const list=url.searchParams.get("list");
+  let id=null;
+  if(host==="youtu.be") id=url.pathname.slice(1).split("/")[0];
+  else if(host==="youtube.com"||host==="youtube-nocookie.com"){
+    if(url.pathname==="/watch") id=url.searchParams.get("v");
+    else { const m=url.pathname.match(/^\/(shorts|embed|live)\/([\w-]+)/); if(m) id=m[2]; }
+  } else return null;
+  if(id&&!ok.test(id)) id=null;
+  if(list&&ok.test(list)) return {list,id};
+  return id?{id}:null;
+}
+function ytSrc(v){
+  const base="https://www.youtube-nocookie.com/embed/";
+  const q="autoplay=1&playsinline=1&rel=0&modestbranding=1";
+  if(v.list) return base+(v.id?v.id:"videoseries")+"?list="+encodeURIComponent(v.list)+"&"+q+"&loop=1";
+  return base+v.id+"?"+q+"&loop=1&playlist="+v.id;
+}
+const YT={
+  box:null, url:ls.get("durak.yt")||"",
+  play(){
+    const v=parseYT(this.url); if(!v) return toast("Это не похоже на ссылку YouTube");
+    if(Sound.state.musOn){ Sound.toggleMusic(); const b=document.querySelector('.audio .ib[aria-label="Музыка"]'); if(b) b.setAttribute("aria-pressed","false"); }
+    this.stop(true);
+    const fr=el("iframe",{src:ytSrc(v),title:"Музыка с YouTube",allow:"autoplay; encrypted-media; picture-in-picture",referrerpolicy:"strict-origin-when-cross-origin",allowfullscreen:true});
+    const close=el("button",{class:"ytclose",type:"button","aria-label":"Выключить музыку YouTube",onclick:()=>{ this.stop(); render(); }},"✕");
+    this.box=el("div",{class:"ytmini",role:"region","aria-label":"Плеер YouTube"},fr,close);
+    document.body.append(this.box);
+  },
+  stop(keep){ if(this.box){ this.box.remove(); this.box=null; } },
+  get on(){ return !!this.box; }
+};
+function ytPanel(){
+  const inp=el("input",{id:"ytlink",value:YT.url,placeholder:"https://youtu.be/... или ссылка на плейлист","aria-label":"Ссылка на YouTube",style:"flex:1;min-width:0"});
+  inp.addEventListener("input",()=>{ YT.url=inp.value.trim(); ls.set("durak.yt",YT.url); });
+  const start=()=>{ YT.url=inp.value.trim(); ls.set("durak.yt",YT.url); YT.play(); render(); };
+  inp.addEventListener("keydown",e=>{ if(e.key==="Enter") start(); });
+  return el("div",{class:"panel"},el("h2",{},"Своя музыка с YouTube"),
+    el("p",{class:"muted small"},"Вставь ссылку на видео или плейлист. Внизу появится плеер YouTube, громкость и пауза в нём. 8-битная музыка выключится сама. Реклама и запрет встраивания у некоторых видео — это правила YouTube."),
+    el("div",{class:"row"},inp,YT.on?el("button",{class:"btn ghost",type:"button",onclick:()=>{ YT.stop(); render(); }},"Выключить"):el("button",{class:"btn",type:"button",onclick:start},"▶ Включить")));
+}
 /* ---------- экран настроек ---------- */
 function seg(key,opts){ return el("div",{class:"seg",role:"group"},opts.map(([v,label])=>el("button",{type:"button",class:Prefs.get(key)===v?"on":"","aria-pressed":String(Prefs.get(key)===v),onclick:()=>{ Prefs.set(key,v); Sound.fx("pick"); render(); }},label))); }
 function check(key,label){ const id="pref-"+key; const i=el("input",{type:"checkbox",id,checked:!!Prefs.get(key)}); i.addEventListener("change",()=>{ Prefs.set(key,i.checked); Sound.fx(i.checked?"pick":"unpick"); render(); }); return el("label",{class:"chk",for:id},i,el("span",{text:label})); }
 function viewHead(title){ return el("div",{class:"top"},el("h2",{class:"vtitle",text:title}),el("button",{class:"btn ghost",type:"button",onclick:()=>{ view="main"; render(); }},room?"← К столу":"← В меню")); }
 function renderSettings(){
   app.append(viewHead("⚙ Настройки"));
+  if(profile) app.append(profileEditor(false));
   if(!catalog.length) app.append(el("div",{class:"panel"},el("p",{class:"muted"},"Подключаюсь к серверу…")));
   else {
     app.append(el("div",{class:"panel"},el("h2",{},"Фон"),tilesOf("bg"),check("liveBg","Живой фон (звёзды мерцают, снег падает)")));
@@ -602,6 +719,7 @@ function renderSettings(){
   app.append(el("div",{class:"panel"},el("h2",{},"Анимации"),seg("anim",[["normal","Обычные"],["fast","Быстрые"],["off","Выкл"]]),
     el("h2",{},"Размер карт"),seg("big",[[false,"Обычные"],[true,"Крупные"]])));
   const audioPanel=el("div",{class:"panel"},el("h2",{},"Звук и музыка")); audioPanel.append(audioBox); app.append(audioPanel);
+  app.append(ytPanel());
 }
 
 /* ---------- экран магазина ---------- */
@@ -634,7 +752,7 @@ function buildAudioBar(){
   const sfxIcon=el("span",{class:"ib","aria-hidden":"true"},S.sfxVol?"🔊":"🔇");
   const sfxPct=el("span",{class:"pct",text:S.sfxVol+"%"});
   const sfxRange=el("input",{type:"range",id:"sfxvol",min:"0",max:"100",step:"1",value:String(S.sfxVol),"aria-label":"Громкость звуков игры"});
-  musBtn.addEventListener("click",()=>{ const on=Sound.toggleMusic(); musBtn.setAttribute("aria-pressed",String(on)); });
+  musBtn.addEventListener("click",()=>{ const on=Sound.toggleMusic(); musBtn.setAttribute("aria-pressed",String(on)); if(on&&YT.on){ YT.stop(); render(); } });
   sel.addEventListener("change",()=>{ Sound.setTrack(sel.value); if(!Sound.state.musOn){ Sound.toggleMusic(); musBtn.setAttribute("aria-pressed","true"); } });
   musRange.addEventListener("input",()=>{ const v=+musRange.value; Sound.setMus(v); musPct.textContent=v+"%"; });
   let sfxT=null;
@@ -646,6 +764,36 @@ function buildAudioBar(){
 }
 
 
+/* ---------- очередь состояний: даём доиграть перевороту закрытой карты ---------- */
+let holding=false; const stateQ=[]; let blindSeen=null;
+function queueState(nr,at){ stateQ.push([nr,at]); if(!holding) pumpStates(); }
+function pumpStates(){
+  while(stateQ.length&&!holding){
+    const [nr,at]=stateQ.shift();
+    const lb=nr.lastBlind;
+    if(lb&&room&&room.code===nr.code&&lb.seq!==blindSeen&&(room.status==="play")&&Prefs.get("anim")!=="off"){
+      blindSeen=lb.seq; holding=true;
+      flipReveal(lb,nr,()=>{ holding=false; applyState(nr,at); pumpStates(); });
+      return;
+    }
+    if(lb) blindSeen=lb.seq;
+    applyState(nr,at);
+  }
+}
+function applyState(nr,at){
+      const prevTurn=room&&room.status==="play"&&room.players[room.turn]&&room.players[room.turn].id;
+      const prevR=room; room=nr; soundsFor(prevR,room);
+      deadlineAt=room.turnLeft>0?at+room.turnLeft:null;
+      if(prevR&&prevR.code===room.code&&prevR.status!=="over"&&room.status==="over"&&room.players.some(p=>p.id===me.id)){
+        if(room.loser===me.id){ setTimeout(()=>{ Fx.shake(); Fx.bigText("Ты дурак 🤡"); },300); }
+        else setTimeout(()=>{ Fx.run(equippedKey("winfx")||"fireworks"); Fx.bigText(room.finished[0]===me.id?"Победа!":"Не дурак!"); },300);
+      }
+      if(!room.practice) store.set("durak.room",room.code);
+      const nowTurn=room.status==="play"&&room.players[room.turn].id;
+      if(nowTurn===me.id&&prevTurn!==me.id) haptic("medium");
+      sel=sel.filter(c=>Array.isArray(room.hands[me.id])&&room.hands[me.id].includes(c)||room.up[me.id]&&room.up[me.id].includes(c));
+      render();
+}
 /* ---------- связь с сервером ---------- */
 function connect(){
   conn="connecting"; render();
@@ -673,18 +821,7 @@ function connect(){
     } else if(m.t==="board"){
       board=m.rows||[]; if(!room) render();
     } else if(m.t==="state"){
-      const prevTurn=room&&room.status==="play"&&room.players[room.turn]&&room.players[room.turn].id;
-      const prevR=room; room=m.room; soundsFor(prevR,room);
-      deadlineAt=room.turnLeft>0?Date.now()+room.turnLeft:null;
-      if(prevR&&prevR.code===room.code&&prevR.status!=="over"&&room.status==="over"&&room.players.some(p=>p.id===me.id)){
-        if(room.loser===me.id){ setTimeout(()=>{ Fx.shake(); Fx.bigText("Ты дурак 🤡"); },300); }
-        else setTimeout(()=>{ Fx.run(equippedKey("winfx")||"fireworks"); Fx.bigText(room.finished[0]===me.id?"Победа!":"Не дурак!"); },300);
-      }
-      if(!room.practice) store.set("durak.room",room.code);
-      const nowTurn=room.status==="play"&&room.players[room.turn].id;
-      if(nowTurn===me.id&&prevTurn!==me.id) haptic("medium");
-      sel=sel.filter(c=>Array.isArray(room.hands[me.id])&&room.hands[me.id].includes(c)||room.up[me.id]&&room.up[me.id].includes(c));
-      render();
+      queueState(m.room,Date.now());
     } else if(m.t==="gone"){
       if(room&&room.code===m.code) toast("Комнату закрыли");
       else toast(`Комнаты ${m.code} нет: её закрыли или сервер перезапускался`);
@@ -715,6 +852,10 @@ function cardEl(c,{onclick,disabled,selected,dim,extra=""}={}){
 const backEl=(onclick,disabled)=>onclick?el("button",{class:"card back",onclick,disabled:!!disabled,type:"button","aria-label":"Закрытая карта"}):el("div",{class:"card back"});
 
 function render(){
+  renderInner();
+  if(post.length){ const jobs=post.splice(0); requestAnimationFrame(()=>jobs.forEach(f=>{ try{ f(); }catch(e){} })); }
+}
+function renderInner(){
   app.replaceChildren();
   if(view==="settings"){ renderSettings(); return; }
   if(view==="shop"){ renderShop(); return; }
@@ -722,6 +863,7 @@ function render(){
   if(fatal){ app.append(el("div",{class:"banner",text:fatal})); return; }
   if(conn==="lost") app.append(el("div",{class:"banner"},"Связь с сервером пропала, переподключаюсь…"));
   if(!me){ app.append(el("div",{class:"panel"},el("p",{class:"muted"},"Подключаюсь к серверу… Если сервер спал, это может занять до минуты."))); return; }
+  if(!room&&profile&&!profile.nick){ app.append(profileEditor(true)); return; }
   if(!room) return renderMenu();
   if(room.status==="lobby") return renderWaiting();
   renderTable();
@@ -752,7 +894,7 @@ function boardPanel(){
   else box.append(el("div",{class:"tablewrap"},el("table",{class:"board"},
     el("thead",{},el("tr",{},["#","Игрок","Очки","Побед","Дурак","💰"].map(t=>el("th",{text:t})))),
     el("tbody",{},board.map((r,i)=>el("tr",{class:me&&r.id===me.id?"meRow":""},
-      el("td",{text:i+1}),el("td",{class:"nm"},el("div",{text:r.name+(me&&r.id===me.id?" (ты)":"")}),r.title?el("div",{class:"ptitle",style:"padding-left:0",text:r.title}):null),el("td",{text:r.points}),el("td",{text:r.wins}),el("td",{text:r.fools}),el("td",{text:"$"+(r.coins||0)})))))),
+      el("td",{text:i+1}),el("td",{class:"nm"},el("div",{style:"display:flex;align-items:center;gap:6px"},avatarEl({name:r.name,avatar:r.avatar,color:"#2a5a50"},20),el("span",{text:r.name+(me&&r.id===me.id?" (ты)":"")})),r.title?el("div",{class:"ptitle",style:"padding-left:0",text:r.title}):null),el("td",{text:r.points}),el("td",{text:r.wins}),el("td",{text:r.fools}),el("td",{text:"$"+(r.coins||0)})))))),
     el("p",{class:"muted small"},"Очки за место: кто вышел первым — больше всех, дурак — 0. Победа — выйти первым."));
   return box;
 }
@@ -792,6 +934,48 @@ function renderWaiting(){
 }
 
 
+function discardEl(n){
+  const d=el("div",{class:"discard"+(n?"":" none"),title:"Бита"});
+  if(!n){ d.append(el("div",{class:"card empty"})); return d; }
+  const layers=Math.min(7,1+Math.floor(n/6));
+  for(let i=0;i<layers;i++){ const b=backEl(); b.style.transform=`translate(${-i*1.6}px,${-i*1.6}px) rotate(${((i*37)%9)-4}deg)`; d.append(b); }
+  return d;
+}
+/* ---------- полёт карт: в биту, к тому, кто забрал ---------- */
+const post=[]; // что сделать после того, как кадр нарисован
+function flyCards(cards,fromEl,toEl,{back=false,step=90,dur=820,then}={}){
+  if(!fromEl||!toEl||Prefs.get("anim")==="off"||!cards.length){ then&&then(); return; }
+  const fr=fromEl.getBoundingClientRect(), tr=toEl.getBoundingClientRect();
+  const k=Prefs.get("anim")==="fast"?.55:1;
+  cards.forEach((c,i)=>{
+    const e=back?backEl():cardEl(c); e.classList.add("flying");
+    e.style.left=(fr.left+fr.width/2)+"px"; e.style.top=(fr.top+fr.height/2)+"px";
+    document.body.append(e);
+    const dx=tr.left+tr.width/2-(fr.left+fr.width/2), dy=tr.top+tr.height/2-(fr.top+fr.height/2);
+    const rot=(Math.random()*40-20)|0;
+    const a=e.animate([{transform:"translate(-50%,-50%) rotate(0deg) scale(1)",opacity:1},{transform:`translate(calc(-50% + ${dx*.55}px),calc(-50% + ${dy*.55-30}px)) rotate(${rot/2}deg) scale(.95)`,opacity:1,offset:.55},{transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) rotate(${rot}deg) scale(.7)`,opacity:.15}],{duration:dur*k,delay:i*step*k,easing:"cubic-bezier(.45,.05,.4,1)",fill:"both"});
+    a.onfinish=()=>{ e.remove(); if(i===cards.length-1){ toEl.classList.remove("bump"); void toEl.offsetWidth; toEl.classList.add("bump"); then&&then(); } };
+  });
+}
+function flipReveal(lb,nr,done){
+  const pileEl=document.querySelector(".pile")||document.querySelector(".center");
+  const fromEl=document.querySelector(`[data-pid="${CSS.escape(lb.pid)}"]`);
+  const r=pileEl?pileEl.getBoundingClientRect():{left:innerWidth/2-30,top:innerHeight/2-40,width:60,height:80};
+  const who=(nr.players.find(p=>p.id===lb.pid)||{}).name||"Игрок";
+  const k=Prefs.get("anim")==="fast"?.55:1;
+  const box=el("div",{class:"flipbox"}); box.style.left=(r.left+r.width/2)+"px"; box.style.top=(r.top+r.height/2)+"px";
+  const inner=el("div",{class:"flipinner"},el("div",{class:"fface fback"},backEl()),el("div",{class:"fface ffront"},cardEl(lb.card)));
+  const label=el("div",{class:"fliplabel",text:lb.pid===me.id?"Открываешь вслепую…":`${who} открывает вслепую…`});
+  box.append(inner,label); document.body.append(box);
+  if(fromEl){ const fr=fromEl.getBoundingClientRect(); box.animate([{transform:`translate(calc(-50% + ${fr.left+fr.width/2-(r.left+r.width/2)}px),calc(-50% + ${fr.top+fr.height/2-(r.top+r.height/2)}px)) scale(.6)`},{transform:"translate(-50%,-50%) scale(1.25)"}],{duration:520*k,easing:"cubic-bezier(.18,.9,.3,1.25)",fill:"both"}); }
+  setTimeout(()=>{ inner.classList.add("open"); Sound.fx("pick"); },560*k);
+  setTimeout(()=>{
+    label.textContent=lb.ok?"Подошла!":(lb.pid===me.id?`Не подошла — забираешь ${lb.n} ${lb.n%10===1&&lb.n%100!==11?"карту":(lb.n%10>=2&&lb.n%10<=4&&(lb.n%100<12||lb.n%100>14))?"карты":"карт"}`:`Не подошла — ${who} забирает стопку`);
+    label.classList.add(lb.ok?"good":"bad"); if(!lb.ok){ Sound.fx("error"); if(lb.pid===me.id) haptic("heavy"); }
+  },1350*k);
+  setTimeout(()=>{ box.animate([{opacity:1},{opacity:0}],{duration:250,fill:"forwards"}); },2350*k);
+  setTimeout(()=>{ box.remove(); done(); },2600*k);
+}
 function timerBar(st){
   if(!st.timer||!deadlineAt||(st.status!=="play"&&st.status!=="swap")) return null;
   const total=st.status==="swap"?45000:st.timer*1000, left=Math.max(0,deadlineAt-Date.now());
@@ -806,8 +990,8 @@ function animFlags(st,turnId){
     deal: st.status==="swap"&&(!same||anim.status!=="swap"), turnChanged: same&&anim.turn!==turnId&&turnId!=null};
 }
 function animSeat(seatEl,F,hand){
-  if(F.deal){ seatEl.querySelectorAll(".card").forEach((c,i)=>{ c.classList.add("dealin"); c.style.animationDelay=(i*45)+"ms"; }); return; }
-  if(F.same&&anim.hand){ let k=0; [...seatEl.querySelectorAll(".hand > .card")].forEach((c,i)=>{ if(hand[i]&&!anim.hand.has(hand[i])){ c.classList.add("drawin"); c.style.animationDelay=(k++*60)+"ms"; } }); }
+  if(F.deal){ seatEl.querySelectorAll(".card").forEach((c,i)=>{ c.classList.add("dealin"); c.style.animationDelay=(i*85)+"ms"; }); return; }
+  if(F.same&&anim.hand){ let k=0; [...seatEl.querySelectorAll(".hand > .card")].forEach((c,i)=>{ if(hand[i]&&!anim.hand.has(hand[i])){ c.classList.add("drawin"); c.style.animationDelay=(k++*110)+"ms"; } }); }
 }
 function renderTable(){
   const st=room,n=st.players.length,myIdx=st.players.findIndex(p=>p.id===me.id),seated=myIdx>=0;
@@ -828,7 +1012,12 @@ function renderTable(){
   const pile=el("div",{class:"pile"}), shown=st.pile.slice(-4);
   if(!shown.length) pile.append(el("div",{class:"card empty",style:"left:calc(50% - var(--cw)/2)"}));
   shown.forEach((c,i)=>{const x=cardEl(c);x.style.left=`calc(50% - var(--cw)/2 + ${(i-(shown.length-1))*18}px)`;x.style.setProperty("--rot",`rotate(${(i-(shown.length-1))*-4}deg)`);
-    const gi=st.pile.length-shown.length+i; if(Prefs.get("hlPile")&&st.pileBy&&st.pileBy[gi]){ x.classList.add("owned"); x.style.setProperty("--own",colorOf(st.pileBy[gi])); } if(gi>=F.freshFrom){ x.classList.add("fresh"); x.style.animationDelay=((gi-F.freshFrom)*70)+"ms"; } pile.append(x);});
+    const gi=st.pile.length-shown.length+i; if(Prefs.get("hlPile")&&st.pileBy&&st.pileBy[gi]){ x.classList.add("owned"); x.style.setProperty("--own",colorOf(st.pileBy[gi])); } if(gi>=F.freshFrom){ x.classList.add("fresh"); x.style.animationDelay=((gi-F.freshFrom)*120)+"ms"; } pile.append(x);});
+  if(F.burned&&anim.shown){ const flyset=anim.shown.concat((st.last&&st.last.cards)||[]).slice(-6); post.push(()=>flyCards(flyset,document.querySelector(".pile"),document.querySelector(".discard"),{step:100})); }
+  if(F.same&&anim.pile>0&&st.pile.length===0&&!F.burned&&st.lastTake&&st.lastTake.seq!==anim.takeSeq&&anim.shown){
+    const lt=st.lastTake, flyset=anim.shown.concat(lt.blind&&st.lastBlind?[st.lastBlind.card]:[]);
+    post.push(()=>{ const to=document.querySelector(`[data-pid="${CSS.escape(lt.pid)}"]`); flyCards(flyset,document.querySelector(".pile"),to,{step:70,dur:850}); });
+  }
   if(F.burned){ pile.classList.add("burning"); pile.append(el("div",{class:"burnfx"}),el("div",{class:"burntxt",text:"🔥 Сгорело!"})); if((st.burnStreak||0)>=2) setTimeout(()=>Fx.bigText(st.burnStreak>=3?"Тройное сжигание!":"Двойное сжигание!","hot"),150); }
   if(F.same&&anim.pile>=8&&st.pile.length===0&&!F.burned&&st.lastTake){ setTimeout(()=>{ Fx.shake(); Fx.bigText("Ой! +"+st.lastTake.n); },60); }
   const eff=effectiveTop(st.pile);
@@ -844,7 +1033,7 @@ function renderTable(){
   app.append(el("div",{class:"center"},
     el("div",{class:"side"},st.deck?backEl():el("div",{class:"card empty"}),el("span",{},"Колода: ",el("b",{text:st.deck}))),
     el("div",{class:"pilebox"},pile,el("div",{class:"status"+(F.turnChanged?" pop":"")},statusText),timerBar(st),el("div",{class:"need",text:need})),
-    el("div",{class:"side"},el("div",{class:"card empty"}),el("span",{},"Сброшено: ",el("b",{text:st.burned})))));
+    el("div",{class:"side"},discardEl(st.burned),el("span",{},"Бита: ",el("b",{text:st.burned})))));
 
   if(st.status==="over"){
     app.append(el("div",{class:"panel result"},
@@ -855,7 +1044,7 @@ function renderTable(){
   const myHandArr=Array.isArray(st.hands[me.id])?st.hands[me.id]:[];
   if(seated){ const seatEl=renderSeat(st,myTurn); animSeat(seatEl,F,myHandArr); app.append(seatEl); }
   else app.append(el("div",{class:"panel"},el("p",{class:"muted"},"Ты смотришь эту партию. Сесть можно, когда начнётся следующая.")));
-  anim={code:st.code,pile:st.pile.length,burned:st.burned,hand:new Set(myHandArr),status:st.status,turn:turnId};
+  anim={code:st.code,pile:st.pile.length,burned:st.burned,hand:new Set(myHandArr),status:st.status,turn:turnId,shown:st.pile.slice(-4),takeSeq:st.lastTake&&st.lastTake.seq};
   if((st.log||[]).length) app.append(el("div",{class:"panel"},el("h2",{},"Ходы"),el("div",{class:"log"},st.log.map(l=>el("div",{text:l})))));
 }
 
@@ -899,7 +1088,7 @@ function renderSeat(st,myTurn){
     actions.append(el("button",{class:"btn ghost",type:"button",disabled:!st.pile.length,onclick:()=>act("take")},"Забрать стопку"));
   }
   const reacts=(profile&&profile.reacts||[]).length&&st.players.some(p=>p.id!==me.id)?el("div",{class:"reacts",role:"group","aria-label":"Реакции"},profile.reacts.map(e=>el("button",{type:"button","aria-label":"Реакция "+e,onclick:()=>sendMsg({t:"react",e})},e))):null;
-  seat.append(el("div",{class:"row",style:"justify-content:space-between"},nameTag({...myP,name:me.name},{you:true}),el("span",{class:"chip"},"Закрытых ",el("b",{text:downN}))),
+  seat.append(el("div",{class:"row",style:"justify-content:space-between"},nameTag({...myP,name:me.name,avatar:myP.avatar||(profile&&profile.avatar)||""},{you:true}),el("span",{class:"chip"},"Закрытых ",el("b",{text:downN}))),
     tab,el("span",{class:"lbl"},"Рука"),handBox,actions,reacts);
   return seat;
 }

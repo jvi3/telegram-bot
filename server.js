@@ -34,6 +34,37 @@ const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, "data.json");
 let data = { users: {}, banned: [], stats: { games: 0 }, maintenance: false, promos: {} };
 let pool = null;
 
+// Аватарки хранятся отдельно от общих данных: tgId -> { buf, v }
+const avatars = new Map();
+const AV_FILE = DATA_FILE + ".avatars.json";
+async function loadAvatars() {
+  if (pool) {
+    const r = await pool.query("SELECT k, v FROM durak_kv WHERE k LIKE 'av:%'");
+    for (const row of r.rows) if (row.v && row.v.d) avatars.set(row.k.slice(3), { buf: Buffer.from(row.v.d, "base64"), v: row.v.v });
+  } else {
+    try { const j = JSON.parse(fs.readFileSync(AV_FILE, "utf8")); for (const [id, a] of Object.entries(j)) avatars.set(id, { buf: Buffer.from(a.d, "base64"), v: a.v }); } catch (e) {}
+  }
+}
+async function saveAvatar(id) {
+  const a = avatars.get(id);
+  if (pool) {
+    try {
+      if (a) await pool.query("INSERT INTO durak_kv (k, v, updated) VALUES ($1, $2::jsonb, now()) ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v, updated = now()", ["av:" + id, JSON.stringify({ d: a.buf.toString("base64"), v: a.v })]);
+      else await pool.query("DELETE FROM durak_kv WHERE k = $1", ["av:" + id]);
+    } catch (e) { console.error("Не удалось сохранить аватарку:", e.message); }
+  } else {
+    const j = {}; for (const [k, x] of avatars) j[k] = { d: x.buf.toString("base64"), v: x.v };
+    fs.promises.writeFile(AV_FILE, JSON.stringify(j)).catch(() => {});
+  }
+}
+const avatarUrl = id => { const a = avatars.get(String(id)); return a ? `/av/${id}?v=${a.v}` : ""; };
+const displayName = (u, fallback) => (u && u.nick) || (u && u.name) || fallback || "Игрок";
+function cleanNick(n) {
+  n = String(n || "").replace(/[\u0000-\u001f\u007f<>]/g, "").replace(/\s+/g, " ").trim();
+  if (n.length < 2 || n.length > 16) return null;
+  return n;
+}
+
 async function loadData() {
   if (DATABASE_URL) {
     const { Pool } = require("pg");
@@ -42,10 +73,12 @@ async function loadData() {
     await pool.query("CREATE TABLE IF NOT EXISTS durak_kv (k text PRIMARY KEY, v jsonb NOT NULL, updated timestamptz NOT NULL DEFAULT now())");
     const r = await pool.query("SELECT v FROM durak_kv WHERE k = 'data'");
     if (r.rows[0]) data = Object.assign(data, r.rows[0].v);
-    console.log(`База данных подключена: игроков ${Object.keys(data.users).length}, партий ${data.stats.games}`);
+    await loadAvatars();
+    console.log(`База данных подключена: игроков ${Object.keys(data.users).length}, партий ${data.stats.games}, аватарок ${avatars.size}`);
     return;
   }
   try { data = Object.assign(data, JSON.parse(fs.readFileSync(DATA_FILE, "utf8"))); } catch (e) {}
+  await loadAvatars();
   console.log("База данных не подключена: данные хранятся до перезапуска сервера (добавь DATABASE_URL).");
 }
 
@@ -76,7 +109,7 @@ process.on("SIGINT", flushAndExit);
 function boardRows() {
   return Object.entries(data.users)
     .filter(([id, u]) => (u.games || 0) > 0 && !data.banned.includes(id))
-    .map(([id, u]) => ({ id: "tg" + id, name: u.name || "Игрок", points: u.points || 0, wins: u.wins || 0, fools: u.fools || 0, games: u.games || 0, coins: SHOP.ensureEco(u).coins, title: (SHOP.BY_ID[u.equipped.title] || {}).key || "" }))
+    .map(([id, u]) => ({ id: "tg" + id, name: displayName(u), avatar: avatarUrl(id), points: u.points || 0, wins: u.wins || 0, fools: u.fools || 0, games: u.games || 0, coins: SHOP.ensureEco(u).coins, title: (SHOP.BY_ID[u.equipped.title] || {}).key || "" }))
     .sort((a, b) => b.points - a.points || b.wins - a.wins || a.fools - b.fools || b.games - a.games)
     .slice(0, 20);
 }
@@ -209,14 +242,18 @@ function decorate(st) {
     if (!color || used.has(color)) color = SHOP.COLOR_ORDER.find(c => !used.has(c)) || "#f2c14e";
     used.add(color);
     const title = u ? (SHOP.BY_ID[u.equipped.title] || {}).key || "" : "";
-    return { ...p, color, title };
+    return { ...p, color, title, avatar: u ? avatarUrl(p.id.slice(2)) : "" };
   });
 }
 function wsOf(tgId) { return [...wss.clients].filter(ws => ws.user && ws.user.id === "tg" + tgId); }
+function fullProfile(tgId) {
+  const u = data.users[tgId];
+  return { ...SHOP.profile(u), nick: u.nick || "", tgName: u.name || "", avatar: avatarUrl(tgId) };
+}
 function sendProfile(tgId) {
   const u = data.users[tgId];
   if (!u) return;
-  const prof = SHOP.profile(u);
+  const prof = fullProfile(tgId);
   for (const ws of wsOf(tgId)) send(ws, { t: "profile", ...prof });
 }
 function giveCoins(tgId, amount, reason) {
@@ -327,7 +364,7 @@ function scheduleBots(room) {
   if (room.timer) return;
   const id = R.botToAct(room.st);
   if (!id) return;
-  const delay = room.st.status === "swap" ? 500 : 900 + Math.random() * 700;
+  const delay = room.st.status === "swap" ? 600 : 1300 + Math.random() * 700;
   room.timer = setTimeout(() => {
     room.timer = null;
     if (!rooms.has(room.st.code)) return;
@@ -356,11 +393,11 @@ function handle(ws, msg) {
     if (!user) return send(ws, { t: "fatal", msg: "Открой игру через Telegram-бота, а не по прямой ссылке." });
     const tgId = user.id.startsWith("tg") ? user.id.slice(2) : null;
     if (tgId && data.banned.includes(tgId)) return send(ws, { t: "fatal", msg: "Тебе закрыт доступ к игре." });
-    if (tgId) touchUser(tgId, user.from);
+    if (tgId) { touchUser(tgId, user.from); user.name = displayName(data.users[tgId], user.name).slice(0, 16); }
     ws.user = user;
     send(ws, { t: "board", rows: boardRows() });
     send(ws, { t: "catalog", items: SHOP.ITEMS, eco: SHOP.ECONOMY });
-    if (tgId && data.users[tgId]) send(ws, { t: "profile", ...SHOP.profile(data.users[tgId]) });
+    if (tgId && data.users[tgId]) send(ws, { t: "profile", ...fullProfile(tgId) });
     return send(ws, { t: "me", me: { id: user.id, name: user.name }, bot: botUsername });
   }
   if (!ws.user) return;
@@ -397,9 +434,35 @@ function handle(ws, msg) {
     if (err) return send(ws, { t: "error", msg: err });
     save();
     if (msg.t === "daily") { for (const s of wsOf(myTg)) send(s, { t: "reward", delta: SHOP.ECONOMY.daily, coins: myU.coins, reason: "Ежедневный бонус" }); }
-    else { const it = SHOP.BY_ID[String(msg.id)]; send(ws, { t: "toast", msg: msg.t === "buy" ? `Куплено: ${it.name}` : `Надето: ${it.name}` }); }
+    else { const it = SHOP.BY_ID[String(msg.id)]; send(ws, { t: "toast", msg: msg.t === "buy" ? (it.type === "reacts" ? `Куплено: ${it.name}` : `Куплено и установлено: ${it.name}`) : `Установлено: ${it.name}` }); }
     sendProfile(myTg);
     if (ws.room) broadcast(ws.room); // чтобы соседи по столу увидели новый цвет или титул
+    return;
+  }
+  if (msg.t === "setProfile") {
+    if (!myU) return send(ws, { t: "error", msg: "Профиль работает только в Telegram" });
+    const nick = cleanNick(msg.nick);
+    if (!nick) return send(ws, { t: "error", msg: "Ник — от 2 до 16 символов" });
+    if (typeof msg.avatar === "string") {
+      if (msg.avatar === "") avatars.delete(myTg);
+      else {
+        const m = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/.exec(msg.avatar);
+        if (!m) return send(ws, { t: "error", msg: "Не получилось прочитать картинку, попробуй другую" });
+        const buf = Buffer.from(m[2], "base64");
+        if (buf.length > 60000) return send(ws, { t: "error", msg: "Картинка слишком большая" });
+        avatars.set(myTg, { buf, v: crypto.createHash("sha1").update(buf).digest("hex").slice(0, 8) });
+      }
+      saveAvatar(myTg);
+    }
+    myU.nick = nick;
+    save();
+    for (const s of wsOf(myTg)) if (s.user) s.user.name = nick;
+    for (const room of rooms.values()) {
+      const p = room.st.players.find(p => p.id === me.id);
+      if (p) { p.name = nick; broadcast(room); }
+    }
+    sendProfile(myTg);
+    send(ws, { t: "toast", msg: "Профиль сохранён" });
     return;
   }
   if (msg.t === "promo") {
@@ -469,7 +532,7 @@ function onlineIds() {
   for (const ws of wss.clients) if (ws.user && ws.user.id.startsWith("tg")) s.add(ws.user.id.slice(2));
   return s;
 }
-const admin = require("./admin")({ tg, rooms, getData: () => data, data, save, adminIds: ADMIN_IDS, kickUser, closeRoom, onlineIds, startedAt, appUrl, giveCoins });
+const admin = require("./admin")({ tg, rooms, getData: () => data, data, save, adminIds: ADMIN_IDS, kickUser, closeRoom, onlineIds, startedAt, appUrl, giveCoins, clearAvatar: id => { avatars.delete(String(id)); saveAvatar(String(id)); sendProfile(String(id)); } });
 
 // Чистим комнаты, где давно никто не играл
 setInterval(() => {
@@ -502,6 +565,14 @@ const server = http.createServer((req, res) => {
     return;
   }
   if (url.pathname === "/health") { res.writeHead(200); return res.end("ok"); }
+  const avm = /^\/av\/(\d+)$/.exec(url.pathname);
+  if (avm) {
+    const a = avatars.get(avm[1]);
+    if (!a) { res.writeHead(404); return res.end(); }
+    const type = a.buf[0] === 0x89 ? "image/png" : a.buf[0] === 0x52 ? "image/webp" : "image/jpeg";
+    res.writeHead(200, { "content-type": type, "cache-control": "public, max-age=604800, immutable", "x-content-type-options": "nosniff" });
+    return res.end(a.buf);
+  }
   if (url.pathname === "/" || url.pathname === "/index.html") {
     res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-cache" });
     return res.end(DEV ? indexHtml.toString().replace("window.__DEV__=false", "window.__DEV__=true") : indexHtml);
@@ -509,7 +580,7 @@ const server = http.createServer((req, res) => {
   res.writeHead(404); res.end("Not found");
 });
 
-const wss = new WebSocketServer({ server, path: "/ws", maxPayload: 16 * 1024 });
+const wss = new WebSocketServer({ server, path: "/ws", maxPayload: 96 * 1024 });
 wss.on("connection", ws => {
   ws.isAlive = true;
   ws.on("pong", () => { ws.isAlive = true; });

@@ -79,9 +79,9 @@ module.exports = function createAdmin(ctx) {
     if (!list.length) return { text: "<b>👥 Игроки</b>\n\nПока никого.", markup: kb([back]) };
     const on = onlineIds();
     const lines = list.map(([id, u]) =>
-      `${on.has(id) ? "🟢" : "⚪️"} ${esc(u.name)}${u.username ? " @" + esc(u.username) : ""}\n   ID <code>${id}</code> · $${u.coins || 0} · партий ${u.games || 0} · ${fmtAgo(u.last)}${data.banned.includes(id) ? " · 🚫" : ""}`);
+      `${on.has(id) ? "🟢" : "⚪️"} ${esc(u.nick || u.name)}${u.nick && u.nick !== u.name ? " (" + esc(u.name) + ")" : ""}${u.username ? " @" + esc(u.username) : ""}\n   ID <code>${id}</code> · $${u.coins || 0} · партий ${u.games || 0} · ${fmtAgo(u.last)}${data.banned.includes(id) ? " · 🚫" : ""}`);
     return {
-      text: `<b>👥 Последние игроки</b>\n\n${lines.join("\n")}\n\nЗабанить: «🚫 Баны». Выдать деньги: <code>/give ID сумма</code>.`,
+      text: `<b>👥 Последние игроки</b>\n\n${lines.join("\n")}\n\nЗабанить: «🚫 Баны». Выдать деньги: <code>/give ID сумма</code>. Сбросить ник и фото: <code>/clearprofile ID</code>.`,
       markup: kb([[{ text: "🔄 Обновить", callback_data: "a:users" }], back]),
     };
   }
@@ -160,6 +160,13 @@ module.exports = function createAdmin(ctx) {
     const [cmd, arg] = text.split(/\s+/);
     if (cmd === "/admin") { pending.delete(m.chat.id); await show(m.chat.id, home()); return true; }
     if (cmd === "/ban") { await ban(arg || "", m.chat.id); return true; }
+    if (cmd === "/clearprofile") {
+      const id = String(arg || "").replace(/\D/g, "");
+      if (!id || !data.users[id]) { await tg("sendMessage", { chat_id: m.chat.id, text: "Формат: /clearprofile ID" }); return true; }
+      delete data.users[id].nick; save(); ctx.clearAvatar(id);
+      await tg("sendMessage", { chat_id: m.chat.id, text: "✅ Ник и аватарка сброшены. При следующем входе игрок выберет заново." });
+      return true;
+    }
     if (cmd === "/promo") { await makePromo(m.chat.id, text.replace(/^\/promo\s*/, "")); return true; }
     if (cmd === "/give") {
       const [, gid, amt] = text.split(/\s+/);

@@ -204,7 +204,9 @@ const A = {
     if (!Number.isInteger(i) || i < 0 || i >= st.down[pid].length) return false;
     const c = st.down[pid].splice(i, 1)[0];
     const r = rk(c);
-    if (canPlay(r, st.pile)) {
+    st.seq = (st.seq || 0) + 1;
+    st.lastBlind = { pid, card: c, ok: canPlay(r, st.pile), n: st.pile.length + 1, seq: st.seq };
+    if (st.lastBlind.ok) {
       st.pile.push(c);
       st.pileBy = (st.pileBy || []).concat([pid]);
       st.last = { pid, cards: [c] };
@@ -214,7 +216,7 @@ const A = {
       const n = st.pile.length + 1;
       st.hands[pid].push(c, ...st.pile);
       sortHand(st.hands[pid]);
-      st.lastTake = { pid, n };
+      st.lastTake = { pid, n, seq: st.seq, blind: true };
       st.pile = [];
       st.pileBy = [];
       st.burnStreak = 0;
@@ -230,7 +232,8 @@ const A = {
     const n = st.pile.length;
     st.hands[pid].push(...st.pile);
     sortHand(st.hands[pid]);
-    st.lastTake = { pid, n };
+    st.seq = (st.seq || 0) + 1;
+    st.lastTake = { pid, n, seq: st.seq };
     st.pile = [];
     st.pileBy = [];
     st.burnStreak = 0;
