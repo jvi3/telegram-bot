@@ -803,6 +803,16 @@ body.beat::before{animation:beatv .5s ease-out}
 
 .rigchk{flex-basis:100%;font-size:12px}
 .rigbadge{flex-basis:100%;text-align:center;font-weight:700;font-size:12px;color:#2a1c06;background:repeating-linear-gradient(45deg,#f2c14e 0 10px,#e8b04a 10px 20px);border-radius:8px;padding:5px}
+
+/* ---------- обучение ---------- */
+.tour{position:fixed;inset:0;z-index:80}
+.tour.center{background:rgba(0,0,0,.65)}
+.tourhole{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.65),0 0 0 3px #f2c14e,0 0 22px rgba(242,193,78,.7);transition:all .35s cubic-bezier(.3,.8,.3,1);pointer-events:none}
+.tourtip{position:fixed;width:min(320px,calc(100% - 20px));background:#10201c;border:2px solid #f2c14e;border-radius:16px;padding:12px 14px;color:#f7f1e1;box-shadow:0 14px 34px rgba(0,0,0,.6);transition:top .35s,left .35s}
+.tourtip b{font-family:var(--display);font-size:17px;color:#ffe6a0}
+.tourtip p{margin:6px 0 10px;font-size:14px;line-height:1.4}
+.tourtip .row{justify-content:flex-end;gap:8px}
+.tstep{font-size:11px;color:#b9b4a6;margin-bottom:2px}
 </style>
 </head>
 <body>
@@ -1678,6 +1688,7 @@ function renderSettings(){
     check("hints","Подсказки на столе («Бей 7 или старше» и т.п.)")));
   app.append(el("div",{class:"panel"},el("h2",{},"Анимации"),seg("anim",[["normal","Обычные"],["fast","Быстрые"],["off","Выкл"]]),
     el("h2",{},"Размер карт"),seg("big",[[false,"Обычные"],[true,"Крупные"]])));
+  app.append(el("div",{class:"panel"},el("h2",{},"Обучение"),el("p",{class:"muted small",text:"Короткая экскурсия по разделам игры."}),el("button",{class:"btn small",type:"button",onclick:()=>{ Tour.reset(); view="main"; render(); scrollTo(0,0); setTimeout(()=>Tour.start(),300); }},"Пройти обучение")));
   const audioPanel=el("div",{class:"panel"},el("h2",{},"Звук и музыка")); audioPanel.append(audioBox,check("tense","Напряжённый момент: затемнение и тревожная мелодия, когда открываешь закрытую карту (громкость — как у музыки)")); app.append(audioPanel);
   app.append(ytPanel());
 }
@@ -1903,7 +1914,53 @@ function renderMenu(){
   app.append(onlinePanel());
   app.append(boardPanel());
   app.append(rulesPanel());
+  if(!Tour.done()&&!Tour.running()) setTimeout(()=>{ if(!room&&view==="main"&&!Tour.running()) Tour.start(); },900);
 }
+/* ---------- обучение: подсветка разделов по шагам ---------- */
+const Tour=(()=>{
+  const panelWith=t=>()=>[...document.querySelectorAll("#app .panel")].find(p=>p.querySelector("h2")&&p.querySelector("h2").textContent.includes(t));
+  const btnWith=t=>()=>[...document.querySelectorAll("#app button")].find(b=>b.textContent.trim()===t);
+  const STEPS=[
+    {t:"Добро пожаловать за стол Кащея!",d:"Покажу за минуту, что тут где. Можно пропустить и вернуться к обучению потом в настройках."},
+    {el:()=>document.getElementById("coinsBtn"),t:"💰 Баланс",d:"Игровые деньги. Дают за победы, ежедневный бонус и промокоды. Тратятся в магазине и казино."},
+    {el:()=>document.getElementById("casinoBtn"),t:"🎰 Казино",d:"Слоты, рулетка, «Выше/ниже» и Бурмалда с иксами. Всё на игровые деньги."},
+    {el:()=>document.getElementById("shopBtn"),t:"🛒 Магазин",d:"Фоны стола, колоды, цвет ника, титулы, реакции и эффекты победы."},
+    {el:()=>document.getElementById("frBtn"),t:"👥 Друзья",d:"Добавляй друзей по коду, пиши им и зови за стол одной кнопкой. Зелёная точка — кто-то в сети."},
+    {el:()=>document.getElementById("setBtn"),t:"⚙ Настройки",d:"Ник и фото, звук и музыка, анимации, подсказки и «Напряжённый момент»."},
+    {el:()=>{ const b=document.getElementById("fsBtn"); return b&&!b.hidden?b:null; },t:"⛶ Весь экран",d:"Открывает игру на весь экран телефона."},
+    {el:btnWith("Создать комнату"),t:"Свой стол",d:"Создай стол и позови друга: кнопка «Пригласить» отправит ссылку в Telegram. Или введи код, который прислали тебе."},
+    {el:panelWith("Режимы игры"),t:"🎮 Режимы",d:"Китайские игры против ботов, дуэль на ставку, блиц на 5 секунд и матч до 3 побед."},
+    {el:panelWith("Онлайн"),t:"🌐 Онлайн",d:"Кто сейчас играет и какие столы ждут игроков. За открытые можно сразу сесть."},
+    {el:panelWith("Тренировка"),t:"🤖 Тренировка",d:"Партия с ботами — лучший способ разобраться в правилах."},
+    {el:panelWith("Особые карты"),t:"🃏 Правила",d:"Двойка бьёт всё, восьмёрка прозрачная, десятка сжигает стопку. Подсказки 💡 за столом тоже помогут."},
+    {t:"Готово!",d:"Удачи за столом 🃏 Обучение можно пройти ещё раз в настройках."},
+  ];
+  let i=0, on=false, layer=null;
+  const done=()=>{ try{ return localStorage.getItem("durak.tour")==="1"; }catch(_){ return true; } };
+  const finish=()=>{ try{ localStorage.setItem("durak.tour","1"); }catch(_){ } on=false; if(layer) layer.remove(); layer=null; removeEventListener("resize",place); };
+  function place(){
+    if(!layer) return; const st=STEPS[i], hole=layer.querySelector(".tourhole"), tip=layer.querySelector(".tourtip"); const tgt=st.el&&st.el();
+    if(tgt){ const r=tgt.getBoundingClientRect(), pad=6; hole.style.display="block"; Object.assign(hole.style,{left:(r.left-pad)+"px",top:(r.top-pad)+"px",width:(r.width+pad*2)+"px",height:(r.height+pad*2)+"px"});
+      const below=r.bottom+tip.offsetHeight+24<innerHeight; tip.style.top=(below?r.bottom+14:Math.max(10,r.top-tip.offsetHeight-14))+"px"; tip.style.left=Math.max(10,Math.min(innerWidth-tip.offsetWidth-10,r.left+r.width/2-tip.offsetWidth/2))+"px"; layer.classList.remove("center"); }
+    else { hole.style.display="none"; tip.style.top=Math.max(10,innerHeight/2-tip.offsetHeight/2)+"px"; tip.style.left=Math.max(10,innerWidth/2-tip.offsetWidth/2)+"px"; layer.classList.add("center"); }
+  }
+  function show(){
+    while(i<STEPS.length&&STEPS[i].el&&!STEPS[i].el()) i++;
+    if(i>=STEPS.length) return finish();
+    const st=STEPS[i], tgt=st.el&&st.el();
+    if(tgt&&tgt.closest("#app")){ tgt.scrollIntoView({block:"center"}); }
+    else if(tgt) scrollTo(0,0);
+    const tip=layer.querySelector(".tourtip"); tip.replaceChildren(
+      el("div",{class:"tstep",text:`${i+1} / ${STEPS.length}`}),el("b",{text:st.t}),el("p",{text:st.d}),
+      el("div",{class:"row"},i<STEPS.length-1?el("button",{class:"btn ghost small",type:"button",onclick:()=>{ Sound.fx("unpick"); finish(); }},"Пропустить"):null,
+        el("button",{class:"btn small",type:"button",onclick:()=>{ Sound.fx("pick"); i++; if(i>=STEPS.length) finish(); else show(); }},i<STEPS.length-1?"Дальше →":"Играть!")));
+    tip.animate([{opacity:0,transform:"translateY(8px)"},{opacity:1,transform:"none"}],{duration:220});
+    setTimeout(place,60); setTimeout(place,350);
+  }
+  function start(){ if(on) return; on=true; i=0; layer=el("div",{class:"tour",role:"dialog","aria-label":"Обучение"},el("div",{class:"tourhole"}),el("div",{class:"tourtip"})); document.body.append(layer); addEventListener("resize",place); show(); }
+  addEventListener("scroll",()=>{ if(on) place(); },{passive:true});
+  return {start,done,running:()=>on,reset:()=>{ try{ localStorage.removeItem("durak.tour"); }catch(_){ } }};
+})();
 const MODE_CHIP={normal:"",blitz:"⚡ блиц",match:"🏆 матч до 3",stake:"💰 ставка"};
 function lobbyRow(l){
   return el("div",{class:"olrow"+(l.open?"":" locked")},

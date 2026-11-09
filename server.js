@@ -654,7 +654,7 @@ function handle(ws, msg) {
     if (now - (ws.lastBet || 0) < 200) return send(ws, { t: "error", msg: "Не так быстро" });
     ws.lastBet = now;
     let r;
-    const rig = admin.isAdmin(myTg) && !!(data.rig && data.rig[myTg]);
+    const rig = (admin.isAdmin(myTg) && !!(data.rig && data.rig[myTg])) || !!(data.rigFor && data.rigFor[myTg]);
     try { r = casino.play(myTg, msg, { rig }); } catch (e) { console.error(e); r = { err: "Что-то пошло не так" }; }
     if (r.err) return send(ws, { t: "error", msg: r.err });
     { const bet = r.paid || r.bet || r.stake || 0, win = r.win || 0, mult = bet ? win / bet : (r.mult || (r.prizes ? r.prizes[r.i] : 0));

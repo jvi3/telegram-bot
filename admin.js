@@ -41,6 +41,7 @@ module.exports = function createAdmin(ctx) {
         [{ text: "📣 Рассылка", callback_data: "a:bc" }, { text: "🎟 Промокоды", callback_data: "a:promos" }],
         [{ text: data.maintenance ? "🟢 Выключить техработы" : "🔴 Включить техработы", callback_data: "a:maint" }],
         [{ text: (data.rig && data.rig[uidNow]) ? "🔧 Подкрутка казино: ВКЛ" : "🔧 Подкрутка казино: выкл", callback_data: "a:rig" }],
+        [{ text: `🎯 Подкрутить игроку${Object.keys(data.rigFor || {}).length ? ` (${Object.keys(data.rigFor).length})` : ""}`, callback_data: "a:rigfor" }],
         [{ text: (data.demoOnline && data.demoOnline[uidNow]) ? "👥 Демо-онлайн (видишь только ты): ВКЛ" : "👥 Демо-онлайн: выкл", callback_data: "a:demo" }],
       ]),
     };
@@ -61,6 +62,15 @@ module.exports = function createAdmin(ctx) {
     o.games.forEach(g => lines.push(`  🃏 ${esc(g.names.join(" · "))}${MN[g.mode] || ""}${g.pot ? " · банк $" + g.pot : ""}`));
     lines.push("", `Тренировок с ботами: ${o.practice}`);
     return { text: lines.join("\n"), markup: kb([[{ text: "🔄 Обновить", callback_data: "a:online" }], back]) };
+  }
+
+  function rigForView() {
+    const ids = Object.keys(data.rigFor || {});
+    const lines = ["<b>🎯 Подкрутка игрокам</b>", "", "У игрока в казино всё выпадает по максимуму. Деньги при этом не списываются и не начисляются, в ленту не попадает.", ""];
+    if (!ids.length) lines.push("Сейчас никому не включено.");
+    ids.forEach(id => { const u = data.users[id]; lines.push(`• ${esc(u ? (u.nick || u.name) : id)} — <code>${id}</code>`); });
+    const rows = ids.map(id => { const u = data.users[id]; return [{ text: `⛔ Выключить: ${u ? (u.nick || u.name) : id}`, callback_data: `a:rigoff:${id}` }]; });
+    return { text: lines.join("\n"), markup: kb([[{ text: "➕ Включить по ID", callback_data: "a:rigask" }], ...rows, back]) };
   }
 
   function stats() {
@@ -205,6 +215,14 @@ module.exports = function createAdmin(ctx) {
     if (cmd === "/unban") { unban(String(arg || "").replace(/\D/g, "")); await tg("sendMessage", { chat_id: m.chat.id, text: "✅ Разбанен." }); return true; }
     const p = pending.get(m.chat.id);
     if (!p || text.startsWith("/")) return false;
+    if (p.type === "rig") {
+      const id = text.replace(/\D/g, "");
+      if (!id || !data.users[id]) { await tg("sendMessage", { chat_id: m.chat.id, text: "Такого игрока нет: он ещё не заходил в игру. Пришли другой ID или нажми «Отмена»." }); return true; }
+      pending.delete(m.chat.id); data.rigFor = data.rigFor || {}; data.rigFor[id] = true; save();
+      const u = data.users[id];
+      await show(m.chat.id, { text: `✅ Подкрутка включена для ${esc(u.nick || u.name)}. Пусть зайдёт в казино 😏`, markup: kb([[{ text: "🎯 К списку", callback_data: "a:rigfor" }], back]) });
+      return true;
+    }
     if (p.type === "bc") {
       if (text.length > 3500) { await tg("sendMessage", { chat_id: m.chat.id, text: "Слишком длинно, сократи до 3500 символов." }); return true; }
       pending.set(m.chat.id, { type: "bcReady", text });
@@ -233,6 +251,12 @@ module.exports = function createAdmin(ctx) {
       case "stats": await show(chatId, stats(), mid); break;
       case "rig": data.rig = data.rig || {}; data.rig[uid] = !data.rig[uid]; save(); if (ctx.sendProfile) ctx.sendProfile(uid); note = data.rig[uid] ? "Подкрутка включена: в казино всё по максимуму, деньги не меняются" : "Подкрутка выключена"; await show(chatId, home(), mid); break;
       case "online": await show(chatId, onlineView(), mid); break;
+      case "rigfor": await show(chatId, rigForView(), mid); break;
+      case "rigoff": if (data.rigFor) { delete data.rigFor[arg]; save(); } note = "Подкрутка выключена"; await show(chatId, rigForView(), mid); break;
+      case "rigask":
+        pending.set(chatId, { type: "rig" });
+        await tg("sendMessage", { chat_id: chatId, text: "Пришли ID игрока (числа из «👥 Игроки»), которому включить подкрутку.", reply_markup: kb([[{ text: "❌ Отмена", callback_data: "a:home" }]]) });
+        break;
       case "demo": data.demoOnline = data.demoOnline || {}; data.demoOnline[uid] = !data.demoOnline[uid]; save(); if (ctx.sendProfile) ctx.sendProfile(uid); note = data.demoOnline[uid] ? "Демо-онлайн включён: в игре ты увидишь выдуманные столы, другие — нет" : "Демо-онлайн выключен"; await show(chatId, home(), mid); break;
       case "rooms": await show(chatId, roomsView(), mid); break;
       case "users": await show(chatId, usersView(), mid); break;
