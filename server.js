@@ -330,6 +330,38 @@ function rewardGame(st) {
   }
 }
 
+/* ---------- режимы стола: блиц, матч до 3 побед, дуэль на ставку ---------- */
+const MODES = ["normal", "blitz", "match", "stake"];
+function setMode(st, mode, amount) {
+  st.mode = MODES.includes(mode) ? mode : "normal";
+  st.timer = st.mode === "blitz" ? 5 : (st.timer === 5 ? 0 : st.timer || 0);
+  st.stake = st.mode === "stake" ? Math.max(5, Math.min(100000, Math.floor(Number(amount) || 25))) : 0;
+  st.match = st.mode === "match" ? { to: 3, score: {} } : null;
+  st.champion = null; st.pot = 0; st.raise = null; st.raises = 0; st.potWon = null;
+}
+// перед раздачей в игре на ставку забираем деньги в банк
+function collectStake(room) {
+  const st = room.st; if (st.mode !== "stake") return null;
+  if (st.players.length < 2) return "Нужно хотя бы 2 игрока";
+  if (st.players.some(p => p.bot)) return "В игре на ставку только люди — убери ботов";
+  const poor = st.players.find(p => (userOf(p.id) || { coins: 0 }).coins < st.stake);
+  if (poor) return `${poor.name}: не хватает денег на ставку $${st.stake}`;
+  for (const p of st.players) giveCoins(p.id.slice(2), -st.stake, `Ставка в банк`);
+  st.pot = st.stake * st.players.length; st.raise = null; st.raises = 0; st.potWon = null;
+  return null;
+}
+function settleModes(st) {
+  const w = st.finished[0];
+  if (st.mode === "stake" && st.pot) {
+    if (w && userOf(w)) { giveCoins(w.slice(2), st.pot, `Банк дуэли`); st.potWon = { pid: w, amount: st.pot }; if (st.pot >= 100) pushFeed({ kind: "casino", name: feedName(w.slice(2)), avatar: avatarUrl(w.slice(2)), game: "дуэли на ставку", win: st.pot, mult: st.players.length }); }
+    st.pot = 0; st.raise = null;
+  }
+  if (st.mode === "match" && st.match && w) {
+    if (st.champion) st.match.score = {}, st.champion = null;
+    st.match.score[w] = (st.match.score[w] || 0) + 1;
+    if (st.match.score[w] >= st.match.to) st.champion = w;
+  }
+}
 // Таймер хода (если создатель комнаты включил): не успел — за тебя ходит бот
 function armTimer(room) {
   const st = room.st;
@@ -343,8 +375,8 @@ function armTimer(room) {
     st.deadline = Date.now() + st.timer * 1000;
     room.turnT = setTimeout(() => {
       if (!rooms.has(st.code) || st.status !== "play" || st.players[st.turn].id !== cur.id) return;
-      R.A.bot(st, cur.id);
-      st.log = [`⏰ ${cur.name} не успел — за него сходил бот`, ...(st.log || [])].slice(0, 8);
+      if (st.mode === "blitz" && st.pile.length) { R.A.take(st, cur.id); st.log = [`⏰ ${cur.name} не успел — забирает стопку`, ...(st.log || [])].slice(0, 8); }
+      else { R.A.bot(st, cur.id); st.log = [`⏰ ${cur.name} не успел — за него сходил бот`, ...(st.log || [])].slice(0, 8); }
       broadcast(room);
       scheduleBots(room);
     }, st.timer * 1000);
@@ -392,7 +424,11 @@ function startDeal(room) {
   if (keep.length < 2) { // не набралось — назад в ожидание
     st.players = keep; st.rematch = null; st.countdownAt = null; st.status = "lobby"; st.waitSince = Date.now();
     if (!st.players.some(p => p.id === st.host)) { const h = st.players.find(p => !p.bot); if (h) st.host = h.id; }
-  } else R.deal(st);
+  } else {
+    const err = collectStake(room);
+    if (err) { st.status = "lobby"; st.rematch = null; st.waitSince = Date.now(); for (const w of room.subs) send(w, { t: "error", msg: err }); }
+    else R.deal(st);
+  }
   broadcast(room); scheduleBots(room); sendOpenTables();
 }
 function cancelCountdown(room) { if (room.cdT) { clearTimeout(room.cdT); room.cdT = null; } room.st.countdownAt = null; }
@@ -447,7 +483,7 @@ function broadcast(room) {
       const board = boardRows();
       for (const ws of wss.clients) if (ws.user) send(ws, { t: "board", rows: board });
     }
-    if (room.st.status === "over") { rewardGame(room.st); room.st.rematch = {}; }
+    if (room.st.status === "over") { rewardGame(room.st); settleModes(room.st); room.st.rematch = {}; }
     room.lastStatus = room.st.status;
   }
   armTimer(room);
@@ -505,6 +541,7 @@ function handle(ws, msg) {
   if (msg.t === "create" || msg.t === "practice") {
     if (data.maintenance && !admin.isAdmin(me.id.replace(/^tg/, ""))) return send(ws, { t: "error", msg: MAINT });
     const room = newRoom(me, msg.t === "practice");
+    if (msg.t === "create" && msg.mode) setMode(room.st, String(msg.mode), msg.amount);
     if (msg.t === "practice") {
       const n = Math.min(3, Math.max(1, Number(msg.bots) || 1));
       for (let i = 0; i < n; i++) room.st.players.push({ id: "bot" + i, name: R.BOT_NAMES[i], bot: true });
@@ -704,6 +741,41 @@ function handle(ws, msg) {
     for (const k of ["hands", "up", "down", "pile", "deck", "turn"]) if (P[k] !== undefined) st[k] = P[k];
     if (P.turnMe) st.turn = st.players.findIndex(p => p.id === me.id);
     broadcast(ws.room); return scheduleBots(ws.room);
+  }
+  if (msg.t === "setMode") {
+    const room = ws.room; if (!room) return; const st = room.st;
+    if (st.host !== me.id) return send(ws, { t: "error", msg: "Режим выбирает создатель стола" });
+    if (st.practice || (st.status !== "lobby" && st.status !== "over")) return send(ws, { t: "error", msg: "Режим можно менять только между партиями" });
+    setMode(st, String(msg.mode), msg.amount); broadcast(room); return;
+  }
+  if (msg.t === "raise") { // предложить поднять ставку
+    const room = ws.room; if (!room) return; const st = room.st;
+    if (st.mode !== "stake" || st.status !== "play" || !st.players.some(p => p.id === me.id)) return;
+    if (st.raise) return send(ws, { t: "error", msg: "Уже ждём ответа на прошлое предложение" });
+    if (st.raises >= 3) return send(ws, { t: "error", msg: "Больше поднимать нельзя — максимум 3 раза за партию" });
+    const amount = st.stake * Math.pow(2, st.raises);
+    if (st.players.some(p => (userOf(p.id) || { coins: 0 }).coins < amount)) return send(ws, { t: "error", msg: `У кого-то не хватает $${amount}` });
+    st.raise = { by: me.id, amount, yes: { [me.id]: true }, until: Date.now() + 20000 };
+    clearTimeout(room.raiseT); room.raiseT = setTimeout(() => { if (st.raise) { st.raise = null; st.log = ["Ставку не подняли — никто не ответил", ...(st.log || [])].slice(0, 8); broadcast(room); } }, 20000);
+    broadcast(room); return;
+  }
+  if (msg.t === "raiseAnswer") {
+    const room = ws.room; if (!room) return; const st = room.st, r = st.raise;
+    if (!r || !st.players.some(p => p.id === me.id) || r.yes[me.id]) return;
+    if (!msg.yes) { st.raise = null; clearTimeout(room.raiseT); st.log = [`${me.name} не стал поднимать ставку`, ...(st.log || [])].slice(0, 8); broadcast(room); return; }
+    r.yes[me.id] = true;
+    if (st.players.every(p => r.yes[p.id])) {
+      const poor = st.players.find(p => (userOf(p.id) || { coins: 0 }).coins < r.amount);
+      if (poor) { st.raise = null; st.log = [`${poor.name}: не хватает денег`, ...(st.log || [])].slice(0, 8); broadcast(room); return; }
+      for (const p of st.players) giveCoins(p.id.slice(2), -r.amount, "Подняли ставку");
+      st.pot += r.amount * st.players.length; st.raises++; st.raise = null; clearTimeout(room.raiseT);
+      st.lastRaise = { amount: r.amount, pot: st.pot, seq: (st.lastRaise ? st.lastRaise.seq : 0) + 1 };
+      st.log = [`💰 Ставку подняли: в банке $${st.pot}`, ...(st.log || [])].slice(0, 8);
+    }
+    broadcast(room); return;
+  }
+  if (msg.t === "act" && msg.a === "start" && ws.room && ws.room.st.mode === "stake" && ws.room.st.host === me.id) {
+    const err = collectStake(ws.room); if (err) return send(ws, { t: "error", msg: err });
   }
   if (msg.t === "act") {
     const room = ws.room;
