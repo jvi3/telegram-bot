@@ -243,7 +243,8 @@ function decorate(st) {
     if (!color || used.has(color)) color = SHOP.COLOR_ORDER.find(c => !used.has(c)) || "#f2c14e";
     used.add(color);
     const title = u ? (SHOP.BY_ID[u.equipped.title] || {}).key || "" : "";
-    return { ...p, color, title, avatar: u ? avatarUrl(p.id.slice(2)) : "" };
+    const frame = u ? (SHOP.BY_ID[u.equipped.frame] || {}).key || "" : "";
+    return { ...p, color, title, frame, avatar: u ? avatarUrl(p.id.slice(2)) : "" };
   });
 }
 /* ---------- друзья ---------- */

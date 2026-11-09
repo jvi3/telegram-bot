@@ -22,12 +22,32 @@ const ITEMS = [
   { id: "bg:snow", type: "bg", key: "snow", name: "Зимняя ночь", price: 40 },
   { id: "bg:sunset", type: "bg", key: "sunset", name: "Пиксельный закат", price: 60 },
   { id: "bg:swirl", type: "bg", key: "swirl", name: "Психоделика", price: 75 },
+  { id: "bg:graveyard", type: "bg", key: "graveyard", name: "Кладбище", price: 45 },
+  { id: "bg:swamp", type: "bg", key: "swamp", name: "Болото", price: 45 },
+  { id: "bg:ocean", type: "bg", key: "ocean", name: "Подводное царство", price: 55 },
+  { id: "bg:temple", type: "bg", key: "temple", name: "Храм с фонарями", price: 60 },
+  { id: "bg:crystal", type: "bg", key: "crystal", name: "Пещера кристаллов", price: 65 },
+  { id: "bg:aurora", type: "bg", key: "aurora", name: "Северное сияние", price: 70 },
+  { id: "bg:neon", type: "bg", key: "neon", name: "Неоновый город", price: 80 },
+  { id: "bg:bloodmoon", type: "bg", key: "bloodmoon", name: "Кровавая луна", price: 90 },
+  { id: "bg:castle", type: "bg", key: "castle", name: "Замок Кащея", price: 110 },
+  { id: "bg:hell", type: "bg", key: "hell", name: "Пекло", price: 120 },
 
   { id: "deck:classic", type: "deck", key: "classic", name: "Классика", price: 0 },
   { id: "deck:vintage", type: "deck", key: "vintage", name: "Винтаж", price: 25 },
   { id: "deck:pixel", type: "deck", key: "pixel", name: "8-бит", price: 35 },
   { id: "deck:noir", type: "deck", key: "noir", name: "Нуар", price: 40 },
   { id: "deck:royal", type: "deck", key: "royal", name: "Королевская", price: 60 },
+  { id: "deck:gothic", type: "deck", key: "gothic", name: "Готика", price: 50 },
+  { id: "deck:bone", type: "deck", key: "bone", name: "Кости", price: 55 },
+  { id: "deck:cursed", type: "deck", key: "cursed", name: "Проклятая", price: 60 },
+  { id: "deck:witch", type: "deck", key: "witch", name: "Ведьмина", price: 65 },
+  { id: "deck:ghost", type: "deck", key: "ghost", name: "Призрачная", price: 70 },
+  { id: "deck:blood", type: "deck", key: "blood", name: "Кровавая", price: 80 },
+  { id: "deck:vampire", type: "deck", key: "vampire", name: "Вампирская", price: 90 },
+  { id: "deck:neon", type: "deck", key: "neon", name: "Неон", price: 90 },
+  { id: "deck:dynasty", type: "deck", key: "dynasty", name: "Династия", price: 100 },
+  { id: "deck:koschei", type: "deck", key: "koschei", name: "Кащеева", price: 150 },
 
   { id: "color:gold", type: "color", key: "#f2c14e", name: "Золото", price: 0 },
   { id: "color:mint", type: "color", key: "#7ee0b5", name: "Мята", price: 0 },
@@ -46,12 +66,17 @@ const ITEMS = [
   { id: "reacts:spicy", type: "reacts", key: "😡🔥🤡", emojis: ["😡", "🔥", "🤡"], name: "Дерзкие", price: 20, always: true },
   { id: "reacts:royal", type: "reacts", key: "👑💀😎", emojis: ["👑", "💀", "😎"], name: "Королевские", price: 40, always: true },
 
+  { id: "frame:none", type: "frame", key: "", name: "Без рамки", price: 0 },
+  { id: "frame:fire", type: "frame", key: "fire", name: "Пламя", price: 300 },
+  { id: "frame:storm", type: "frame", key: "storm", name: "Молния", price: 400 },
+  { id: "frame:ghost", type: "frame", key: "ghost", name: "Призрачная аура", price: 500 },
+
   { id: "winfx:fireworks", type: "winfx", key: "fireworks", name: "Фейерверк", price: 0 },
   { id: "winfx:confetti", type: "winfx", key: "confetti", name: "Конфетти", price: 20 },
   { id: "winfx:coins", type: "winfx", key: "coins", name: "Золотой дождь", price: 50 },
 ];
 const BY_ID = Object.fromEntries(ITEMS.map(i => [i.id, i]));
-const DEFAULT_EQUIP = { bg: "bg:felt", deck: "deck:classic", color: "color:gold", title: "title:none", winfx: "winfx:fireworks" };
+const DEFAULT_EQUIP = { bg: "bg:felt", deck: "deck:classic", color: "color:gold", title: "title:none", winfx: "winfx:fireworks", frame: "frame:none" };
 const COLOR_ORDER = ITEMS.filter(i => i.type === "color").map(i => i.key);
 
 const today = () => new Date().toISOString().slice(0, 10);
