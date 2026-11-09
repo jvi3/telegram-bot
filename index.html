@@ -992,6 +992,44 @@ body.chaton .toast{bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 body.lightbg #bgcanvas{filter:brightness(.82)}
 body.lightbg.tablemode .name span,body.lightbg.tablemode .status,body.lightbg.tablemode .side,body.lightbg.tablemode .need,body.lightbg.tablemode .tbar-top,body.lightbg.tablemode .ohand b,body.lightbg .waitstage,body.lightbg .cgscreen{text-shadow:0 0 2px #000,0 0 4px rgba(0,0,0,.9),0 1px 2px #000}
 body.lightbg.tablemode .tbar-top .btn{background:rgba(0,0,0,.35)}
+
+/* ---------- мем-реакции ---------- */
+.memecv{image-rendering:pixelated;width:30px;height:30px;display:block}
+.memefloat{position:fixed;z-index:46;pointer-events:none;transform:translate(-50%,0)}
+.memefloat .memecv{width:72px;height:72px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
+.mstamp{display:inline-block;font:900 22px/1 var(--display);padding:5px 10px;border:3px solid;border-radius:8px;background:rgba(0,0,0,.45);letter-spacing:.04em;white-space:nowrap;text-shadow:0 1px 0 #000}
+.mstamp.sm{font-size:10px;padding:3px 5px;border-width:2px;transform:rotate(-8deg)}
+.reacts button.mreact{padding:2px 6px;display:inline-grid;place-items:center;min-height:34px}
+.memeprev{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.memeprev .mreact{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:3px;display:grid;place-items:center;min-width:36px;min-height:36px}
+.memeprev .memecv{width:28px;height:28px}
+
+/* ---------- телефон: верхняя строка стола и лобби ---------- */
+.exitbtn .exi{display:none}
+.tbar-top .btn{white-space:nowrap}
+:root[data-mobile] body.tablemode .tbar-top>span{display:none}
+:root[data-mobile] body.tablemode .tbar-top{justify-content:flex-end}
+:root[data-mobile] body.tablemode .logbtn{display:none}
+:root[data-mobile] body.tablemode .exitbtn .exl{display:none}
+:root[data-mobile] body.tablemode .exitbtn .exi{display:inline}
+:root[data-mobile] body.tablemode .tbar-top .btn.tiny{min-width:34px;min-height:32px;padding:4px 8px}
+:root[data-mobile] .mbadge{font-size:11px;padding:3px 7px}
+:root[data-mobile] .waitstage{gap:8px;padding-bottom:56px}
+:root[data-mobile] .waitstage .wttl{font-size:19px}
+:root[data-mobile] .waitstage .wtimer{font-size:18px}
+:root[data-mobile] .wseat .av,:root[data-mobile] .wseat .wplus{width:38px!important;height:38px!important}
+:root[data-mobile] .wseat .wn{font-size:11px}
+:root[data-mobile] .wopts{padding:8px 10px;gap:6px;font-size:13px}
+:root[data-mobile] .wmode .seg{flex-wrap:wrap;justify-content:center}
+:root[data-mobile] .wbtns .btn{padding:9px 12px}
+:root[data-mobile] .sheet{padding:10px;gap:6px}
+:root[data-mobile] body.chaton .sheet{bottom:calc(50px + env(safe-area-inset-bottom,0px))}
+:root[data-mobile] .cghud{padding:3px 8px}
+:root[data-mobile] .cgfl{font-size:13px}
+:root[data-mobile] .cgscreen{gap:10px;padding:8px 0 50px}
+:root[data-mobile] .cgjcard{width:96px;min-height:132px}
+:root[data-mobile] .swapstage{gap:8px}
+:root[data-mobile] .tensestage{gap:10px}
 </style>
 </head>
 <body>
@@ -1428,6 +1466,46 @@ const Bg=(()=>{
   };
 })();
 
+/* ---------- мем-реакции: свои пиксельные рожицы и печати ---------- */
+const Meme=(()=>{
+  const S=16, P=(c,x,y,w,h,col)=>{ c.fillStyle=col; c.fillRect(x,y,w||1,h||1); };
+  const face=(c,b,d)=>{ P(c,3,2,10,12,b); P(c,2,3,12,10,b); P(c,4,1,8,1,b); P(c,4,14,8,1,b); P(c,2,3,1,10,d); P(c,13,3,1,10,d); };
+  const D={
+    lol:(c,t)=>{ face(c,"#ffd84a","#c99a10"); P(c,4,5,3,1,"#1c1b19"); P(c,9,5,3,1,"#1c1b19"); P(c,4,8,8,4,"#5a1010"); P(c,5,8,6,1,"#fff"); P(c,3,6,1,2,"#7cc4ff"); P(c,12,6,1,2,"#7cc4ff"); if(Math.sin(t/60)>0){ P(c,2,8,1,2,"#7cc4ff"); P(c,13,8,1,2,"#7cc4ff"); } },
+    cringe:(c,t)=>{ face(c,"#c7e86a","#7a9a2a"); P(c,4,5,2,2,"#1c1b19"); P(c,10,5,2,2,"#1c1b19"); for(let x=4;x<12;x++) P(c,x,10+((x+(t/120|0))%2),1,1,"#1c1b19"); P(c,3,3,2,1,"#5a7a1a"); P(c,11,3,2,1,"#5a7a1a"); },
+    skull:(c,t)=>{ P(c,3,2,10,9,"#f2efe6"); P(c,2,3,12,7,"#f2efe6"); P(c,4,11,8,3,"#f2efe6"); P(c,4,5,3,3,"#1c1b19"); P(c,9,5,3,3,"#1c1b19"); P(c,7,8,2,2,"#1c1b19"); const o=Math.sin(t/80)>0?1:0; P(c,5,11+o,1,2,"#1c1b19"); P(c,7,11+o,1,2,"#1c1b19"); P(c,9,11+o,1,2,"#1c1b19"); },
+    cope:(c,t)=>{ face(c,"#ffd84a","#c99a10"); P(c,4,5,3,1,"#1c1b19"); P(c,9,5,3,1,"#1c1b19"); P(c,4,9,8,1,"#1c1b19"); P(c,4,8,1,1,"#1c1b19"); P(c,11,8,1,1,"#1c1b19"); P(c,12,3+((t/90|0)%4),1,2,"#7cc4ff"); },
+    chad:(c)=>{ P(c,4,1,8,3,"#3a2a18"); face(c,"#e8b98a","#b07a4a"); P(c,3,6,4,1,"#1c1b19"); P(c,9,6,4,1,"#1c1b19"); P(c,6,8,4,1,"#b07a4a"); P(c,5,11,6,1,"#1c1b19"); P(c,3,12,10,3,"#c9905a"); },
+    clown:(c)=>{ face(c,"#ffffff","#bbbbbb"); P(c,3,0,10,3,"#e24b4a"); P(c,7,0,2,1,"#ffd84a"); P(c,4,5,2,2,"#378add"); P(c,10,5,2,2,"#378add"); P(c,7,7,2,2,"#e24b4a"); P(c,4,10,8,2,"#e24b4a"); },
+    shock:(c,t)=>{ face(c,"#ffd84a","#c99a10"); P(c,3,4,4,4,"#fff"); P(c,9,4,4,4,"#fff"); P(c,4,5,2,2,"#1c1b19"); P(c,10,5,2,2,"#1c1b19"); const m=Math.sin(t/90)>0?3:2; P(c,6,10,4,m,"#5a1010"); P(c,2,1,1,2,"#fff"); P(c,13,1,1,2,"#fff"); },
+    cat:(c,t)=>{ P(c,2,1,3,4,"#9aa0a8"); P(c,11,1,3,4,"#9aa0a8"); P(c,3,2,1,2,"#f4b6c2"); P(c,12,2,1,2,"#f4b6c2"); P(c,2,4,12,10,"#9aa0a8"); P(c,3,14,10,1,"#9aa0a8"); const o=Math.sin(t/200)>0; P(c,4,6,3,3,"#fff"); P(c,9,6,3,3,"#fff"); P(c,5,7,o?1:2,o?1:2,"#1c1b19"); P(c,10,7,o?1:2,o?1:2,"#1c1b19"); P(c,7,10,2,1,"#f4b6c2"); P(c,6,12,4,1,"#1c1b19"); P(c,0,9,3,1,"#6a7078"); P(c,13,9,3,1,"#6a7078"); },
+  };
+  const COL={"БАЗА":"#2e9e6e","F":"#b9a4ff","GG EZ":"#f2c14e","ФИАСКО":"#e24b4a","ЖИЗА":"#7cc4ff","ИЗИ":"#c7e86a","РОФЛ":"#ff8fb3","НЕ ВЕРЮ":"#ff8b7b"};
+  const NAME={lol:"Ору",cringe:"Кринж",skull:"Умер",cope:"Коупинг",chad:"Гигачад",clown:"Клоун",shock:"Шок",cat:"Кот в шоке"};
+  const AN={lol:"shake",cringe:"wobble",skull:"bounce",cope:"sweat",chad:"nod",clown:"fall",shock:"bounce",cat:"wobble"};
+  const KF={shake:[{transform:"translate(-50%,10px) scale(.3)",opacity:0},{transform:"translate(-50%,0) scale(1.2) rotate(-8deg)",opacity:1,offset:.2},{transform:"translate(-50%,0) rotate(8deg)",offset:.35},{transform:"translate(-50%,0) rotate(-8deg)",offset:.5},{transform:"translate(-50%,0) rotate(6deg)",offset:.65},{transform:"translate(-50%,-30px)",opacity:0}],
+    wobble:[{transform:"translate(-50%,10px) scale(.3)",opacity:0},{transform:"translate(-50%,0) scale(1.1,.9)",opacity:1,offset:.2},{transform:"translate(-50%,0) scale(.9,1.1)",offset:.4},{transform:"translate(-50%,0) scale(1.1,.9)",offset:.6},{transform:"translate(-50%,-30px)",opacity:0}],
+    stamp:[{transform:"translate(-50%,0) scale(3) rotate(-25deg)",opacity:0},{transform:"translate(-50%,0) scale(.9) rotate(-12deg)",opacity:1,offset:.15},{transform:"translate(-50%,0) scale(1) rotate(-12deg)",offset:.25},{transform:"translate(-50%,0) scale(1) rotate(-12deg)",opacity:1,offset:.8},{transform:"translate(-50%,-10px) rotate(-12deg)",opacity:0}],
+    bounce:[{transform:"translate(-50%,40px)",opacity:0},{transform:"translate(-50%,-10px)",opacity:1,offset:.25},{transform:"translate(-50%,0)",offset:.4},{transform:"translate(-50%,-6px)",offset:.55},{transform:"translate(-50%,0)",offset:.7},{transform:"translate(-50%,-30px)",opacity:0}],
+    sweat:[{transform:"translate(-50%,10px)",opacity:0},{transform:"translate(-50%,0)",opacity:1,offset:.2},{transform:"translate(-50%,0)",opacity:1,offset:.8},{transform:"translate(-50%,-20px)",opacity:0}],
+    nod:[{transform:"translate(-50%,10px) scale(.4)",opacity:0},{transform:"translate(-50%,0) scale(1)",opacity:1,offset:.2},{transform:"translate(-50%,6px)",offset:.35},{transform:"translate(-50%,0)",offset:.5},{transform:"translate(-50%,6px)",offset:.65},{transform:"translate(-50%,-20px)",opacity:0}],
+    fall:[{transform:"translate(-50%,-80px) rotate(0)",opacity:1},{transform:"translate(-50%,30px) rotate(200deg)",opacity:1,offset:.45},{transform:"translate(-50%,18px) rotate(180deg)",offset:.6},{transform:"translate(-50%,30px) rotate(180deg)",opacity:1,offset:.8},{transform:"translate(-50%,30px) rotate(180deg)",opacity:0}]};
+  const is=e=>typeof e==="string"&&(e.startsWith("m:")||e.startsWith("s:"));
+  function canvas(id,animate){ const c=document.createElement("canvas"); c.width=c.height=S; c.className="memecv"; const x=c.getContext("2d"); const f=D[id]||D.lol;
+    if(!animate||Prefs.get("anim")==="off"){ f(x,0); return c; } const st=performance.now(); let raf; const loop=t=>{ if(!c.isConnected&&t-st>300) return; x.clearRect(0,0,S,S); f(x,t); raf=requestAnimationFrame(loop); }; raf=requestAnimationFrame(loop); return c; }
+  function stamp(txt,small){ const col=COL[txt]||"#f2c14e"; return el("span",{class:"mstamp"+(small?" sm":""),style:`color:${col};border-color:${col}`,text:txt}); }
+  function icon(e){ if(e.startsWith("s:")) return stamp(e.slice(2),true); return canvas(e.slice(2),false); }
+  function label(e){ return e.startsWith("s:")?e.slice(2):(NAME[e.slice(2)]||"Мем"); }
+  function float(e,fromEl){
+    const r=fromEl?fromEl.getBoundingClientRect():{left:innerWidth/2-20,top:innerHeight/2,width:40,height:0};
+    const box=el("div",{class:"memefloat"}); box.style.left=(r.left+r.width/2+(Math.random()*20-10))+"px"; box.style.top=(r.top-10)+"px";
+    const isStamp=e.startsWith("s:"); box.append(isStamp?stamp(e.slice(2)):canvas(e.slice(2),true)); document.body.append(box);
+    if(Prefs.get("anim")==="off"){ setTimeout(()=>box.remove(),1600); return; }
+    box.animate(KF[isStamp?"stamp":(AN[e.slice(2)]||"bounce")],{duration:1900,easing:"ease-out",fill:"forwards"}).onfinish=()=>box.remove();
+    try{ Sound.fx(isStamp?"thud":"pick"); }catch(_){ }
+  }
+  return {is,icon,float,label};
+})();
 /* ---------- эффекты: фейерверк, конфетти, золотой дождь, тряска, надписи, реакции ---------- */
 const Fx=(()=>{
   let cv=null, raf=null;
@@ -1456,6 +1534,7 @@ const Fx=(()=>{
   function shake(){ if(Prefs.get("anim")==="off") return; app.classList.remove("shakeall"); void app.offsetWidth; app.classList.add("shakeall"); haptic("heavy"); }
   function bigText(text,cls){ const e=el("div",{class:"bigtxt "+(cls||""),text}); document.body.append(e); setTimeout(()=>e.remove(),1600); }
   function emoji(e,fromEl){
+    if(Meme.is(e)) return Meme.float(e,fromEl);
     const r=fromEl?fromEl.getBoundingClientRect():{left:innerWidth/2-20,top:innerHeight/2,width:40,height:0};
     const f=el("div",{class:"floatemoji",text:e}); f.style.left=(r.left+r.width/2-18+(Math.random()*30-15))+"px"; f.style.top=(r.top+Math.min(r.height,60)/2)+"px";
     document.body.append(f); setTimeout(()=>f.remove(),1800);
@@ -1533,7 +1612,7 @@ function itemTile(it){
   else if(it.type==="deck"){ prev=el("div",{class:"tprev duo","data-cards":it.key},cardEl("Ah"),cardEl("10s"),backEl()); }
   else if(it.type==="color"){ prev=el("div",{class:"tprev"},el("div",{class:"name",style:`--pc:${it.key}`},el("i",{class:"dot"}),el("span",{text:me?me.name:"Игрок"}))); }
   else if(it.type==="title"){ prev=el("div",{class:"tprev"},el("div",{class:"ntag"},el("div",{class:"name"},el("span",{text:me?me.name:"Игрок"})),it.key?el("div",{class:"ptitle",text:it.key}):el("div",{class:"muted small",text:"без подписи"}))); }
-  else if(it.type==="reacts"){ prev=el("div",{class:"tprev emo",text:it.emojis.join(" ")}); }
+  else if(it.type==="reacts"){ prev=it.emojis.some(Meme.is)?el("div",{class:"tprev memeprev"},it.emojis.map(e=>el("button",{type:"button",class:"mreact",title:Meme.label(e),onclick:ev=>{ ev.stopPropagation(); Meme.float(e,ev.currentTarget); }},Meme.icon(e)))):el("div",{class:"tprev emo",text:it.emojis.join(" ")}); }
   else if(it.type==="frame"){ prev=el("div",{class:"tprev"},avatarEl({name:me?me.name:"Я",avatar:profile&&profile.avatar||"",color:equippedKey("color")||"#f2c14e",frame:it.key},56)); }
   else if(it.type==="winfx"){ prev=el("div",{class:"tprev"},el("button",{class:"btn ghost small",type:"button",onclick:()=>Fx.run(it.key)},"▶ Показать")); }
   let btn;
@@ -2162,10 +2241,10 @@ function renderInner(){
     el("div",{class:"row",style:"gap:6px"},
       tableMode?el("button",{class:"btn ghost tiny","aria-pressed":String(!!Prefs.get("hints")),title:"Подсказки",onclick:()=>{ Prefs.set("hints",!Prefs.get("hints")); Sound.fx("pick"); render(); }},"💡"):null,
       el("button",{class:"btn ghost tiny eyebtn","aria-pressed":String(!!Prefs.get("hideNames")),title:Prefs.get("hideNames")?"Показать имена":"Скрыть имена и аватарки","aria-label":Prefs.get("hideNames")?"Показать имена":"Скрыть имена",onclick:()=>{ Prefs.set("hideNames",!Prefs.get("hideNames")); Sound.fx("pick"); toast(Prefs.get("hideNames")?"Имена и аватарки скрыты":"Имена снова видны"); render(); }},Prefs.get("hideNames")?"🙈":"👁"),
-      tableMode?el("button",{class:"btn ghost tiny","aria-pressed":String(!!Prefs.get("showLog")),title:"Ходы",onclick:()=>{ Prefs.set("showLog",!Prefs.get("showLog")); Sound.fx("pick"); render(); }},"📜"):null,
+      tableMode?el("button",{class:"btn ghost tiny logbtn","aria-pressed":String(!!Prefs.get("showLog")),title:"Ходы",onclick:()=>{ Prefs.set("showLog",!Prefs.get("showLog")); Sound.fx("pick"); render(); }},"📜"):null,
       room.mode&&room.mode!=="normal"?modeBadge(room):null,
       tableMode&&fsAvail?el("button",{class:"btn ghost tiny",type:"button","aria-label":fsIsOn()?"Выйти из полного экрана":"На весь экран",onclick:()=>{ fsToggle(); setTimeout(render,400); }},fsIsOn()?"⤡":"⛶"):null,
-      el("button",{class:"btn ghost tiny",type:"button",onclick:exitRoom},"В меню")))); }
+      el("button",{class:"btn ghost tiny exitbtn",type:"button",onclick:exitRoom,"aria-label":"В меню"},el("span",{class:"exl",text:"В меню"}),el("span",{class:"exi",text:"✕"}))))); }
   if(fatal){ app.append(el("div",{class:"banner",text:fatal})); return; }
   if(conn==="lost") app.append(el("div",{class:"banner"},"Связь с сервером пропала, переподключаюсь…"));
   if(!me){ app.append(el("div",{class:"panel"},el("p",{class:"muted"},"Подключаюсь к серверу… Если сервер спал, это может занять до минуты."))); return; }
@@ -2998,7 +3077,7 @@ function renderSeat(st,myTurn){
     else actions.append(el("span",{class:"small hint"},"Открой одну из закрытых карт — вслепую."));
     actions.append(el("button",{class:"btn ghost",type:"button",disabled:!st.pile.length,onclick:()=>act("take")},"Забрать стопку"));
   }
-  const reacts=(profile&&profile.reacts||[]).length&&st.players.some(p=>p.id!==me.id)?el("div",{class:"reacts",role:"group","aria-label":"Реакции"},profile.reacts.map(e=>el("button",{type:"button","aria-label":"Реакция "+e,onclick:()=>sendMsg({t:"react",e})},e))):null;
+  const reacts=(profile&&profile.reacts||[]).length&&st.players.some(p=>p.id!==me.id)?el("div",{class:"reacts",role:"group","aria-label":"Реакции"},profile.reacts.map(e=>el("button",{type:"button",class:Meme.is(e)?"mreact":"","aria-label":"Реакция "+(Meme.is(e)?Meme.label(e):e),title:Meme.is(e)?Meme.label(e):"",onclick:()=>sendMsg({t:"react",e})},Meme.is(e)?Meme.icon(e):e))):null;
   seat.append(el("div",{class:"meline"},nameTag({...myP,name:me.name,avatar:myP.avatar||(profile&&profile.avatar)||""},{you:true}),tab),
     handBox,actions,reacts);
   return seat;

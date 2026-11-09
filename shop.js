@@ -75,6 +75,8 @@ const ITEMS = [
   { id: "reacts:basic", type: "reacts", key: "👍😂", emojis: ["👍", "😂"], name: "Базовые", price: 0, always: true },
   { id: "reacts:spicy", type: "reacts", key: "😡🔥🤡", emojis: ["😡", "🔥", "🤡"], name: "Дерзкие", price: 20, always: true },
   { id: "reacts:royal", type: "reacts", key: "👑💀😎", emojis: ["👑", "💀", "😎"], name: "Королевские", price: 40, always: true },
+  { id: "reacts:memes", type: "reacts", key: "m:faces", emojis: ["m:lol", "m:cringe", "m:skull", "m:cope", "m:chad", "m:clown", "m:shock", "m:cat"], name: "Мемы-рожицы", price: 150, always: true },
+  { id: "reacts:stamps", type: "reacts", key: "m:stamps", emojis: ["s:БАЗА", "s:F", "s:GG EZ", "s:ФИАСКО", "s:ЖИЗА", "s:ИЗИ", "s:РОФЛ", "s:НЕ ВЕРЮ"], name: "Печати", price: 120, always: true },
 
   { id: "frame:none", type: "frame", key: "", name: "Без рамки", price: 0 },
   { id: "frame:fire", type: "frame", key: "fire", name: "Пламя", price: 300 },
