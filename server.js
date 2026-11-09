@@ -643,6 +643,12 @@ function handle(ws, msg) {
     else if (BOT_TOKEN) tg("sendMessage", { chat_id: fid, text: `${from.name} зовёт тебя за стол в китайского дурака 🃏`, reply_markup: { inline_keyboard: [[{ text: "🃏 Сесть за стол", web_app: { url: appUrl(code) } }]] } }, { quiet: true });
     return send(ws, { t: "toast", msg: online.length ? `Позвал ${displayName(data.users[fid])}` : `${displayName(data.users[fid])} не в игре — отправил приглашение в Telegram` });
   }
+  if (msg.t === "typing") {
+    const room = ws.room; if (!room || !room.st.players.some(p => p.id === me.id)) return;
+    const now = Date.now(); if (now - (ws.lastTyping || 0) < 1500) return; ws.lastTyping = now;
+    for (const s of room.subs) if (s !== ws) send(s, { t: "typing", from: me.id });
+    return;
+  }
   if (msg.t === "chat") {
     const room = ws.room; if (!room || !room.st.players.some(p => p.id === me.id)) return;
     const text = String(msg.text || "").replace(/[\u0000-\u001f\u200b-\u200f\u202a-\u202e]/g, "").replace(/\s+/g, " ").trim().slice(0, 50);
