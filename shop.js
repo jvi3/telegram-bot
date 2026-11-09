@@ -32,6 +32,11 @@ const ITEMS = [
   { id: "bg:bloodmoon", type: "bg", key: "bloodmoon", name: "Кровавая луна", price: 90 },
   { id: "bg:castle", type: "bg", key: "castle", name: "Замок Кащея", price: 110 },
   { id: "bg:hell", type: "bg", key: "hell", name: "Пекло", price: 120 },
+  { id: "bg:clouds", type: "bg", key: "clouds", name: "Облачка", price: 35 },
+  { id: "bg:candy", type: "bg", key: "candy", name: "Конфетки", price: 40 },
+  { id: "bg:pond", type: "bg", key: "pond", name: "Пруд с кувшинками", price: 50 },
+  { id: "bg:sakura", type: "bg", key: "sakura", name: "Цветущая сакура", price: 55 },
+  { id: "bg:rainbow", type: "bg", key: "rainbow", name: "Радуга", price: 60 },
 
   { id: "deck:classic", type: "deck", key: "classic", name: "Классика", price: 0 },
   { id: "deck:vintage", type: "deck", key: "vintage", name: "Винтаж", price: 25 },
@@ -48,6 +53,11 @@ const ITEMS = [
   { id: "deck:neon", type: "deck", key: "neon", name: "Неон", price: 90 },
   { id: "deck:dynasty", type: "deck", key: "dynasty", name: "Династия", price: 100 },
   { id: "deck:koschei", type: "deck", key: "koschei", name: "Кащеева", price: 150 },
+  { id: "deck:marsh", type: "deck", key: "marsh", name: "Зефирка", price: 35 },
+  { id: "deck:mint", type: "deck", key: "mint", name: "Мятная", price: 35 },
+  { id: "deck:kitty", type: "deck", key: "kitty", name: "Котики", price: 50 },
+  { id: "deck:sky", type: "deck", key: "sky", name: "Облачная", price: 45 },
+  { id: "deck:caramel", type: "deck", key: "caramel", name: "Карамель", price: 45 },
 
   { id: "color:gold", type: "color", key: "#f2c14e", name: "Золото", price: 0 },
   { id: "color:mint", type: "color", key: "#7ee0b5", name: "Мята", price: 0 },

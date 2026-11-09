@@ -179,6 +179,36 @@ button.card:disabled{cursor:default}
   --c-back:radial-gradient(circle at 50% 50%,#f2c14e 0 2px,transparent 2.5px) 0 0/12px 12px,radial-gradient(circle at 50% 50%,transparent 0 9px,rgba(242,193,78,.55) 9px 10px,transparent 10px) 0 0/24px 24px,#0a0908;
   --c-back-edge:#f2c14e; --c-rank:.32;
 }
+[data-cards="marsh"]{
+  --c-bg:linear-gradient(160deg,#fff0f6 0%,#ffe0ee 100%); --c-tex:none; --c-ink:#7a4a66; --c-red:#ff5c9a;
+  --c-edge:rgba(255,160,200,.8); --c-edge-w:2px; --c-font:"Unbounded",system-ui,sans-serif; --c-radius:14px;
+  --c-shadow:0 3px 0 rgba(255,150,190,.45),0 6px 14px rgba(120,40,80,.2); --c-glass:rgba(255,224,238,.5); --c-glass-edge:rgba(255,160,200,.9);
+  --c-back:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><path d='M8 13 C2 9 2 4 5.2 4 C6.8 4 8 5.6 8 5.6 C8 5.6 9.2 4 10.8 4 C14 4 14 9 8 13Z' fill='%23ffffff' fill-opacity='.5'/></svg>") 0 0/16px 16px,linear-gradient(160deg,#ffb3d1,#ff8fbd); --c-back-edge:#fff0f6; --c-rank:.27;
+}
+[data-cards="mint"]{
+  --c-bg:linear-gradient(160deg,#effff8 0%,#d9f7ea 100%); --c-tex:none; --c-ink:#2f6b57; --c-red:#ff7a8a;
+  --c-edge:rgba(120,210,170,.8); --c-edge-w:2px; --c-font:"Unbounded",system-ui,sans-serif; --c-radius:12px;
+  --c-shadow:0 3px 0 rgba(120,210,170,.45),0 6px 14px rgba(20,80,60,.2); --c-glass:rgba(217,247,234,.5); --c-glass-edge:rgba(120,210,170,.9);
+  --c-back:radial-gradient(circle,rgba(255,255,255,.6) 0 2px,transparent 2.5px) 0 0/10px 10px,linear-gradient(160deg,#8fe0bd,#5fc79c); --c-back-edge:#effff8; --c-rank:.27;
+}
+[data-cards="kitty"]{
+  --c-bg:linear-gradient(160deg,#fff8ec 0%,#ffeccf 100%); --c-tex:none; --c-ink:#6b4a2a; --c-red:#ff6f61;
+  --c-edge:rgba(255,190,120,.8); --c-edge-w:2px; --c-font:"Unbounded",system-ui,sans-serif; --c-radius:14px;
+  --c-shadow:0 3px 0 rgba(240,170,100,.45),0 6px 14px rgba(110,70,30,.2); --c-glass:rgba(255,236,207,.5); --c-glass-edge:rgba(255,190,120,.9);
+  --c-back:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22'><g fill='%23ffffff' fill-opacity='.55'><ellipse cx='11' cy='14' rx='4.2' ry='3.4'/><circle cx='6' cy='9' r='1.8'/><circle cx='9.3' cy='6.6' r='1.8'/><circle cx='12.7' cy='6.6' r='1.8'/><circle cx='16' cy='9' r='1.8'/></g></svg>") 0 0/22px 22px,linear-gradient(160deg,#ffb877,#ff9a56); --c-back-edge:#fff8ec; --c-rank:.27;
+}
+[data-cards="sky"]{
+  --c-bg:linear-gradient(170deg,#f4fbff 0%,#dcefff 100%); --c-tex:none; --c-ink:#3a5a86; --c-red:#ff7fa8;
+  --c-edge:rgba(150,200,255,.85); --c-edge-w:2px; --c-font:"Unbounded",system-ui,sans-serif; --c-radius:14px;
+  --c-shadow:0 3px 0 rgba(150,200,255,.45),0 6px 14px rgba(40,70,120,.2); --c-glass:rgba(220,239,255,.5); --c-glass-edge:rgba(150,200,255,.9);
+  --c-back:radial-gradient(ellipse at 30% 40%,#ffffff 0 18%,transparent 19%) 0 0/24px 18px,radial-gradient(ellipse at 70% 60%,#ffffff 0 14%,transparent 15%) 0 0/24px 18px,linear-gradient(170deg,#9fd0ff,#7ab8f5); --c-back-edge:#f4fbff; --c-rank:.27;
+}
+[data-cards="caramel"]{
+  --c-bg:linear-gradient(160deg,#fff4e0 0%,#f6dfb8 100%); --c-tex:none; --c-ink:#7a4b1e; --c-red:#d9534a;
+  --c-edge:rgba(200,140,70,.75); --c-edge-w:2px; --c-font:"Unbounded",system-ui,sans-serif; --c-radius:12px;
+  --c-shadow:0 3px 0 rgba(190,130,60,.45),0 6px 14px rgba(90,50,10,.22); --c-glass:rgba(246,223,184,.5); --c-glass-edge:rgba(200,140,70,.9);
+  --c-back:repeating-linear-gradient(45deg,#e8a35a 0 6px,#f6c98a 6px 12px); --c-back-edge:#fff4e0; --c-rank:.27;
+}
 [data-cards="ghost"] .card:not(.back){backdrop-filter:none;text-shadow:0 0 6px rgba(255,255,255,.9)}
 [data-cards="neon"] .card:not(.back){text-shadow:0 0 6px currentColor,0 0 14px currentColor}
 [data-cards="witch"] .card:not(.back),[data-cards="koschei"] .card:not(.back){text-shadow:0 0 8px currentColor}
@@ -281,6 +311,7 @@ header.wrap,.wrap.app{position:relative;z-index:1}
 .ntag{display:flex;flex-direction:column;gap:1px;min-width:0}
 .name{display:flex;align-items:center;gap:6px;min-width:0}
 .name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.name>span:not(.av){color:var(--pc,inherit)}
 .name .dot{width:9px;height:9px;border-radius:50%;background:var(--pc,#f2c14e);flex:none;box-shadow:0 0 6px var(--pc,#f2c14e)}
 .ptitle{font-size:11px;color:var(--brass);letter-spacing:.04em;padding-left:15px}
 .hat{display:inline-flex;flex:none;filter:drop-shadow(0 1px 0 rgba(0,0,0,.5))}
@@ -912,7 +943,9 @@ body.beat::before{animation:beatv .5s ease-out}
 /* ---------- телефон: стол помещается в экран ---------- */
 body.tablemode header.hdr{display:none}
 body.tablemode .wrap.app{min-height:100dvh;padding-top:calc(6px + var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px));padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
-body.tablemode .center{min-height:0}
+/* центр стола не сжимается меньше своего содержимого (на iPhone он сжимался и карты наезжали на руку) */
+body.tablemode .center{flex:1 0 auto;min-height:auto}
+body.tablemode .opps,body.tablemode .seat,body.tablemode .tbar-top{flex-shrink:0}
 body.tablemode .tbar-top{flex-wrap:nowrap}
 body.tablemode .tbar-top .row{flex-wrap:nowrap;gap:4px!important}
 body.tablemode .tbar-top .btn.tiny{padding:5px 8px}
@@ -920,17 +953,45 @@ body.tablemode .tbar-top>span{white-space:nowrap;overflow:hidden;text-overflow:e
 @media (max-height:700px){:root{--cwb:clamp(34px,min(11vw,7.6vh),118px)} body.tablemode .wrap.app{gap:2px} body.tablemode .seat>.row .btn{padding:9px 8px} body.tablemode .reacts button{padding:2px 6px;font-size:15px} body.tablemode .need{display:none}}
 @media (max-height:600px){:root{--cwb:clamp(30px,min(10.5vw,7vh),118px)} body.tablemode .opps{gap:0} body.tablemode .opp{padding:1px 2px}}
 /* чат за столом свёрнут в кнопку */
-.chatbar{left:auto;right:auto;transform:none;left:10px;width:auto;padding:0;background:none;border:0}
+.chatbar{left:auto;transform:none;right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));width:auto;padding:0;background:none;border:0}
 .chatbar>input,.chatbar>.ccount,.chatbar>button[type=submit]{display:none}
-.chatopen{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(6,14,12,.75);font-size:18px;box-shadow:0 4px 12px rgba(0,0,0,.4)}
-.chatbar.open{left:50%;transform:translateX(-50%);width:min(520px,calc(100% - 16px));background:rgba(6,14,12,.92);border:1px solid rgba(255,255,255,.12);padding:4px 4px 4px 6px}
+.chatopen{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(6,14,12,.45);font-size:14px;opacity:.6;padding:0;line-height:1;transition:opacity .2s}
+.chatopen:hover,.chatopen:focus-visible{opacity:1}
+.chatbar.open{left:50%;right:auto;transform:translateX(-50%);width:min(520px,calc(100% - 16px));background:rgba(6,14,12,.92);border:1px solid rgba(255,255,255,.12);padding:4px 4px 4px 6px}
 .chatbar.open>.chatopen{display:none}
 .chatbar.open>input,.chatbar.open>button[type=submit]{display:block}.chatbar.open>.ccount{display:inline}
 .chatbar.open>input{padding-left:8px}
 body.chaton .wrap.app{padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
-body.tablemode .reacts{padding-left:52px}
+body.tablemode .reacts{padding-right:40px}
 body.chaton .toast{bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .tourfs{width:100%;margin-bottom:8px}
+
+/* ---------- лёгкий режим ---------- */
+:root[data-lite] *,:root[data-lite] *::before,:root[data-lite] *::after{animation:none!important;transition:none!important}
+:root[data-lite] #dust,:root[data-lite] .fxcanvas{display:none!important}
+:root[data-lite] .reels .strip{transition:none!important}
+
+/* ---------- телефон (определяется автоматически): всё компактнее и выше ---------- */
+.reactopen{display:none}
+:root[data-mobile] body.tablemode .reactopen{display:inline-grid;place-items:center;margin-right:6px}
+.chatbar{display:flex;align-items:center}
+.chatbar.open>.reactopen{display:none!important}
+:root[data-mobile] body.tablemode .reacts{display:none}
+:root[data-mobile] body.tablemode.reactsopen .reacts{display:flex;position:fixed;right:10px;bottom:calc(50px + env(safe-area-inset-bottom,0px));z-index:13;background:rgba(6,14,12,.9);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:6px;flex-wrap:wrap;max-width:calc(100% - 20px);justify-content:center;gap:4px}
+:root[data-mobile] body.tablemode .wrap.app{gap:2px;padding-inline:8px}
+:root[data-mobile] body.tablemode .tbar-top{margin-bottom:0}
+:root[data-mobile] body.tablemode .opp{padding:1px 2px}
+:root[data-mobile] body.tablemode .need{display:none}
+:root[data-mobile] body.tablemode .center{padding:2px;gap:4px}
+:root[data-mobile] body.tablemode .seat{gap:2px;padding:2px}
+:root[data-mobile] body.tablemode .seat>.row .btn{padding:10px 8px}
+:root[data-mobile] body.tablemode .ptitle{display:none}
+:root[data-mobile] body.tablemode .seat{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+
+/* светлые «милые» фоны: тексту нужна тёмная обводка */
+body.lightbg #bgcanvas{filter:brightness(.82)}
+body.lightbg.tablemode .name span,body.lightbg.tablemode .status,body.lightbg.tablemode .side,body.lightbg.tablemode .need,body.lightbg.tablemode .tbar-top,body.lightbg.tablemode .ohand b,body.lightbg .waitstage,body.lightbg .cgscreen{text-shadow:0 0 2px #000,0 0 4px rgba(0,0,0,.9),0 1px 2px #000}
+body.lightbg.tablemode .tbar-top .btn{background:rgba(0,0,0,.35)}
 </style>
 </head>
 <body>
@@ -1176,17 +1237,18 @@ const equippedId=t=>(profile&&profile.equipped&&profile.equipped[t])||DEF_EQUIP[
 const equippedKey=t=>{ const it=itemById(equippedId(t)); return it?it.key:null; };
 
 const Prefs=(()=>{
-  const d={liveBg:true,anim:"normal",big:false,hlPlayable:true,hlPile:true,hlTurn:true,hints:true,showLog:false,tense:true,hideNames:false};
+  const d={liveBg:true,anim:"normal",big:false,hlPlayable:true,hlPile:true,hlTurn:true,hints:true,showLog:false,tense:true,hideNames:false,lite:false};
   let p; try{ p=Object.assign({},d,JSON.parse(ls.get("durak.prefs")||"{}")); }catch(e){ p={...d}; }
-  return { get:k=>p[k], set(k,v){ p[k]=v; ls.set("durak.prefs",JSON.stringify(p)); applyPrefs(); } };
+  return { get:k=>(k==="anim"&&p.lite)?"off":(k==="liveBg"&&p.lite)?false:p[k], set(k,v){ p[k]=v; ls.set("durak.prefs",JSON.stringify(p)); applyPrefs(); } };
 })();
 function applyPrefs(){
-  const r=document.documentElement;
-  r.setAttribute("data-anim",Prefs.get("anim"));
+  const r=document.documentElement, lite=!!Prefs.get("lite");
+  r.toggleAttribute("data-lite",lite);
+  r.setAttribute("data-anim",lite?"off":Prefs.get("anim"));
   if(Prefs.get("big")) r.setAttribute("data-big","1"); else r.removeAttribute("data-big");
   r.toggleAttribute("data-hlturn",!!Prefs.get("hlTurn"));
   r.toggleAttribute("data-nohints",!Prefs.get("hints"));
-  Bg.setLive(!!Prefs.get("liveBg"));
+  Bg.setLive(!lite&&!!Prefs.get("liveBg"));
 }
 function applyCosmetics(){
   document.documentElement.setAttribute("data-cards",equippedKey("deck")||"classic");
@@ -1319,6 +1381,32 @@ const Bg=(()=>{
       c.fillStyle="#120201"; [[.1,.32],[.3,.2],[.62,.28],[.86,.36]].forEach(([fx,fh])=>{ const x=fx*w|0, hh=fh*h|0; for(let q=0;q<10;q++) c.fillRect(x-q,ly-hh+q*hh/10|0,q*2+1,hh/10+1|0); });
       for(let i=0;i<26;i++){ const x0=r()*w, sp=.01+r()*.012, yy=h-((t*sp+r()*h)%h), xx=x0+3*Math.sin(t/300+i); px(c,xx,yy,yy<h*.3?"#7a2a08":i%2?"#ffb03a":"#ff6a1a"); }
       glow(c,w*.5,ly,w*.4,"255,90,20",.025); },
+    clouds(c,w,h,t){ bands(c,w,["#bfe3ff","#cbe9ff","#d8eeff","#e6f4ff","#f3f9ff"],0,h); const r=rng(121);
+      const cl=(x,y,s)=>{ c.fillStyle="#ffffff"; [[0,0,1.6],[1.4,-.6,1.3],[2.6,0,1.5],[1.2,.6,1.2]].forEach(([dx,dy,rr])=>{ c.beginPath(); c.arc(x+dx*s,y+dy*s,rr*s,0,7); c.fill(); }); c.fillStyle="rgba(170,200,235,.35)"; c.fillRect((x-s)|0,(y+s*1.1)|0,(s*4.5)|0,1); };
+      for(let i=0;i<7;i++){ const s=3+((i*5)%4), sp=.002+i*.0007, y=h*(.1+((i*37)%70)/100), x=((r()*w+t*sp)%(w+40))-20; cl(x,y,s); }
+      c.fillStyle="#ffe58a"; c.beginPath(); c.arc(w*.82,h*.12,6,0,7); c.fill(); glow(c,w*.82,h*.12,12,"255,230,140",.06);
+      c.fillStyle="#bfe8b0"; for(let x=0;x<w;x++){ const hh=Math.round(h*.1+4*Math.sin(x/12)); c.fillRect(x,h-hh,1,hh); } c.fillStyle="#a8dc9a"; for(let x=0;x<w;x++){ const hh=Math.round(h*.06+3*Math.sin(x/7+2)); c.fillRect(x,h-hh,1,hh); }
+      for(let i=0;i<8;i++){ const x=(i*17+5)%w, y=h-h*.05-(i%3); px(c,x,y,["#ff8fb3","#fff59a","#ffffff"][i%3]); } },
+    candy(c,w,h,t){ c.fillStyle="#ffe6f2"; c.fillRect(0,0,w,h); const cols=["#ffb3d1","#b8e6ff","#c9f2c7","#fff0a8","#e0c8ff"];
+      for(let y=0;y<h;y+=12) for(let x=((y/12)%2)*6;x<w;x+=12){ const k=((x*3+y*7)>>2)%cols.length, b=Math.sin(t/700+x*.3+y*.2)*.5+.5; c.fillStyle=cols[k]; c.beginPath(); c.arc(x+3,y+3,1.6+b*.6,0,7); c.fill(); }
+      for(let i=0;i<5;i++){ const x=(w*(.1+i*.2)), y=h*(.2+(i%2)*.45)+3*Math.sin(t/900+i); c.fillStyle="#ffffff"; c.fillRect(x-1|0,y|0,3,9); c.fillStyle=cols[i]; c.beginPath(); c.arc(x+.5,y,5,0,7); c.fill(); c.fillStyle="#ffffff"; c.beginPath(); c.arc(x-1,y-1.5,1.5,0,7); c.fill(); } },
+    pond(c,w,h,t){ bands(c,w,["#cdeef0","#bfe6e8","#aedfe0"],0,h*.25); c.fillStyle="#7cc7c2"; c.fillRect(0,h*.25|0,w,h); const r=rng(131);
+      for(let y=h*.25|0;y<h;y+=4){ const off=Math.round(2*Math.sin(t/800+y/5)); c.fillStyle="rgba(255,255,255,.18)"; c.fillRect((off+(y*13)%w)|0,y,6,1); }
+      c.fillStyle="#9fd89a"; for(let x=0;x<w;x++){ const hh=Math.round(h*.04+3*Math.sin(x/9)); c.fillRect(x,(h*.25|0)-hh,1,hh); }
+      [[.2,.45,9],[.65,.55,11],[.4,.78,8],[.85,.82,10]].forEach(([fx,fy,R],k)=>{ const x=fx*w, y=fy*h+1.5*Math.sin(t/1200+k); c.fillStyle="#4fae6a"; c.beginPath(); c.arc(x,y,R*.6,0.3,6.0); c.lineTo(x,y); c.fill(); if(k%2===0){ c.fillStyle="#ffc0d8"; c.beginPath(); c.arc(x+2,y-2,2.4,0,7); c.fill(); c.fillStyle="#fff2a8"; px(c,x+2,y-2,"#fff2a8"); } });
+      const fx=w*.65, fy=h*.55-3+Math.round(Math.abs(Math.sin(t/700))*-2); c.fillStyle="#6fcf5f"; c.fillRect(fx-2|0,fy|0,5,3); px(c,fx-1,fy-1,"#ffffff"); px(c,fx+2,fy-1,"#ffffff"); px(c,fx-1,fy-1,"#1c1b19");
+      for(let i=0;i<4;i++){ const x=(r()*w+t*.01*(i+1))%w, y=h*.15+6*Math.sin(t/300+i); px(c,x,y,"#ffffff"); px(c,x-1,y-1,"#ffffff"); px(c,x+1,y-1,"#ffffff"); } },
+    sakura(c,w,h,t){ bands(c,w,["#ffe9f1","#ffdfeb","#ffd4e4","#ffcade"],0,h); const r=rng(141);
+      c.fillStyle="#d6f0c8"; c.fillRect(0,h*.8|0,w,h); c.fillStyle="#c4e8b4"; for(let x=0;x<w;x++){ const hh=Math.round(2*Math.sin(x/6)); c.fillRect(x,(h*.8|0)-hh,1,hh+1); }
+      [[.18,.8,.5],[.78,.8,.6]].forEach(([fx,fy,sc])=>{ const x=fx*w|0, base=fy*h|0, th=h*.35*sc; c.fillStyle="#8a5a4a"; c.fillRect(x,base-th|0,3,th|0); c.fillRect(x-6,base-th*.7|0,8,2); c.fillRect(x+2,base-th*.85|0,8,2);
+        for(let k=0;k<26;k++){ const a=r()*6.28, d=r()*14*sc+4; c.fillStyle=["#ff9ec4","#ffb8d4","#ffd0e2","#ff86b6"][k%4]; c.beginPath(); c.arc(x+Math.cos(a)*d*1.4,base-th+Math.sin(a)*d*.8,2.4+r()*1.6,0,7); c.fill(); } });
+      for(let i=0;i<22;i++){ const x0=r()*w, sp=.004+r()*.005, y=(r()*h+t*sp)%h, x=(x0+t*.003+5*Math.sin(t/700+i))%w; px(c,x,y,"#ff8fbd"); if(i%2) px(c,x+1,y,"#ffc2da"); } },
+    rainbow(c,w,h,t){ bands(c,w,["#cfe9ff","#dff1ff","#eef8ff"],0,h); const cx=w/2, cy=h*.75, cols=["#ff8a8a","#ffbb7a","#ffe680","#9fe39a","#8cc8ff","#b9a0ff"];
+      cols.forEach((col,i)=>{ const R=w*.45-i*4; c.strokeStyle=col; c.lineWidth=4; c.beginPath(); c.arc(cx,cy,R,Math.PI,0); c.stroke(); });
+      const cl=(x,y,s)=>{ c.fillStyle="#ffffff"; [[0,0,1.6],[1.4,-.6,1.3],[2.6,0,1.5]].forEach(([dx,dy,rr])=>{ c.beginPath(); c.arc(x+dx*s,y+dy*s,rr*s,0,7); c.fill(); }); };
+      cl(cx-w*.48,cy-2,4); cl(cx+w*.36,cy-2,4);
+      for(let i=0;i<12;i++){ const ph=i*1.7, x=(i*23+7)%w, y=(i*31+5)%(h*.5), b=Math.sin(t/400+ph); if(b>0){ c.fillStyle="#ffd84a"; c.fillRect(x,y-1,1,3); c.fillRect(x-1,y,3,1); } }
+      c.fillStyle="#bfe8b0"; c.fillRect(0,cy+2|0,w,h); for(let i=0;i<10;i++){ const x=(i*13+3)%w; px(c,x,cy+6+(i%3)*3,["#ff8fb3","#fff59a","#b9a0ff"][i%3]); } },
     snow(c,w,h,t){ bands(c,w,["#0c1630","#10203f","#16294d"],0,h); c.fillStyle="#cfdcef"; for(let x=0;x<w;x++){ const hh=Math.round(h*.12+4*Math.sin(x/9)+3*Math.sin(x/4.3)); c.fillRect(x,h-hh,1,hh); }
       c.fillStyle="#a9bad6"; for(let x=0;x<w;x++){ const hh=Math.round(h*.07+3*Math.sin(x/7+1)); c.fillRect(x,h-hh,1,hh); }
       const r=rng(13); for(let i=0;i<w*h/60;i++){ const x0=r()*w, sp=.004+r()*.006, y=((r()*h)+t*sp)%h, x=(x0+Math.sin(t/900+i)*2+w)%w; px(c,x,y,"#ffffff"); } }
@@ -1332,7 +1420,7 @@ const Bg=(()=>{
   addEventListener("resize",()=>{ clearTimeout(resize.t); resize.t=setTimeout(resize,150); }); resize();
   setInterval(tick,120); // ~8 кадров в секунду: фону больше не нужно, а телефону легче
   return {
-    set(k){ if(k!==key){ key=GEN[k]?k:"felt"; draw(performance.now()); } },
+    set(k){ document.body.classList.toggle("lightbg",["clouds","candy","pond","sakura","rainbow"].includes(k)); if(k!==key){ key=GEN[k]?k:"felt"; draw(performance.now()); } },
     setLive(v){ live=!!v; draw(performance.now()); },
     thumb(k){ if(!thumbCache[k]){ const t=document.createElement("canvas"); t.width=96; t.height=60; const tc=t.getContext("2d"); (GEN[k]||GEN.felt)(tc,96,60,0); tc.fillStyle="rgba(0,0,0,.18)"; tc.fillRect(0,0,96,60); thumbCache[k]=t.toDataURL(); }
       return el("img",{src:thumbCache[k],alt:"",class:"bgthumb"}); },
@@ -1859,6 +1947,7 @@ function renderCasino(){
 }
 
 /* ---------- экран настроек ---------- */
+function segRaw(key,opts){ return seg(key,opts); }
 function seg(key,opts){ return el("div",{class:"seg",role:"group"},opts.map(([v,label])=>el("button",{type:"button",class:Prefs.get(key)===v?"on":"","aria-pressed":String(Prefs.get(key)===v),onclick:()=>{ Prefs.set(key,v); Sound.fx("pick"); render(); }},label))); }
 function check(key,label){ const id="pref-"+key; const i=el("input",{type:"checkbox",id,checked:!!Prefs.get(key)}); i.addEventListener("change",()=>{ Prefs.set(key,i.checked); Sound.fx(i.checked?"pick":"unpick"); render(); }); return el("label",{class:"chk",for:id},i,el("span",{text:label})); }
 function viewHead(title){ return el("div",{class:"top"},el("h2",{class:"vtitle",text:title}),el("button",{class:"btn ghost",type:"button",onclick:()=>{ view="main"; render(); }},room?"← К столу":"← В меню")); }
@@ -1876,7 +1965,9 @@ function renderSettings(){
     check("hlPlayable","Подсвечивать карты, которыми можно сходить"),
     check("hlPile","Показывать цветом, кто положил карту в стопку"),
     check("hints","Подсказки на столе («Бей 7 или старше» и т.п.)")));
-  app.append(el("div",{class:"panel"},el("h2",{},"Анимации"),seg("anim",[["normal","Обычные"],["fast","Быстрые"],["off","Выкл"]]),
+  app.append(el("div",{class:"panel"},el("h2",{},"Анимации"),
+    check("lite","🪶 Лёгкий режим: выключить все анимации и живой фон — для слабых телефонов, чтобы игра не лагала"),
+    Prefs.get("lite")?null:segRaw("anim",[["normal","Обычные"],["fast","Быстрые"],["off","Выкл"]]),
     el("h2",{},"Размер карт"),seg("big",[[false,"Обычные"],[true,"Крупные"]])));
   app.append(el("div",{class:"panel"},el("h2",{},"Обучение"),el("p",{class:"muted small",text:"Короткая экскурсия по разделам игры."}),el("button",{class:"btn small",type:"button",onclick:()=>{ Tour.reset(); view="main"; render(); scrollTo(0,0); setTimeout(()=>Tour.start(),300); }},"Пройти обучение")));
   const audioPanel=el("div",{class:"panel"},el("h2",{},"Звук и музыка")); audioPanel.append(audioBox,check("tense","Напряжённый момент: затемнение и тревожная мелодия, когда открываешь закрытую карту (громкость — как у музыки)")); app.append(audioPanel);
@@ -2355,6 +2446,10 @@ function chatSync(){
     open.addEventListener("click",()=>{ chatBar.classList.add("open"); setTimeout(()=>inp.focus(),30); });
     inp.addEventListener("blur",()=>setTimeout(()=>{ if(!inp.value.trim()) chatBar.classList.remove("open"); },150));
     chatBar.prepend(open);
+    const rbtn=el("button",{class:"chatopen reactopen",type:"button","aria-label":"Реакции"},"😀");
+    rbtn.addEventListener("click",()=>{ document.body.classList.toggle("reactsopen"); Sound.fx("pick"); });
+    chatBar.prepend(rbtn);
+    document.addEventListener("click",e=>{ if(document.body.classList.contains("reactsopen")&&!e.target.closest(".reacts,.reactopen")) document.body.classList.remove("reactsopen"); if(e.target.closest(".reacts button")) setTimeout(()=>document.body.classList.remove("reactsopen"),150); });
     document.body.append(chatBar);
   }
   chatBar.hidden=false;
@@ -2915,6 +3010,8 @@ document.getElementById("shopBtn").addEventListener("click",()=>{ if(casinoLock)
 document.getElementById("coinsBtn").addEventListener("click",()=>{ if(casinoLock) return; view="shop"; Sound.fx("pick"); render(); scrollTo(0,0); });
 document.getElementById("frBtn").addEventListener("click",()=>{ if(casinoLock) return toast("Дождись конца раунда"); view=view==="friends"?"main":"friends"; Sound.fx("pick"); sendMsg({t:"friends"}); render(); scrollTo(0,0); });
 document.getElementById("setBtn").addEventListener("click",()=>{ if(casinoLock) return toast("Дождись конца раунда"); view=view==="settings"?"main":"settings"; Sound.fx("pick"); render(); scrollTo(0,0); });
+(()=>{ const ua=navigator.userAgent||"", tgp=TG&&TG.platform||""; const mob=/android|iphone|ipad|ipod|mobile/i.test(ua)||["ios","android","android_x"].includes(tgp)||(matchMedia&&matchMedia("(pointer:coarse)").matches&&innerWidth<820);
+  document.documentElement.toggleAttribute("data-mobile",!!mob); })();
 let fsAvail=false; const fsToggle=()=>{ const b=document.getElementById("fsBtn"); if(b&&!b.hidden) b.click(); }; const fsIsOn=()=>document.body.classList.contains("fs");
 /* ---------- полный экран: официальный режим Telegram (Bot API 8.0+), иначе браузерный ---------- */
 (function setupFullscreen(){
