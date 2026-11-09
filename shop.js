@@ -87,6 +87,7 @@ const ITEMS = [
   { id: "winfx:confetti", type: "winfx", key: "confetti", name: "Конфетти", price: 20 },
   { id: "winfx:coins", type: "winfx", key: "coins", name: "Золотой дождь", price: 50 },
 ];
+ITEMS.push(...require("./progress").EXTRA_ITEMS); // титулы за уровни и сезонные рамки — их не купить
 const BY_ID = Object.fromEntries(ITEMS.map(i => [i.id, i]));
 const DEFAULT_EQUIP = { bg: "bg:felt", deck: "deck:classic", color: "color:gold", title: "title:none", winfx: "winfx:fireworks", frame: "frame:none" };
 const COLOR_ORDER = ITEMS.filter(i => i.type === "color").map(i => i.key);
@@ -101,7 +102,7 @@ function ensureEco(u) {
   for (const [k, v] of Object.entries(DEFAULT_EQUIP)) if (!BY_ID[u.equipped[k]]) u.equipped[k] = v;
   return u;
 }
-const owns = (u, id) => { const it = BY_ID[id]; return !!it && (it.price === 0 || u.owned.includes(id)); };
+const owns = (u, id) => { const it = BY_ID[id]; return !!it && ((it.price === 0 && !it.lvl && !it.season) || u.owned.includes(id)); };
 
 function profile(u) {
   ensureEco(u);
@@ -114,6 +115,8 @@ function buy(u, id) {
   const it = BY_ID[id];
   if (!it) return "Такого товара нет";
   if (owns(u, id)) return "Уже куплено";
+  if (it.lvl) return `Этот титул открывается на ${it.lvl} уровне`;
+  if (it.season) return "Эта рамка — награда сезона, её не купить";
   if (u.coins < it.price) return `Не хватает $${it.price - u.coins}`;
   u.coins -= it.price;
   u.owned.push(id);

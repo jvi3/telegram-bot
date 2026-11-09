@@ -1145,6 +1145,59 @@ body.lightbg.tablemode .tbar-top .btn{background:rgba(0,0,0,.35)}
 .qpop b{display:block;font-size:14px}.qpop span{font-size:12px;color:#ffd27a}
 @keyframes qpin{from{transform:translate(-50%,-80px);opacity:0}}
 @keyframes qpout{to{transform:translate(-50%,-80px);opacity:0}}
+/* ---------- уровень, достижения, сезон ---------- */
+.fr-s1 .frfx,.fr-s2 .frfx,.fr-s3 .frfx,.fr-s4 .frfx,.fr-s5 .frfx,.fr-s6 .frfx{background:conic-gradient(from 0deg,var(--fa),var(--fb),var(--fa),var(--fb),var(--fa));-webkit-mask:radial-gradient(circle,transparent 58%,#000 60%,#000 70%,transparent 72%);mask:radial-gradient(circle,transparent 58%,#000 60%,#000 70%,transparent 72%);filter:drop-shadow(0 0 5px var(--fa));animation:frspin 3s linear infinite}
+.fr-s1 .frfx::after,.fr-s2 .frfx::after,.fr-s3 .frfx::after,.fr-s4 .frfx::after,.fr-s5 .frfx::after,.fr-s6 .frfx::after{content:"";position:absolute;width:26%;height:26%;left:37%;top:-8%;border-radius:50%;background:radial-gradient(circle,#fff,var(--fb) 50%,transparent 70%);transform-origin:50% calc(var(--s) * .66);animation:frorbit 2.2s linear infinite}
+.fr-s1{--fa:#e8402a;--fb:#ffcf4a}.fr-s2{--fa:#ff8a1a;--fb:#1a1a1a}.fr-s3{--fa:#2ad4c0;--fb:#ff4fa8}.fr-s4{--fa:#cfd8ff;--fb:#8a7aff}.fr-s5{--fa:#2a7a4a;--fb:#9aff7a}.fr-s6{--fa:#d4a020;--fb:#5a2a8a}
+.lvchip{display:inline-grid;place-items:center;min-width:18px;height:16px;padding:0 4px;border-radius:8px;background:linear-gradient(180deg,#ffd27a,#c98a2a);color:#2a1c06;font:700 10px/16px var(--body);margin-left:4px;vertical-align:middle}
+.crown{font-style:normal;margin-right:2px}.crown.c2{filter:grayscale(1) brightness(1.3)}.crown.c3{filter:sepia(1) hue-rotate(-20deg) saturate(2) brightness(.8)}
+.pgtop{display:flex;gap:14px;align-items:center}
+.pgbadge{width:74px;height:74px;flex:none;position:relative;display:grid;place-items:center;animation:dbob 3s ease-in-out infinite}
+.pgbadge svg{position:absolute;inset:0;animation:pgspin 14s linear infinite}
+.pgbadge b{position:relative;font-size:24px;color:#2a1c06}
+@keyframes pgspin{to{transform:rotate(360deg)}}
+.xpbar{height:14px;border-radius:7px;background:rgba(0,0,0,.35);overflow:hidden;position:relative;margin:6px 0 4px}
+.xpbar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#c98a2a,#ffd27a,#c98a2a);background-size:200% 100%;animation:dflow 1.6s linear infinite;transition:width .7s cubic-bezier(.3,1.4,.5,1)}
+.xpsrc{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;position:relative}
+.xpsrc div{background:rgba(0,0,0,.25);border-radius:10px;padding:7px 9px;font-size:12px;display:flex;justify-content:space-between;gap:6px}
+.xpsrc b{color:#7ee0b5}
+.pgroad{display:flex;gap:8px;overflow-x:auto;padding:6px 2px 10px;position:relative}
+.pgrl{flex:none;width:76px;border-radius:12px;background:rgba(0,0,0,.28);border:1.5px solid rgba(255,255,255,.1);padding:8px 4px;text-align:center;font-size:11px;position:relative}
+.pgrl i{display:block;font-style:normal;font-size:22px;margin:3px 0}
+.pgrl span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pgrl.got{opacity:.5}.pgrl.got::after{content:"✓";position:absolute;top:2px;right:6px;color:#7ee0b5}
+.pgrl.next{border-color:#f2c14e;animation:dglow 1.6s ease-in-out infinite}
+.pgrl.big{background:linear-gradient(160deg,rgba(242,193,78,.25),rgba(0,0,0,.3))}.pgrl.big i{animation:dshake 2.4s ease-in-out infinite}
+.achtiers{display:flex;gap:12px;font-size:12px;margin-bottom:10px;flex-wrap:wrap;position:relative}
+.achtiers span::before{content:"●";margin-right:4px;color:var(--c)}
+.achgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;position:relative}
+.achi{background:rgba(0,0,0,.25);border-radius:12px;padding:10px;display:flex;gap:9px;align-items:center;animation:pgfl 4s ease-in-out infinite;animation-delay:calc(var(--k)*-.6s)}
+@keyframes pgfl{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+.med{width:42px;height:42px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:20px;border:3px solid var(--c);box-shadow:0 0 10px var(--c);animation:dwob 2.4s ease-in-out infinite;animation-delay:calc(var(--k)*-.4s)}
+.med.none{border-color:rgba(255,255,255,.2);box-shadow:none;filter:grayscale(1);opacity:.6;animation:none}
+.achi.x .med{border-style:dashed}
+.achi b{font-size:13px;display:block}.achi>div>span{font-size:11px;opacity:.75;display:block}
+.achi .pb{height:4px;border-radius:2px;background:rgba(255,255,255,.12);margin-top:4px;overflow:hidden}.achi .pb i{display:block;height:100%;background:var(--c)}
+.sshead{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;flex-wrap:wrap;position:relative}
+.ssname{font-size:20px;color:#ffe6a0}
+.sstimer{font-size:12px;color:#ffb36a}
+.strack{display:flex;gap:6px;overflow-x:auto;padding:10px 2px 12px;position:relative}
+.sst{flex:none;width:58px;text-align:center;font-size:10px}
+.sst .box{height:58px;border-radius:10px;background:rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.1);display:grid;place-items:center;font-size:20px}
+.sst.got .box{opacity:.45}.sst.cur .box{border-color:#f2c14e;animation:dglow 1.6s infinite}
+.sst.big .box{background:linear-gradient(160deg,rgba(242,193,78,.3),rgba(0,0,0,.3))}.sst.big .box>*{animation:dshake 2.4s ease-in-out infinite}
+.sst .n{margin-top:3px;opacity:.7}
+.slb{display:flex;flex-direction:column;gap:5px;position:relative}
+.slr{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.25);border-radius:10px;padding:7px 10px;font-size:13px}
+.slr .p{width:24px;text-align:center}
+.slr .s{margin-left:auto;color:#ffd27a}
+.slr.me{outline:1.5px solid #7ee0b5}
+.pgmini{display:flex;align-items:center;gap:12px;cursor:pointer}
+.pgmini .pgbadge{width:52px;height:52px}.pgmini .pgbadge b{font-size:17px}
+.pgmini .pgb{flex:1;min-width:0}.pgmini .pgb span{font-size:12px;opacity:.8}
+.lvov .citem{--rc:#ffcf4a}
+.lvov .lvbig{font-size:40px;color:#ffd27a;font-weight:700;animation:cpop .6s cubic-bezier(.3,1.6,.5,1);position:relative;text-shadow:0 0 20px rgba(255,210,122,.7)}
+.qpop.ach{border-color:var(--c);box-shadow:0 8px 24px rgba(0,0,0,.5),0 0 18px var(--c)}
 :root[data-anim="off"] .dsec *,:root[data-anim="off"] .dsec::before,:root[data-anim="off"] .dmini *,:root[data-anim="off"] .casecard *,:root[data-anim="off"] .daydot{animation:none!important}
 </style>
 </head>
@@ -1387,7 +1440,7 @@ let catalog=[], eco=null, profile=null, view="main", shopTab="bg", pendingBuy=nu
 const DEF_EQUIP={bg:"bg:felt",deck:"deck:classic",color:"color:gold",title:"title:none",winfx:"winfx:fireworks",frame:"frame:none"};
 const itemById=id=>catalog.find(i=>i.id===id);
 const itemsOf=t=>catalog.filter(i=>i.type===t);
-const owns=id=>{ const it=itemById(id); return !!it&&(it.price===0||(profile&&profile.owned.includes(id))); };
+const owns=id=>{ const it=itemById(id); return !!it&&((it.price===0&&!it.lvl&&!it.season)||(profile&&profile.owned.includes(id))); };
 const equippedId=t=>(profile&&profile.equipped&&profile.equipped[t])||DEF_EQUIP[t];
 const equippedKey=t=>{ const it=itemById(equippedId(t)); return it?it.key:null; };
 
@@ -1710,7 +1763,7 @@ function nameTag(p,{you=false}={}){
     const total=(room.status==="swap"?45:(room.timer||30))*1000, left=Math.max(0,deadlineAt-Date.now());
     wrap.append(el("div",{class:"tring",style:`animation-duration:${total}ms,${total}ms;animation-delay:-${total-left}ms,-${total-left}ms`}));
   }
-  wrap.append(el("div",{class:"name",style:`--pc:${p.color||"#f2c14e"}`},avatarEl(p,26),isFool?hatEl():null,el("span",{text:anonOn()?shownName(p):p.name+(you?" (ты)":"")})));
+  wrap.append(el("div",{class:"name",style:`--pc:${p.color||"#f2c14e"}`},avatarEl(p,26),isFool?hatEl():null,p.crown&&!anonOn()?el("i",{class:"crown c"+p.crown,title:["","1-е место прошлого сезона","2-е место прошлого сезона","3-е место прошлого сезона"][p.crown],text:"👑"}):null,el("span",{text:anonOn()?shownName(p):p.name+(you?" (ты)":"")}),p.lvl&&!anonOn()?el("b",{class:"lvchip",title:"Уровень",text:String(p.lvl)}):null));
   if(p.title&&!anonOn()) wrap.append(el("div",{class:"ptitle",style:"padding-left:32px",text:p.title}));
   return wrap;
 }
@@ -1737,6 +1790,7 @@ function itemTile(it){
     if(it.type==="reacts") btn=el("span",{class:"tag ok",text:"Куплено"});
     else if(on) btn=el("span",{class:"tag ok",text:"✓ Выбрано"});
     else btn=el("button",{class:"btn small",type:"button",onclick:()=>{ Sound.fx("pick"); sendMsg({t:"equip",id:it.id}); }},"Выбрать");
+  } else if(it.lvl||it.season){ btn=el("span",{class:"tag",text:it.lvl?`🔒 Уровень ${it.lvl}`:`🔒 Сезон ${it.season}`});
   } else {
     const confirm=pendingBuy===it.id, poor=profile&&profile.coins<it.price;
     btn=el("button",{class:"btn small"+(poor?" ghost":"")+(confirm?" confirm":""),type:"button",onclick:()=>buyClick(it)},confirm?`Точно? $${it.price}`:`Купить $${it.price}`);
@@ -2129,6 +2183,59 @@ function hiloNode(){
 
 /* ---------- экран казино ---------- */
 let casinoCfg={};
+/* ---------- уровень, достижения, сезон ---------- */
+let progData=null, progTab="lv";
+const TIERC={b:"#c98a5a",s:"#c9d3dc",g:"#ffcf4a",x:"#b28bff"};
+const STAR_SVG='<svg viewBox="0 0 74 74"><polygon points="37,2 46,14 61,10 61,25 73,34 63,45 67,60 52,62 45,73 37,64 29,73 22,62 7,60 11,45 1,34 13,25 13,10 28,14" fill="#f2c14e" stroke="#ffe6a0" stroke-width="2"/></svg>';
+function lvBadge(n){ const b=el("div",{class:"pgbadge"}); b.innerHTML=STAR_SVG; b.append(el("b",{text:String(n)})); return b; }
+function fmtDays(ms){ const h=Math.max(0,Math.floor(ms/3600e3)); return `${Math.floor(h/24)} д ${h%24} ч`; }
+function progLevel(d){
+  const X=d.xpTable, src=[["Сыграл партию",X.game],["Вышел первым",X.first],["Не дурак",X.middle],["Задание дня",X.quest],["Сжёг стопку",X.burn],["Достижение",X.ach]];
+  const road=el("div",{class:"pgroad"},d.road.map(r=>el("div",{class:"pgrl"+(r.l<=d.level?" got":"")+(r.l===d.level+1?" next":"")+(r.kind!=="coins"?" big":"")},`Ур. ${r.l}`,el("i",{text:r.kind==="title"?"🏷️":r.kind==="chest"?"🎁":"💰"}),el("span",{text:r.kind==="title"?`«${r.label}»`:r.label}))));
+  setTimeout(()=>{ const n=road.querySelector(".next"); if(n) road.scrollLeft=n.offsetLeft-road.clientWidth/2+38; },0);
+  return [el("div",{class:"panel dsec"},el("div",{class:"pgtop"},lvBadge(d.level),el("div",{style:"flex:1;min-width:0;position:relative"},el("b",{style:"font-size:16px",text:`Уровень ${d.level} · «${d.rank}»`}),el("div",{class:"xpbar"},el("i",{style:`width:${d.xp/d.need*100}%`})),el("span",{class:"muted small",text:`${d.xp} / ${d.need} опыта до ${d.level+1} уровня`}))),
+      el("div",{class:"xpsrc"},src.map(([a,b])=>el("div",{},a,el("b",{text:"+"+b})))),el("p",{class:"muted small",style:"margin:8px 0 0;position:relative"},"Опыт за партии с ботами — до 800 в день.")),
+    el("div",{class:"panel dsec"},el("h2",{},"Награды за уровни"),road,el("p",{class:"muted small",style:"margin:4px 0 0;position:relative"},"Каждый уровень — деньги. Каждый 5-й — сундук с фоном или колодой. На 10, 20, 30… — титул, которого нет в магазине."))];
+}
+function progAch(d){
+  const got=d.ach.filter(a=>a.got).length;
+  const sorted=d.ach.slice().sort((a,b)=>(b.got-a.got)||((b.p/b.n)-(a.p/a.n)));
+  return [el("div",{class:"panel dsec"},el("h2",{},`🏅 Достижения · ${got} из ${d.ach.length}`),
+    el("div",{class:"achtiers"},[["b","Бронза $20"],["s","Серебро $50"],["g","Золото $100"],["x","Тайные $75"]].map(([t,n])=>el("span",{style:`--c:${TIERC[t]}`,text:n}))),
+    el("div",{class:"achgrid"},sorted.map((a,k)=>el("div",{class:"achi "+a.tier,style:`--k:${k};--c:${TIERC[a.tier]}`},el("div",{class:"med"+(a.got?"":" none"),style:`--k:${k}`,text:a.icon}),
+      el("div",{style:"min-width:0;flex:1"},el("b",{text:a.name}),el("span",{text:a.desc}),a.got?el("span",{style:`color:${TIERC[a.tier]}`,text:"получено"}):a.n>1?[el("div",{class:"pb"},el("i",{style:`width:${a.p/a.n*100}%`})),el("span",{text:`${a.p}/${a.n}`})]:null)))))];
+}
+function progSeason(d){
+  const S=d.season;
+  const track=el("div",{class:"strack"},S.steps.map(s=>el("div",{class:"sst"+(s.n<=S.step?" got":"")+(s.n===S.step+1?" cur":"")+(s.kind!=="coins"?" big":"")},el("div",{class:"box"},s.kind==="frame"?avatarEl({name:me?me.name:"Я",avatar:profile&&profile.avatar||"",color:"#f2c14e",frame:s.frame},30):el("span",{text:s.kind==="chest"?"🎁":s.n%5===0?"⭐":"💰"})),el("div",{class:"n",text:s.kind==="coins"?s.label:s.label}))));
+  setTimeout(()=>{ const n=track.querySelector(".cur"); if(n) track.scrollLeft=n.offsetLeft-track.clientWidth/2+29; },0);
+  const inStep=S.pts-S.step*S.stepPts;
+  const rows=S.top.map(r=>el("div",{class:"slr"+(r.me?" me":"")},el("span",{class:"p",text:r.i<=3?["🥇","🥈","🥉"][r.i-1]:String(r.i)}),avatarEl({name:r.name,avatar:r.avatar,color:"#f2c14e"},26),el("span",{text:r.name}),el("span",{class:"s",text:String(r.pts)})));
+  if(S.me&&!S.top.some(r=>r.me)) rows.push(el("div",{class:"muted small",style:"text-align:center",text:"…"}),el("div",{class:"slr me"},el("span",{class:"p",text:String(S.me.i)}),el("span",{text:"Ты"}),el("span",{class:"s",text:String(S.me.pts)})));
+  return [el("div",{class:"panel dsec"},el("div",{class:"sshead"},el("div",{},el("span",{class:"muted small",text:`Сезон ${S.id}`}),el("div",{class:"ssname",text:`${S.icon} ${S.name}`})),el("div",{class:"sstimer",text:`⏳ до конца ${fmtDays(S.left)}`})),
+      el("div",{class:"xpbar"},el("i",{style:`width:${S.step>=S.steps.length?100:inStep/S.stepPts*100}%`})),
+      el("span",{class:"muted small",style:"position:relative",text:`Ступень ${S.step} из ${S.steps.length} · ${S.pts} очков · партия +${S.sp.game}, победа +${S.sp.win}, задание +${S.sp.quest}, достижение +${S.sp.ach}`}),
+      track,el("p",{class:"muted small",style:"margin:0;position:relative"},"Все ступени бесплатные. Финальная — сезонная рамка, после сезона её больше не получить.")),
+    el("div",{class:"panel dsec"},el("h2",{},"Рейтинг сезона"),el("div",{class:"slb"},rows.length?rows:el("p",{class:"muted small",text:"Пока никто не набрал очков — будь первым"})),el("p",{class:"muted small",style:"margin:8px 0 0;position:relative"},"Топ-3 в конце сезона получают корону у ника на весь следующий сезон."))];
+}
+function progBody(){ const d=progData; if(!d) return el("div",{class:"progv"},el("div",{class:"panel"},el("p",{class:"muted",text:profile?"Загружаю…":"Уровни работают, когда игра открыта через Telegram."})));
+  return el("div",{class:"progv"},el("div",{class:"tabs",role:"tablist"},[["lv","⭐ Уровень"],["ach","🏅 Достижения"],["season","🏆 Сезон"]].map(([k,n])=>el("button",{type:"button",role:"tab","aria-selected":String(progTab===k),class:progTab===k?"on":"",onclick:()=>{ progTab=k; Sound.fx("pick"); const o=document.querySelector(".progv"); if(o) o.replaceWith(progBody()); }},n))),
+    ...(progTab==="ach"?progAch(d):progTab==="season"?progSeason(d):progLevel(d))); }
+function renderProgress(){ app.append(viewHead("⭐ Мой путь"),progBody()); if(!progData) sendMsg({t:"progressGet"}); }
+function progMini(){ const d=progData; if(!d) return el("div",{class:"progmini",hidden:true});
+  const go=()=>{ view="progress"; Sound.fx("pick"); render(); scrollTo(0,0); };
+  return el("div",{class:"panel dsec progmini"},el("div",{class:"pgmini",onclick:go},lvBadge(d.level),el("div",{class:"pgb"},el("b",{text:`Уровень ${d.level} · «${d.rank}»`}),el("div",{class:"xpbar"},el("i",{style:`width:${d.xp/d.need*100}%`})),
+    el("span",{text:`${d.season.icon} Сезон: ступень ${d.season.step}/30 · 🏅 ${d.ach.filter(a=>a.got).length}/${d.ach.length}`})),el("button",{class:"btn small ghost",type:"button"},"Открыть"))); }
+function refreshProg(){ if(view==="progress"){ const o=document.querySelector(".progv"); if(o) o.replaceWith(progBody()); } if(!room&&view==="main"){ const o=document.querySelector(".progmini"); if(o) o.replaceWith(progMini()); } }
+const lvQueue=[]; let lvShowing=false;
+function levelUpShow(m){ lvQueue.push(m); if(!lvShowing) lvNext(); }
+function lvNext(){ if(room&&(room.status==="play"||room.status==="swap")){ lvShowing=true; return setTimeout(lvNext,1500); } // не мешаем доиграть партию
+  const m=lvQueue.shift(); if(!m){ lvShowing=false; return; } lvShowing=true;
+  const close=()=>{ ov.remove(); if(m.chest) chestReveal({...m.chest,src:"level"}); setTimeout(lvNext,m.chest?100:200); };
+  const ov=el("div",{class:"chestov lvov"},el("div",{class:"crays"}),el("div",{class:"cflash"}),lvBadge(m.level),el("div",{class:"lvbig",text:`УРОВЕНЬ ${m.level}!`}),el("div",{class:"ctitle",text:`«${m.rank}»`}),
+    el("div",{class:"muted small",style:"position:relative",text:m.coins?`+$${m.coins}`:m.title?`Новый титул «${m.title}» — надень его в магазине`:m.chest?"Награда — сундук!":""}),el("button",{class:"btn",type:"button",onclick:close},m.chest?"Открыть сундук":"Круто!"));
+  document.body.append(ov); Sound.fx("bigwin"); haptic("heavy"); if(Prefs.get("anim")!=="off") Fx.run("confetti"); }
+function achPop(m){ const p=el("div",{class:"qpop ach",style:`--c:${TIERC[m.tier]}`},el("i",{text:m.icon}),el("div",{},el("b",{text:`Достижение «${m.name}»!`}),el("span",{text:`${m.desc} · +$${m.coins}`}))); document.body.append(p); Sound.fx("bigwin"); haptic("heavy"); setTimeout(()=>p.remove(),3400); }
 /* ---------- ежедневное: серия входов, задания, колесо, сундуки ---------- */
 let dailyData=null, dailyLock=false, wheelRot=0;
 const WSEG={c3:["$3","#2a5a7a"],c5:["$5","#2e7a58"],c10:["$10","#2e7a58"],c20:["$20","#b9862c"],c50:["$50","#c9502a"],x2:["x2 задания","#6a3a9a"],chest:["Сундук","#9a3a3a"]};
@@ -2407,6 +2514,9 @@ function connect(){
     } else if(m.t==="wheelRes"){ if(wheelWait){ const f=wheelWait; wheelWait=null; f(m); }
     } else if(m.t==="chestOpen"){ chestReveal(m);
     } else if(m.t==="questDone"){ questPop(m);
+    } else if(m.t==="progress"){ progData=m; refreshProg();
+    } else if(m.t==="levelUp"){ levelUpShow(m);
+    } else if(m.t==="achGot"){ setTimeout(()=>achPop(m),document.querySelector(".qpop")?3500:0);
     } else if(m.t==="toast"){ toast(m.msg);
     } else if(m.t==="typing"){ if(m.from!==me.id) showTyping(m.from);
     } else if(m.t==="chat"){ document.querySelectorAll(`.typing[data-for="${CSS.escape(m.from)}"]`).forEach(x=>x.remove()); chatB[m.from]={text:m.text,at:Date.now()}; if(m.from!==me.id) Sound.fx("pick"); showBubbles();
@@ -2486,6 +2596,7 @@ function renderInner(){
   if(view==="cg"){ document.body.classList.remove("tablemode"); renderCG(); return; }
   if(view==="shop"){ renderShop(); return; }
   if(view==="daily"){ renderDaily(); return; }
+  if(view==="progress"){ renderProgress(); return; }
   if(view==="casino"){ renderCasino(); return; }
   const tableMode=!!(room&&room.status!=="lobby"&&!fatal);
   document.body.classList.toggle("tablemode",tableMode);
@@ -2518,6 +2629,7 @@ function renderMenu(){
       el("button",{class:"btn",type:"button",onclick:()=>sendMsg({t:"create"})},"Создать комнату"),
       codeIn,
       el("button",{class:"btn ghost",type:"button",onclick:()=>{const c=codeIn.value.trim().toUpperCase(); if(/^[A-Z0-9]{6}$/.test(c)){ codeIn.value=""; return sendMsg({t:"addFriend",code:c}); } if(!/^[A-Z0-9]{4}$/.test(c)) return toast("Код комнаты — 4 символа, код друга — 6"); sendMsg({t:"enter",code:c});}},"Войти"))));
+  app.append(progMini());
   app.append(dailyMini());
   app.append(continuePanel());
   app.append(modesPanel());
@@ -2538,6 +2650,7 @@ const Tour=(()=>{
   const STEPS=[
     {t:"Добро пожаловать за стол Кащея!",d:"Покажу за минуту, что тут где. Можно пропустить и вернуться к обучению потом в настройках.",fs:true},
     {el:()=>document.getElementById("coinsBtn"),t:"💰 Баланс",d:"Игровые деньги. Дают за победы, ежедневные награды и промокоды. Тратятся в магазине и казино."},
+    {el:()=>document.querySelector(".progmini"),t:"⭐ Мой путь",d:"Уровень растёт за любые партии и задания. Тут же достижения и сезон на 30 дней с бесплатными наградами и рейтингом."},
     {el:()=>document.getElementById("dayBtn"),t:"🎁 Ежедневное",d:"Заходи каждый день: серия входов, три необычных задания (выполняются и с ботами) и бесплатное колесо. В сундуках — фоны и колоды."},
     {el:()=>document.getElementById("casinoBtn"),t:"🎰 Казино",d:"Слоты, рулетка, кейсы с фонами и колодами, «Выше/ниже» и Бурмалда с иксами. Всё на игровые деньги."},
     {el:()=>document.getElementById("shopBtn"),t:"🛒 Магазин",d:"Фоны стола, колоды, цвет ника, титулы, реакции и эффекты победы."},

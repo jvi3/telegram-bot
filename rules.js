@@ -307,6 +307,7 @@ const A = {
     }
     if (st.status !== "play" || st.players[st.turn].id !== id) return false;
     const src = sourceOf(st, id);
+    if (!src) return false;
     if (src === "down") return A.blind(st, id, Math.floor(Math.random() * st.down[id].length));
     const arr = st[src][id];
     const ranks = [...new Set(arr.map(rk))].filter(r => canPlay(r, st.pile));

@@ -78,7 +78,7 @@ module.exports = function createDaily({ data, save, SHOP, giveCoins, sendTo }) {
     // в большом сундуке дорогие вещи выпадают чаще, в маленьком — равномерно
     const w = list.map(i => kind === "big" ? i.price : 1), tot = w.reduce((a, b) => a + b, 0);
     let r = rnd(tot), it = list[0]; for (let k = 0; k < list.length; k++) { r -= w[k]; if (r < 0) { it = list[k]; break; } }
-    u.owned.push(it.id); save();
+    u.owned.push(it.id); save(); if (api.onOwned) api.onOwned(tg);
     return { kind, item: { id: it.id, name: it.name, type: it.type, key: it.key, price: it.price } };
   }
 
@@ -87,7 +87,7 @@ module.exports = function createDaily({ data, save, SHOP, giveCoins, sendTo }) {
     const d = D(u), day = today();
     if (d.last === day) return { err: "Сегодня уже забрано, приходи завтра" };
     d.n = d.last === yesterday() && (d.n || 0) < 7 ? (d.n || 0) + 1 : 1;
-    d.last = day; u.daily = day; save();
+    d.last = day; u.daily = day; save(); if (api.onStreak) api.onStreak(tg, d.n);
     const r = STREAK[d.n - 1];
     const res = { day: d.n };
     if (r.coins) giveCoins(tg, r.coins, `Серия входов: день ${d.n}`);
@@ -130,6 +130,7 @@ module.exports = function createDaily({ data, save, SHOP, giveCoins, sendTo }) {
       s.done = true; const d = D(u); const amount = REWARD[q.stars] * (d.x2 === today() ? 2 : 1);
       save(); giveCoins(tg, amount, `Задание «${q.name}» выполнено`);
       sendTo(tg, { t: "questDone", id, name: q.name, icon: q.icon, amount, all: qs.every(x => x.done) });
+      if (api.onQuest) api.onQuest(tg);
     } else save();
     push(tg);
   }
@@ -165,5 +166,6 @@ module.exports = function createDaily({ data, save, SHOP, giveCoins, sendTo }) {
     } catch (e) { console.error("daily ev", e); }
   }
 
-  return { view, push, claimStreak, spin, claimBonus, ev, openChest, BIG, _QUESTS: QUESTS };
+  const api = { view, push, claimStreak, spin, claimBonus, ev, openChest, BIG, _QUESTS: QUESTS };
+  return api;
 };

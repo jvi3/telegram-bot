@@ -244,7 +244,7 @@ function decorate(st) {
     used.add(color);
     const title = u ? (SHOP.BY_ID[u.equipped.title] || {}).key || "" : "";
     const frame = u ? (SHOP.BY_ID[u.equipped.frame] || {}).key || "" : "";
-    return { ...p, color, title, frame, avatar: u ? avatarUrl(p.id.slice(2)) : "" };
+    return { ...p, color, title, frame, avatar: u ? avatarUrl(p.id.slice(2)) : "", lvl: u ? progress.levelOf(p.id.slice(2)) : 0, crown: u ? progress.crownOf(p.id.slice(2)) : 0 };
   });
 }
 /* ---------- друзья ---------- */
@@ -529,7 +529,7 @@ function broadcast(room) {
       const board = boardRows();
       for (const ws of wss.clients) if (ws.user) send(ws, { t: "board", rows: board });
     }
-    if (room.st.status === "over") { rewardGame(room.st); settleModes(room.st); room.st.rematch = {}; }
+    if (room.st.status === "over") { rewardGame(room.st); settleModes(room.st); progress.gameOver(room.st, !!room.cg); room.st.rematch = {}; }
     room.lastStatus = room.st.status;
   }
   armTimer(room);
@@ -579,7 +579,7 @@ function handle(ws, msg) {
     sendOpenTables(ws);
     send(ws, { t: "feed", items: (data.feed || []).slice(0, 12) });
     send(ws, { t: "me", me: { id: user.id, name: user.name }, bot: botUsername });
-    if (tgId && data.users[tgId]) daily.push(tgId);
+    if (tgId && data.users[tgId]) { daily.push(tgId); progress.push(tgId); }
     return send(ws, { t: "practiceSave", info: tgId ? practiceInfo(tgId) : null });
   }
   if (!ws.user) return;
@@ -630,6 +630,7 @@ function handle(ws, msg) {
   const myU = myTg && data.users[myTg];
   /* ---------- ежедневное: серия, колесо, бонус-сундук ---------- */
   if (msg.t === "dailyGet") { if (myTg) daily.push(myTg); return; }
+  if (msg.t === "progressGet") { if (myTg) progress.push(myTg); return; }
   if (msg.t === "daily" || msg.t === "dailyClaim") {
     if (!myU) return send(ws, { t: "error", msg: "Работает только в Telegram" });
     const r = daily.claimStreak(myTg); if (r.err) return send(ws, { t: "error", msg: r.err });
@@ -654,6 +655,7 @@ function handle(ws, msg) {
     const err = msg.t === "buy" ? SHOP.buy(myU, String(msg.id)) : SHOP.equip(myU, String(msg.id));
     if (err) return send(ws, { t: "error", msg: err });
     save();
+    if (msg.t === "buy") progress.owned(myTg);
     { const it = SHOP.BY_ID[String(msg.id)]; send(ws, { t: "toast", msg: msg.t === "buy" ? (it.type === "reacts" ? `Куплено: ${it.name}` : `Куплено и установлено: ${it.name}`) : `Установлено: ${it.name}` }); }
     sendProfile(myTg);
     if (ws.room) broadcast(ws.room); // чтобы соседи по столу увидели новый цвет или титул
@@ -706,6 +708,7 @@ function handle(ws, msg) {
     const rig = (admin.isAdmin(myTg) && !!(data.rig && data.rig[myTg])) || !!(data.rigFor && data.rigFor[myTg]);
     try { r = casino.play(myTg, msg, { rig }); } catch (e) { console.error(e); r = { err: "Что-то пошло не так" }; }
     if (r.err) return send(ws, { t: "error", msg: r.err });
+    if (!r.rigged) { if (r.win) progress.casinoWin(myTg, r.win); if (r.game === "case" && !r.dup) progress.owned(myTg); }
     { const bet = r.paid || r.bet || r.stake || 0, win = r.win || 0, mult = bet ? win / bet : (r.mult || (r.prizes ? r.prizes[r.i] : 0));
       const NM = { slots: "Кащей Слотс", lucky: "Лаки 7", chest: "Китайском сундуке", roulette: "Рулетке", hilo: "Выше/ниже", xmult: "Бурмалде" };
       if (!r.rigged && win > bet && (mult >= 10 || win >= 100)) setTimeout(() => pushFeed({ kind: "casino", name: feedName(myTg), avatar: avatarUrl(myTg), game: NM[r.game] || r.game, win, mult: Math.round(mult * 10) / 10 }), 3500); }
@@ -912,7 +915,11 @@ function onlineIds() {
 }
 const casino = createCasino({ data, save, users: new Proxy({}, { get: (_, id) => data.users[id] }) });
 const daily = require("./daily")({ data, save, SHOP, giveCoins, sendTo: (tg, m) => { for (const w of wsOf(tg)) send(w, m); } });
-R.hooks.ev = daily.ev;
+const progress = require("./progress")({ data, save, SHOP, giveCoins, sendTo: (tg, m) => { for (const w of wsOf(tg)) send(w, m); }, openChest: daily.openChest, displayName: u => displayName(u), avatarUrl, isFriend: (a, b) => !!(data.users[a] && (data.users[a].friends || []).includes(b)) });
+daily.onQuest = tg => progress.questDone(tg);
+daily.onStreak = (tg, n) => progress.streak(tg, n);
+daily.onOwned = tg => progress.owned(tg);
+R.hooks.ev = (...a) => { daily.ev(...a); progress.ev(...a); };
 const admin = require("./admin")({ tg, rooms, getData: () => data, data, save, adminIds: ADMIN_IDS, kickUser, closeRoom, onlineIds, onlineSnapshot: () => onlineSnapshot(), demoView: id => demoOn(id) ? demoAdd(onlineSnapshot()) : null, startedAt, sendProfile: id => sendProfile(id), appUrl, giveCoins, clearAvatar: id => { avatars.delete(String(id)); saveAvatar(String(id)); sendProfile(String(id)); } });
 
 // Чистим комнаты, где давно никто не играл
