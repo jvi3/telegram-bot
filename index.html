@@ -791,6 +791,7 @@ body.beat::before{animation:beatv .5s ease-out}
 .ollist{display:flex;flex-direction:column;gap:6px}
 .olrow{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:rgba(0,0,0,.25)}
 .olrow.locked{opacity:.75}
+.olrow .otav{width:74px;flex:none}
 .olinfo{flex:1;min-width:0;display:flex;flex-direction:column;text-align:left;align-items:flex-start}
 .olinfo b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lockt{font-size:18px;padding:0 6px}
@@ -799,6 +800,9 @@ body.beat::before{animation:beatv .5s ease-out}
 .onstats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .onstat{display:flex;flex-direction:column;align-items:center;background:rgba(0,0,0,.25);border-radius:12px;padding:8px 4px}
 .onstat b{font-family:"Press Start 2P",var(--display);font-size:16px;color:#ffe6a0;margin-top:4px}
+
+.rigchk{flex-basis:100%;font-size:12px}
+.rigbadge{flex-basis:100%;text-align:center;font-weight:700;font-size:12px;color:#2a1c06;background:repeating-linear-gradient(45deg,#f2c14e 0 10px,#e8b04a 10px 20px);border-radius:8px;padding:5px}
 </style>
 </head>
 <body>
@@ -1646,7 +1650,9 @@ function renderCasino(){
   if(!profile){ app.append(el("div",{class:"panel"},el("p",{class:"muted"},catalog.length?"Казино работает, когда игра открыта через Telegram.":"Подключаюсь к серверу…"))); return; }
   app.append(feedPanel());
   app.append(el("div",{class:"panel wallet"},el("div",{class:"bal"},el("span",{class:"muted small",text:"Баланс"}),el("b",{text:`💰 $${profile.coins}`})),
-    el("p",{class:"muted small",style:"flex-basis:100%;margin:0"},"Только игровая валюта. Все броски делает сервер, шансы честные и чуть в пользу казино.")));
+    el("p",{class:"muted small",style:"flex-basis:100%;margin:0"},"Только игровая валюта. Все броски делает сервер, шансы честные и чуть в пользу казино."),
+    profile.admin?el("label",{class:"chk rigchk"},(()=>{ const i=el("input",{type:"checkbox",checked:!!profile.rig}); i.addEventListener("change",()=>sendMsg({t:"rig",on:i.checked})); return i; })(),el("span",{text:"🔧 Подкрутка для теста (только ты как админ): всё выпадает по максимуму, деньги не списываются и не начисляются"})):null,
+    profile.rig?el("div",{class:"rigbadge",text:"🔧 ТЕСТОВЫЙ РЕЖИМ — выигрыши не настоящие"}):null));
   app.append(el("div",{class:"tabs",role:"tablist"},CAS_TABS.map(([k,n])=>el("button",{type:"button",role:"tab","aria-selected":String(casinoTab===k),class:casinoTab===k?"on":"",onclick:()=>{ if(casinoLock) return toast("Дождись конца раунда"); casinoTab=k; Sound.fx("pick"); render(); }},n))));
   if(!casinoNodes[casinoTab]) casinoNodes[casinoTab]=casinoTab==="xmult"?xmultNode():casinoTab==="slots"?slotsNode():casinoTab==="roulette"?rouletteNode():casinoTab==="hilo"?hiloNode():bigNode(casinoTab);
   app.append(el("div",{class:"panel casino"},casinoNodes[casinoTab]));
@@ -1904,6 +1910,7 @@ function lobbyRow(l){
     el("div",{class:"otav"},l.names.slice(0,5).map((n,i)=>avatarEl({name:n,avatar:l.avatars&&l.avatars[i],color:"#2a5a50"},26))),
     el("div",{class:"olinfo"},el("b",{text:l.host?`Стол ${l.host}`:"Стол"}),
       el("span",{class:"muted small"},`${l.n}/5`,MODE_CHIP[l.mode]?" · "+MODE_CHIP[l.mode]+(l.stake?" $"+l.stake:""):""," · ждут ",el("span",{"data-since":String(l.since),text:mmss(Date.now()-l.since)}))),
+    l.open&&l.demo?el("button",{class:"btn small",type:"button",onclick:()=>toast("Это демо-стол — его видишь только ты")},"Сесть"):
     l.open&&l.code?el("button",{class:"btn small",type:"button",onclick:()=>{ Sound.fx("pick"); sendMsg({t:"enter",code:l.code}); }},"Сесть"):el("span",{class:"lockt",title:"Закрытый стол — только по приглашению"},"🔒"));
 }
 function onlinePanel(){
@@ -1919,6 +1926,7 @@ function onlineBody(){
   const d=onlineData, box=el("div",{class:"onlinev"});
   if(!d){ box.append(el("div",{class:"panel"},el("p",{class:"muted",text:"Загружаю…"}))); return box; }
   const c=d.counts;
+  if(profile&&profile.admin) box.append(el("div",{class:"panel"},el("label",{class:"chk"},(()=>{ const i=el("input",{type:"checkbox",checked:!!profile.demoOnline}); i.addEventListener("change",()=>sendMsg({t:"demoOnline",on:i.checked})); return i; })(),el("span",{text:"👥 Демо-онлайн для проверки: выдуманные игроки и столы, видишь только ты (админ)"}))));
   box.append(el("div",{class:"panel"},el("div",{class:"onstats"},
     ...[["В игре",c.total],["За столами",c.game],["Ждут игру",c.lobby],["С ботами",c.practice]].map(([l,v])=>el("div",{class:"onstat"},el("span",{class:"muted small",text:l}),el("b",{text:String(v)})))),
     d.peak?el("p",{class:"muted small",style:"margin:8px 0 0",text:`Пик сегодня: ${d.peak.n}`}):null));
@@ -2673,6 +2681,8 @@ document.getElementById("setBtn").addEventListener("click",()=>{ if(casinoLock) 
 const Pressure=(()=>{ let lv=0, iv=null; const beat=()=>{ if(!room||room.status!=="play"){ set(0); return; } Sound.fx("heart"); document.body.classList.remove("beat"); void document.body.offsetWidth; document.body.classList.add("beat"); };
   function set(n){ if(Prefs.get("anim")==="off") n=0; if(n===lv) return; lv=n; clearInterval(iv); iv=null; document.body.classList.toggle("press1",n===1); document.body.classList.toggle("press2",n===2); if(n){ beat(); iv=setInterval(beat,n===2?650:1000); } }
   return {set}; })();
+// Ctrl+Shift+J — быстро включить/выключить подкрутку (сервер пустит только админа)
+document.addEventListener("keydown",e=>{ if(e.ctrlKey&&e.shiftKey&&(e.key==="J"||e.key==="j"||e.code==="KeyJ")){ e.preventDefault(); if(profile&&profile.admin) sendMsg({t:"rig"}); } });
 /* ---------- пылинки над столом ---------- */
 (()=>{ const d=el("div",{id:"dust","aria-hidden":"true"}); for(let i=0;i<22;i++){ const p=el("i"); p.style.left=Math.random()*100+"%"; p.style.top=Math.random()*100+"%";
     p.style.setProperty("--dx",(Math.random()*60-30).toFixed(0)+"px"); p.style.setProperty("--dy",(-30-Math.random()*50).toFixed(0)+"px"); p.style.animationDuration=(6+Math.random()*6).toFixed(1)+"s"; p.style.animationDelay=(-Math.random()*10).toFixed(1)+"s"; d.append(p); }

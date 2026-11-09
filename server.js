@@ -286,7 +286,7 @@ function wsOf(tgId) { return [...wss.clients].filter(ws => ws.user && ws.user.id
 function profileCoins(tgId) { const u = data.users[tgId]; return u ? u.coins : null; }
 function fullProfile(tgId) {
   const u = data.users[tgId];
-  return { ...SHOP.profile(u), nick: u.nick || "", tgName: u.name || "", avatar: avatarUrl(tgId) };
+  return { ...SHOP.profile(u), nick: u.nick || "", tgName: u.name || "", avatar: avatarUrl(tgId), ...(admin.isAdmin(tgId) ? { admin: true, rig: !!(data.rig && data.rig[tgId]), demoOnline: !!(data.demoOnline && data.demoOnline[tgId]) } : {}) };
 }
 function sendProfile(tgId) {
   const u = data.users[tgId];
@@ -468,11 +468,25 @@ function onlineSnapshot() {
   const games = all.filter(r => !r.st.practice && r.st.status !== "lobby").map(r => ({ names: r.st.players.map(p => p.name), mode: r.st.mode || "normal", pot: r.st.pot || 0, status: r.st.status })).slice(0, 30);
   return { counts: c, lobbies, games, practice: all.filter(r => r.st.practice).length, peak: data.peak || null };
 }
+// Демо-онлайн: выдуманные игроки и столы видит только админ, который это включил (чтобы посмотреть, как выглядит людный онлайн)
+const DEMO_NAMES = ["Лёха", "Марина", "Тёма", "Ксюша", "Гоша", "Влад", "Настя", "Дима", "Саня", "Полина", "Рома", "Катя", "Миша", "Оля", "Женя", "Вика"];
+function demoAdd(snap) {
+  const t = Math.floor(Date.now() / 60000), pick = (i) => DEMO_NAMES[(i * 7 + t) % DEMO_NAMES.length];
+  const modes = ["normal", "blitz", "stake", "match", "normal"];
+  const lob = [0, 1, 2, 3, 4].map(i => { const n = 1 + ((i + t) % 3); return { code: null, open: i % 3 !== 2, demo: true, host: pick(i * 3), avatar: "", n, names: Array.from({ length: n }, (_, k) => pick(i * 3 + k)), avatars: [], mode: modes[i], stake: modes[i] === "stake" ? [25, 50, 100][i % 3] : 0, since: Date.now() - (i * 47 + 20) * 1000 }; });
+  const games = [0, 1, 2, 3].map(i => ({ names: [pick(i * 5 + 1), pick(i * 5 + 2), ...(i % 2 ? [pick(i * 5 + 3)] : [])], mode: modes[(i + 1) % 5], pot: modes[(i + 1) % 5] === "stake" ? 150 + i * 50 : 0, status: "play", demo: true }));
+  const add = { menu: 9, lobby: lob.reduce((a, l) => a + l.n, 0), game: games.reduce((a, g) => a + g.names.length, 0), practice: 4 };
+  const c = { ...snap.counts }; for (const k in add) c[k] += add[k]; c.total = c.menu + c.lobby + c.game + c.practice;
+  return { ...snap, counts: c, lobbies: [...snap.lobbies, ...lob], games: [...snap.games, ...games], practice: snap.practice + 4, demo: true };
+}
+const demoOn = tgId => !!(tgId && admin.isAdmin(tgId) && data.demoOnline && data.demoOnline[tgId]);
 function notePeak() { const day = SHOP.today(), n = onlineIds().size; if (!data.peak || data.peak.day !== day) data.peak = { day, n, at: Date.now() }; else if (n > data.peak.n) { data.peak.n = n; data.peak.at = Date.now(); } }
 let onlineT = null;
 function sendOnline(ws) {
-  if (ws) return send(ws, { t: "online", ...onlineSnapshot() });
-  if (onlineT) return; onlineT = setTimeout(() => { onlineT = null; let snap = null; for (const w of wss.clients) if (w.watchOnline) send(w, { t: "online", ...(snap = snap || onlineSnapshot()) }); }, 400);
+  const tgOf = w => w.user && w.user.id.startsWith("tg") ? w.user.id.slice(2) : null;
+  const out = (w, snap) => send(w, { t: "online", ...(demoOn(tgOf(w)) ? demoAdd(snap) : snap) });
+  if (ws) return out(ws, onlineSnapshot());
+  if (onlineT) return; onlineT = setTimeout(() => { onlineT = null; let snap = null; for (const w of wss.clients) if (w.watchOnline) out(w, snap = snap || onlineSnapshot()); }, 400);
 }
 setInterval(() => { notePeak(); sendOnline(); }, 10000);
 let openT = null;
@@ -622,17 +636,30 @@ function handle(ws, msg) {
     send(ws, { t: "toast", msg: "Профиль сохранён" });
     return;
   }
+  if (msg.t === "demoOnline") { // выдуманный онлайн, виден только этому админу
+    if (!myU || !admin.isAdmin(myTg)) return;
+    data.demoOnline = data.demoOnline || {}; data.demoOnline[myTg] = msg.on === undefined ? !data.demoOnline[myTg] : !!msg.on; save();
+    sendProfile(myTg); sendOnline(ws);
+    return send(ws, { t: "toast", msg: data.demoOnline[myTg] ? "👥 Демо-онлайн включён — его видишь только ты" : "Демо-онлайн выключен" });
+  }
+  if (msg.t === "rig") { // подкрутка казино для теста — только админ
+    if (!myU || !admin.isAdmin(myTg)) return;
+    data.rig = data.rig || {}; data.rig[myTg] = msg.on === undefined ? !data.rig[myTg] : !!msg.on; save();
+    sendProfile(myTg);
+    return send(ws, { t: "toast", msg: data.rig[myTg] ? "🔧 Подкрутка включена: всё выпадает по максимуму, деньги не меняются" : "Подкрутка выключена" });
+  }
   if (msg.t === "casino") {
     if (!myU) return send(ws, { t: "error", msg: "Казино работает только в Telegram" });
     const now = Date.now();
     if (now - (ws.lastBet || 0) < 200) return send(ws, { t: "error", msg: "Не так быстро" });
     ws.lastBet = now;
     let r;
-    try { r = casino.play(myTg, msg); } catch (e) { console.error(e); r = { err: "Что-то пошло не так" }; }
+    const rig = admin.isAdmin(myTg) && !!(data.rig && data.rig[myTg]);
+    try { r = casino.play(myTg, msg, { rig }); } catch (e) { console.error(e); r = { err: "Что-то пошло не так" }; }
     if (r.err) return send(ws, { t: "error", msg: r.err });
     { const bet = r.paid || r.bet || r.stake || 0, win = r.win || 0, mult = bet ? win / bet : (r.mult || (r.prizes ? r.prizes[r.i] : 0));
       const NM = { slots: "Кащей Слотс", lucky: "Лаки 7", chest: "Сундук Кащея", roulette: "Рулетке", hilo: "Выше/ниже", xmult: "Бурмалде" };
-      if (win > bet && (mult >= 10 || win >= 100)) setTimeout(() => pushFeed({ kind: "casino", name: feedName(myTg), avatar: avatarUrl(myTg), game: NM[r.game] || r.game, win, mult: Math.round(mult * 10) / 10 }), 3500); }
+      if (!r.rigged && win > bet && (mult >= 10 || win >= 100)) setTimeout(() => pushFeed({ kind: "casino", name: feedName(myTg), avatar: avatarUrl(myTg), game: NM[r.game] || r.game, win, mult: Math.round(mult * 10) / 10 }), 3500); }
     if (profileCoins(myTg) !== null) for (const s of wsOf(myTg)) if (s !== ws) send(s, { t: "profile", ...fullProfile(myTg) });
     return send(ws, { t: "casinoRes", ...r });
   }
@@ -835,7 +862,7 @@ function onlineIds() {
   return s;
 }
 const casino = createCasino({ data, save, users: new Proxy({}, { get: (_, id) => data.users[id] }) });
-const admin = require("./admin")({ tg, rooms, getData: () => data, data, save, adminIds: ADMIN_IDS, kickUser, closeRoom, onlineIds, onlineSnapshot, startedAt, appUrl, giveCoins, clearAvatar: id => { avatars.delete(String(id)); saveAvatar(String(id)); sendProfile(String(id)); } });
+const admin = require("./admin")({ tg, rooms, getData: () => data, data, save, adminIds: ADMIN_IDS, kickUser, closeRoom, onlineIds, onlineSnapshot: () => onlineSnapshot(), demoView: id => demoOn(id) ? demoAdd(onlineSnapshot()) : null, startedAt, sendProfile: id => sendProfile(id), appUrl, giveCoins, clearAvatar: id => { avatars.delete(String(id)); saveAvatar(String(id)); sendProfile(String(id)); } });
 
 // Чистим комнаты, где давно никто не играл
 setInterval(() => {

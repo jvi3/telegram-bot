@@ -30,6 +30,7 @@ module.exports = function createAdmin(ctx) {
   const kb = rows => ({ inline_keyboard: rows });
   const back = [{ text: "« Назад в меню", callback_data: "a:home" }];
 
+  let uidNow = "";
   function home() {
     return {
       text: `<b>🛠 Админ-панель</b>\n\nТехработы: ${data.maintenance ? "🔴 включены" : "🟢 выключены"}`,
@@ -39,14 +40,16 @@ module.exports = function createAdmin(ctx) {
         [{ text: "👥 Игроки", callback_data: "a:users" }, { text: "🚫 Баны", callback_data: "a:bans" }],
         [{ text: "📣 Рассылка", callback_data: "a:bc" }, { text: "🎟 Промокоды", callback_data: "a:promos" }],
         [{ text: data.maintenance ? "🟢 Выключить техработы" : "🔴 Включить техработы", callback_data: "a:maint" }],
+        [{ text: (data.rig && data.rig[uidNow]) ? "🔧 Подкрутка казино: ВКЛ" : "🔧 Подкрутка казино: выкл", callback_data: "a:rig" }],
+        [{ text: (data.demoOnline && data.demoOnline[uidNow]) ? "👥 Демо-онлайн (видишь только ты): ВКЛ" : "👥 Демо-онлайн: выкл", callback_data: "a:demo" }],
       ]),
     };
   }
 
   function onlineView() {
-    const o = onlineSnapshot(), c = o.counts, MN = { normal: "", blitz: " · ⚡ блиц", match: " · 🏆 матч", stake: " · 💰 ставка" };
+    const o = (ctx.demoView && ctx.demoView(uidNow)) || onlineSnapshot(), c = o.counts, MN = { normal: "", blitz: " · ⚡ блиц", match: " · 🏆 матч", stake: " · 💰 ставка" };
     const t = new Date();
-    const lines = ["<b>🟢 Онлайн</b>  <i>" + t.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Tallinn" }) + "</i>", "",
+    const lines = [(o.demo ? "⚠️ <i>Включён демо-онлайн — часть цифр выдуманные</i>\n" : "") + "<b>🟢 Онлайн</b>  <i>" + t.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Tallinn" }) + "</i>", "",
       `Сейчас в игре: <b>${c.total}</b>`,
       `  в меню и казино: ${c.menu}`, `  ждут в лобби: ${c.lobby}`, `  играют с людьми: ${c.game}`, `  тренируются с ботами: ${c.practice}`];
     if (o.peak) lines.push(`Пик сегодня: <b>${o.peak.n}</b> (в ${new Date(o.peak.at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Tallinn" })})`);
@@ -180,7 +183,7 @@ module.exports = function createAdmin(ctx) {
     if (!isAdmin(uid)) return false;
     const text = (m.text || "").trim();
     const [cmd, arg] = text.split(/\s+/);
-    if (cmd === "/admin") { pending.delete(m.chat.id); await show(m.chat.id, home()); return true; }
+    if (cmd === "/admin") { pending.delete(m.chat.id); uidNow = String(m.from.id); await show(m.chat.id, home()); return true; }
     if (cmd === "/ban") { await ban(arg || "", m.chat.id); return true; }
     if (cmd === "/clearprofile") {
       const id = String(arg || "").replace(/\D/g, "");
@@ -223,11 +226,14 @@ module.exports = function createAdmin(ctx) {
     const mid = q.message && q.message.message_id;
     if (!isAdmin(uid) || !chatId) { await tg("answerCallbackQuery", { callback_query_id: q.id, text: "Только для админа" }); return; }
     const [, action, arg] = String(q.data || "").split(":");
+    uidNow = uid;
     let note = "";
     switch (action) {
       case "home": pending.delete(chatId); await show(chatId, home(), mid); break;
       case "stats": await show(chatId, stats(), mid); break;
+      case "rig": data.rig = data.rig || {}; data.rig[uid] = !data.rig[uid]; save(); if (ctx.sendProfile) ctx.sendProfile(uid); note = data.rig[uid] ? "Подкрутка включена: в казино всё по максимуму, деньги не меняются" : "Подкрутка выключена"; await show(chatId, home(), mid); break;
       case "online": await show(chatId, onlineView(), mid); break;
+      case "demo": data.demoOnline = data.demoOnline || {}; data.demoOnline[uid] = !data.demoOnline[uid]; save(); if (ctx.sendProfile) ctx.sendProfile(uid); note = data.demoOnline[uid] ? "Демо-онлайн включён: в игре ты увидишь выдуманные столы, другие — нет" : "Демо-онлайн выключен"; await show(chatId, home(), mid); break;
       case "rooms": await show(chatId, roomsView(), mid); break;
       case "users": await show(chatId, usersView(), mid); break;
       case "bans": await show(chatId, bansView(), mid); break;

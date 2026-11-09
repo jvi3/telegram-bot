@@ -2,13 +2,15 @@
 "use strict";
 const crypto = require("crypto");
 const rnd = n => crypto.randomInt(n);
+// Тестовая подкрутка для админа: всё выпадает по максимуму, деньги при этом не меняются
+let RIG = false;
 
 /* ---------- фруктовые слоты: 3 барабана, линия по центру, отдача ~96% ---------- */
 const SYM = ["cherry", "lemon", "orange", "grape", "bell", "bar", "seven"];
 const W = { cherry: 7, lemon: 6, orange: 5, grape: 4, bell: 3, bar: 2, seven: 1 };
 const WT = Object.values(W).reduce((a, b) => a + b, 0);
 const PAY3 = { seven: 120, bar: 50, bell: 25, grape: 15, orange: 12, lemon: 9, cherry: 7 };
-function pickSym() { let r = rnd(WT); for (const s of SYM) { r -= W[s]; if (r < 0) return s; } return "cherry"; }
+function pickSym() { if (RIG) return "seven"; let r = rnd(WT); for (const s of SYM) { r -= W[s]; if (r < 0) return s; } return "cherry"; }
 function slotPay(a, b, c) {
   if (a === b && b === c) return PAY3[a];
   if ([a, b, c].filter(x => x === "cherry").length === 2) return 3;
@@ -26,7 +28,7 @@ function spinSlots() {
 /* ---------- рулетка: 15 ячеек, 0 — зелёное, 1–7 красные, 8–14 чёрные ---------- */
 const ROUL = Array.from({ length: 15 }, (_, i) => (i === 0 ? "green" : i <= 7 ? "red" : "black"));
 function spinRoulette(pick) {
-  const n = rnd(15), color = ROUL[n];
+  const n = RIG ? (pick === "green" ? 0 : pick === "red" ? 3 : 10) : rnd(15), color = ROUL[n];
   const mult = color === pick ? (pick === "green" ? 14 : 2) : 0;
   return { n, color, mult };
 }
@@ -63,7 +65,7 @@ const XM = {
   pay: { coin: [2, 6, 18], clover: [3, 8, 25], gem: [6, 15, 45], crown: [10, 30, 100], bar: [15, 50, 150], seven: [30, 120, 600], wild: [30, 120, 600] },
   wild: "wild", scatter: "key", spins: 8, xChance: 0.13, xVals: [[2, 60], [3, 30], [5, 10]], buy: 100,
 };
-function pickW(weights) { const tot = Object.values(weights).reduce((a, b) => a + b, 0); let r = rnd(tot); for (const [s, w] of Object.entries(weights)) { r -= w; if (r < 0) return s; } return Object.keys(weights)[0]; }
+function pickW(weights) { if (RIG && weights.seven != null) return "seven"; const tot = Object.values(weights).reduce((a, b) => a + b, 0); let r = rnd(tot); for (const [s, w] of Object.entries(weights)) { r -= w; if (r < 0) return s; } return Object.keys(weights)[0]; }
 function spinGrid(m) { return [0, 1, 2, 3, 4].map(() => [pickW(m.weights), pickW(m.weights), pickW(m.weights)]); }
 function evalGrid(m, grid, lineBet) {
   let win = 0; const lines = [];
@@ -85,8 +87,8 @@ function xBonus(lineBet, rndf = rnd) {
   const spins = []; let total = 0, win = 0;
   for (let k = 0; k < XM.spins; k++) {
     const grid = spinGrid({ weights: XM.freeWeights }); const xs = [];
-    for (let r = 0; r < 5; r++) for (let row = 0; row < 3; row++) if (rnd(10000) < XM.xChance * 10000) {
-      let t = rnd(100), v = 2; for (const [val, w] of XM.xVals) { t -= w; if (t < 0) { v = val; break; } }
+    for (let r = 0; r < 5; r++) for (let row = 0; row < 3; row++) if (RIG ? (row !== 1 && rnd(10) < 4) : rnd(10000) < XM.xChance * 10000) {
+      let t = RIG ? 99 : rnd(100), v = 2; for (const [val, w] of XM.xVals) { t -= w; if (t < 0) { v = val; break; } }
       grid[r][row] = "x" + v; xs.push({ r, row, v }); total += v;
     }
     const e = evalGrid(XM, grid, lineBet); const m = Math.max(1, total); const w = Math.floor(e.win * m);
@@ -94,6 +96,8 @@ function xBonus(lineBet, rndf = rnd) {
   }
   return { spins, win, total };
 }
+// подкрутка: 5 скаттеров не на центральной линии
+function rigScatter(grid, s) { [[0, 0], [1, 2], [2, 0], [3, 2], [4, 0]].forEach(([r, row]) => grid[r][row] = s); return grid; }
 module.exports = function createCasino({ data, save, users }) {
   const bonuses = new Map(); // tgId -> { prizes, bet }
   const sessions = new Map(); // tgId -> { stake, mult, card, steps }
@@ -108,8 +112,20 @@ module.exports = function createCasino({ data, save, users }) {
     return { bet };
   }
 
+  function play(tgId, msg, opts) {
+    const g = String(msg.game || ""), bo = bonuses.get(tgId), se = sessions.get(tgId);
+    const forced = (g === "chest" && bo && bo.rigged) || (g === "hilo" && se && se.rigged); // начатое в тесте и доигрывается в тесте
+    if (!(opts && opts.rig) && !forced) return play0(tgId, msg);
+    const u = users[tgId]; if (!u) return { err: "Казино работает только в Telegram" };
+    const before = u.coins, snap = JSON.stringify(data.casino);
+    // в тесте ставку не списываем: даём «виртуальные» деньги на время броска
+    u.coins = Math.max(u.coins, 1e9); RIG = true;
+    let r; try { r = play0(tgId, msg); } finally { RIG = false; u.coins = before; data.casino = JSON.parse(snap); }
+    if (!r.err) { r.coins = before; r.rigged = true; }
+    return r;
+  }
   // Возвращает объект ответа для игрока (или { err })
-  function play(tgId, msg) {
+  function play0(tgId, msg) {
     const u = users[tgId];
     if (!u) return { err: "Казино работает только в Telegram" };
     const game = String(msg.game || "");
@@ -132,7 +148,7 @@ module.exports = function createCasino({ data, save, users }) {
       if (game === "chest" && bonuses.has(tgId)) return { err: "Сначала выбери сундук" };
       const b = takeBet(u, msg.bet); if (b.err) return b;
       const lineBet = b.bet / LINES.length;
-      const grid = spinGrid(m), ev = evalGrid(m, grid, lineBet);
+      const grid = spinGrid(m); if (RIG) rigScatter(grid, m.scatter); const ev = evalGrid(m, grid, lineBet);
       let win = ev.win; const res = { game, bet: b.bet, grid, lines: ev.lines, scat: ev.scat };
       if (game === "lucky" && m.free[Math.min(5, ev.scat)]) {
         const n = m.free[Math.min(5, ev.scat)], spins = [];
@@ -140,9 +156,9 @@ module.exports = function createCasino({ data, save, users }) {
         res.free = spins;
       }
       if (game === "chest" && m.prizes[Math.min(5, ev.scat)]) {
-        const pr = m.prizes[Math.min(5, ev.scat)].slice();
+        const pr = RIG ? [100, 100, 100] : m.prizes[Math.min(5, ev.scat)].slice();
         for (let i = pr.length - 1; i > 0; i--) { const j = rnd(i + 1); [pr[i], pr[j]] = [pr[j], pr[i]]; }
-        bonuses.set(tgId, { prizes: pr, bet: b.bet }); res.bonus = { count: ev.scat };
+        bonuses.set(tgId, { prizes: pr, bet: b.bet, rigged: RIG }); res.bonus = { count: ev.scat };
       }
       win = Math.floor(win);
       u.coins += win; stat(game, b.bet, win); save();
@@ -156,7 +172,7 @@ module.exports = function createCasino({ data, save, users }) {
       const bet = buying ? b0 : b.bet, lineBet = bet / LINES.length;
       const res = { game, bet, paid: b.bet, bought: buying };
       let win = 0;
-      if (!buying) { const grid = spinGrid(XM), ev = evalGrid(XM, grid, lineBet); res.grid = grid; res.lines = ev.lines; res.scat = ev.scat; res.baseWin = Math.floor(ev.win); win += ev.win; if (ev.scat >= 3) res.bonus = true; }
+      if (!buying) { const grid = spinGrid(XM); if (RIG) rigScatter(grid, XM.scatter); const ev = evalGrid(XM, grid, lineBet); res.grid = grid; res.lines = ev.lines; res.scat = ev.scat; res.baseWin = Math.floor(ev.win); win += ev.win; if (ev.scat >= 3) res.bonus = true; }
       if (buying || res.bonus) { const bo = xBonus(lineBet); res.free = bo.spins; res.freeWin = bo.win; res.total = bo.total; win += bo.win; }
       win = Math.floor(win); u.coins += win; stat(game, b.bet, win); save();
       return { ...res, win, coins: u.coins };
@@ -175,7 +191,7 @@ module.exports = function createCasino({ data, save, users }) {
       if (act === "start") {
         if (s) return { err: "Сначала доиграй или забери выигрыш" };
         const b = takeBet(u, msg.bet); if (b.err) return b;
-        const ns = { stake: b.bet, mult: 1, card: drawCard(), steps: 0 };
+        const ns = { stake: b.bet, mult: 1, card: RIG ? "7" + SUITS[rnd(4)] : drawCard(), steps: 0, rigged: RIG };
         sessions.set(tgId, ns); stat("hilo", b.bet, 0); save();
         return { game, action: act, card: ns.card, mult: 1, stake: ns.stake, coins: u.coins, live: true };
       }
@@ -183,7 +199,7 @@ module.exports = function createCasino({ data, save, users }) {
       if (act === "guess") {
         const up = !!msg.up, p = hiloChance(s.card, up);
         if (p <= 0) return { err: up ? "Старше этой карты ничего нет" : "Младше этой карты ничего нет" };
-        const next = drawCard(), i = rIdx(s.card), j = rIdx(next), ok = up ? j > i : j < i;
+        const next = RIG ? (up ? "2" + SUITS[rnd(4)] : "3" + SUITS[rnd(4)]) : drawCard(), i = rIdx(s.card), j = rIdx(next), ok = up ? j > i : j < i;
         const prev = s.card; s.card = next;
         if (!ok) { sessions.delete(tgId); save(); return { game, action: act, prev, card: next, ok: false, mult: 0, stake: s.stake, win: 0, coins: u.coins, live: false }; }
         s.raw = (s.raw || 1) * (s.steps === 0 ? 0.95 : 1) / p; // комиссия казино берётся один раз за раунд
