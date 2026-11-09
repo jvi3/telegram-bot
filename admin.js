@@ -22,7 +22,7 @@ function fmtUptime(ms) {
 const STATUS = { lobby: "ждут игроков", swap: "меняют карты", play: "играют", over: "партия окончена" };
 
 module.exports = function createAdmin(ctx) {
-  const { tg, rooms, data, save, adminIds, kickUser, closeRoom, onlineIds, startedAt, giveCoins } = ctx;
+  const { tg, rooms, data, save, adminIds, kickUser, closeRoom, onlineIds, onlineSnapshot, startedAt, giveCoins } = ctx;
   const SHOP = require("./shop");
   const pending = new Map(); // chatId -> {type:"bc"} | {type:"bcReady", text} | {type:"ban"}
 
@@ -34,12 +34,30 @@ module.exports = function createAdmin(ctx) {
     return {
       text: `<b>🛠 Админ-панель</b>\n\nТехработы: ${data.maintenance ? "🔴 включены" : "🟢 выключены"}`,
       markup: kb([
+        [{ text: `🟢 Онлайн (${onlineIds().size})`, callback_data: "a:online" }],
         [{ text: "📊 Статистика", callback_data: "a:stats" }, { text: "🃏 Комнаты", callback_data: "a:rooms" }],
         [{ text: "👥 Игроки", callback_data: "a:users" }, { text: "🚫 Баны", callback_data: "a:bans" }],
         [{ text: "📣 Рассылка", callback_data: "a:bc" }, { text: "🎟 Промокоды", callback_data: "a:promos" }],
         [{ text: data.maintenance ? "🟢 Выключить техработы" : "🔴 Включить техработы", callback_data: "a:maint" }],
       ]),
     };
+  }
+
+  function onlineView() {
+    const o = onlineSnapshot(), c = o.counts, MN = { normal: "", blitz: " · ⚡ блиц", match: " · 🏆 матч", stake: " · 💰 ставка" };
+    const t = new Date();
+    const lines = ["<b>🟢 Онлайн</b>  <i>" + t.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Tallinn" }) + "</i>", "",
+      `Сейчас в игре: <b>${c.total}</b>`,
+      `  в меню и казино: ${c.menu}`, `  ждут в лобби: ${c.lobby}`, `  играют с людьми: ${c.game}`, `  тренируются с ботами: ${c.practice}`];
+    if (o.peak) lines.push(`Пик сегодня: <b>${o.peak.n}</b> (в ${new Date(o.peak.at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Tallinn" })})`);
+    lines.push("", `<b>Лобби (${o.lobbies.length})</b>`);
+    if (!o.lobbies.length) lines.push("  никто не ждёт");
+    o.lobbies.forEach(l => lines.push(`  ${l.open ? "🔓" : "🔒"} ${esc(l.names.join(", "))} — ${l.n}/5${MN[l.mode] || ""}${l.stake ? " $" + l.stake : ""}, ждут ${fmtAgo(l.since).replace(" назад", "")}`));
+    lines.push("", `<b>Идут партии (${o.games.length})</b>`);
+    if (!o.games.length) lines.push("  сейчас никто не играет");
+    o.games.forEach(g => lines.push(`  🃏 ${esc(g.names.join(" · "))}${MN[g.mode] || ""}${g.pot ? " · банк $" + g.pot : ""}`));
+    lines.push("", `Тренировок с ботами: ${o.practice}`);
+    return { text: lines.join("\n"), markup: kb([[{ text: "🔄 Обновить", callback_data: "a:online" }], back]) };
   }
 
   function stats() {
@@ -209,6 +227,7 @@ module.exports = function createAdmin(ctx) {
     switch (action) {
       case "home": pending.delete(chatId); await show(chatId, home(), mid); break;
       case "stats": await show(chatId, stats(), mid); break;
+      case "online": await show(chatId, onlineView(), mid); break;
       case "rooms": await show(chatId, roomsView(), mid); break;
       case "users": await show(chatId, usersView(), mid); break;
       case "bans": await show(chatId, bansView(), mid); break;

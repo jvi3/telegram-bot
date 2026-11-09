@@ -454,15 +454,37 @@ function openList() {
     .map(r => ({ code: r.st.code, n: r.st.players.length, names: r.st.players.map(p => p.name).slice(0, 5), avatars: decorate(r.st).map(p => p.avatar || ""), since: r.st.waitSince }))
     .sort((a, b) => b.n - a.n || a.since - b.since).slice(0, 15);
 }
+/* ---------- общий онлайн: кто в игре, лобби (закрытые — с замочком) и идущие партии ---------- */
+function onlineSnapshot() {
+  const users = new Map(); // tgId -> where
+  for (const w of wss.clients) { if (!w.user || !w.user.id.startsWith("tg")) continue; const id = w.user.id.slice(2), r = w.room;
+    const where = !r ? "menu" : r.st.practice ? "practice" : r.st.status === "lobby" ? "lobby" : "game";
+    const rank = { game: 3, practice: 2, lobby: 1, menu: 0 }; if (!users.has(id) || rank[where] > rank[users.get(id)]) users.set(id, where); }
+  const c = { total: users.size, menu: 0, lobby: 0, game: 0, practice: 0 }; for (const v of users.values()) c[v]++;
+  const all = [...rooms.values()];
+  const lobbies = all.filter(r => !r.st.practice && r.st.status === "lobby" && r.st.players.length).map(r => { const d = decorate(r.st), host = d.find(p => p.id === r.st.host) || d[0];
+    return { code: r.st.open ? r.st.code : null, open: !!r.st.open, host: host ? host.name : "", avatar: host ? host.avatar || "" : "", n: r.st.players.length, names: d.map(p => p.name), avatars: d.map(p => p.avatar || ""), mode: r.st.mode || "normal", stake: r.st.stake || 0, since: r.st.waitSince || Date.now() }; })
+    .sort((a, b) => (b.open - a.open) || a.since - b.since).slice(0, 30);
+  const games = all.filter(r => !r.st.practice && r.st.status !== "lobby").map(r => ({ names: r.st.players.map(p => p.name), mode: r.st.mode || "normal", pot: r.st.pot || 0, status: r.st.status })).slice(0, 30);
+  return { counts: c, lobbies, games, practice: all.filter(r => r.st.practice).length, peak: data.peak || null };
+}
+function notePeak() { const day = SHOP.today(), n = onlineIds().size; if (!data.peak || data.peak.day !== day) data.peak = { day, n, at: Date.now() }; else if (n > data.peak.n) { data.peak.n = n; data.peak.at = Date.now(); } }
+let onlineT = null;
+function sendOnline(ws) {
+  if (ws) return send(ws, { t: "online", ...onlineSnapshot() });
+  if (onlineT) return; onlineT = setTimeout(() => { onlineT = null; let snap = null; for (const w of wss.clients) if (w.watchOnline) send(w, { t: "online", ...(snap = snap || onlineSnapshot()) }); }, 400);
+}
+setInterval(() => { notePeak(); sendOnline(); }, 10000);
 let openT = null;
 function sendOpenTables(ws) {
   if (ws) return send(ws, { t: "openTables", list: openList() });
+  sendOnline();
   if (openT) return; openT = setTimeout(() => { openT = null; const list = openList(); for (const w of wss.clients) if (w.user && !w.room) send(w, { t: "openTables", list }); }, 300);
 }
 setInterval(() => sendOpenTables(), 15000);
 
 function broadcast(room) {
-  room.st.updated = Date.now();
+  room.st.updated = Date.now(); sendOnline();
   if (room.lastStatus !== room.st.status) {
     if (room.st.status === "over" && !room.st.practice) {
       data.stats.games++;
@@ -624,6 +646,7 @@ function handle(ws, msg) {
     giveCoins(myTg, r.amount, `Промокод ${r.code}`);
     return;
   }
+  if (msg.t === "online") { ws.watchOnline = !!msg.watch; if (ws.watchOnline) sendOnline(ws); return; }
   if (msg.t === "friends") { if (myU) { sendFriends(myTg); if (!ws.seenOnline) { ws.seenOnline = true; notifyFriends(myTg); } } return; }
   if (msg.t === "dmHistory") {
     const fid = String(msg.with || ""); if (!myU || !(myU.friends || []).includes(fid)) return;
@@ -812,7 +835,7 @@ function onlineIds() {
   return s;
 }
 const casino = createCasino({ data, save, users: new Proxy({}, { get: (_, id) => data.users[id] }) });
-const admin = require("./admin")({ tg, rooms, getData: () => data, data, save, adminIds: ADMIN_IDS, kickUser, closeRoom, onlineIds, startedAt, appUrl, giveCoins, clearAvatar: id => { avatars.delete(String(id)); saveAvatar(String(id)); sendProfile(String(id)); } });
+const admin = require("./admin")({ tg, rooms, getData: () => data, data, save, adminIds: ADMIN_IDS, kickUser, closeRoom, onlineIds, onlineSnapshot, startedAt, appUrl, giveCoins, clearAvatar: id => { avatars.delete(String(id)); saveAvatar(String(id)); sendProfile(String(id)); } });
 
 // Чистим комнаты, где давно никто не играл
 setInterval(() => {
@@ -872,6 +895,7 @@ wss.on("connection", ws => {
     if (ws.room) ws.room.subs.delete(ws);
     const id = ws.user && ws.user.id && ws.user.id.startsWith("tg") ? ws.user.id.slice(2) : null;
     if (id && data.users[id]) { data.users[id].last = Date.now(); if (!wsOf(id).length) notifyFriends(id); }
+    sendOnline();
   });
 });
 setInterval(() => {

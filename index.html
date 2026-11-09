@@ -786,6 +786,19 @@ body.press2::before{opacity:.38}
 body.beat::before{animation:beatv .5s ease-out}
 @keyframes beatv{0%{opacity:.75}100%{opacity:.25}}
 :root[data-anim="off"] .pile.hot{animation:none}
+
+/* ---------- онлайн ---------- */
+.ollist{display:flex;flex-direction:column;gap:6px}
+.olrow{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:rgba(0,0,0,.25)}
+.olrow.locked{opacity:.75}
+.olinfo{flex:1;min-width:0;display:flex;flex-direction:column;text-align:left;align-items:flex-start}
+.olinfo b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lockt{font-size:18px;padding:0 6px}
+.olgame{font-size:20px}
+.onlc{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.onstats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.onstat{display:flex;flex-direction:column;align-items:center;background:rgba(0,0,0,.25);border-radius:12px;padding:8px 4px}
+.onstat b{font-family:"Press Start 2P",var(--display);font-size:16px;color:#ffe6a0;margin-top:4px}
 </style>
 </head>
 <body>
@@ -1706,6 +1719,7 @@ function buildAudioBar(){
 
 
 /* ---------- очередь состояний: даём доиграть перевороту закрытой карты ---------- */
+let onlineData=null, onlineWatch=false;
 let chatB={}, friends=[], myFcode="", pendingInvite=null, delFr=null, dmWith=null, dmItems={}, dmDraft={};
 let holding=false; const stateQ=[]; let blindSeen=null, celebrated=null, exitSheet=false, countAt=null, waitAt=null, openTables=[], feed=[];
 function queueState(nr,at){ stateQ.push([nr,at]); if(!holding) pumpStates(); }
@@ -1757,7 +1771,7 @@ function connect(){
   ws.onmessage=e=>{
     let m; try{m=JSON.parse(e.data)}catch(_){return}
     if(m.t==="me"){
-      me=m.me; botName=m.bot||""; conn="ok"; sendMsg({t:"friends"});
+      me=m.me; botName=m.bot||""; conn="ok"; onlineWatch=false; sendMsg({t:"friends"});
       const code=pendingRoom||store.get("durak.room"); pendingRoom=null;
       if(code) sendMsg({t:"enter",code}); else render();
     } else if(m.t==="catalog"){
@@ -1780,6 +1794,7 @@ function connect(){
         if(view==="friends"||(!room&&view==="main")){ const o=document.querySelector(".friendsp"); if(o) o.replaceWith(friendsPanel()); } }
     } else if(m.t==="react"){
       const box=document.querySelector(`[data-pid="${CSS.escape(m.from)}"]`); Fx.emoji(m.e,box); if(m.from!==me.id) Sound.fx("pick");
+    } else if(m.t==="online"){ onlineData=m; if(view==="online"){ const o=document.querySelector(".onlinev"); if(o) o.replaceWith(onlineBody()); } else if(!room&&view==="main"){ const o=document.querySelector(".onlinep"); if(o) o.replaceWith(onlinePanel()); }
     } else if(m.t==="openTables"){ openTables=m.list||[]; if(!room&&view==="main") render();
     } else if(m.t==="feed"){ feed=m.items||[]; if((!room&&view==="main")||view==="casino"){ const old=document.querySelector(".feed"); if(old) old.replaceWith(feedPanel()); else if(!room&&view==="main") render(); }
     } else if(m.t==="board"){
@@ -1824,10 +1839,11 @@ function glideSeat(prev){
     if(Math.abs(dx)+Math.abs(dy)<8&&Math.abs(sc-1)<.06) return;
     try{ e.animate([{transform:`translate(${dx}px,${dy}px) scale(${sc})`},{transform:"translate(0,0) scale(1)"}],{duration:720*k,delay:i*40*k,easing:"cubic-bezier(.2,.85,.3,1.12)",composite:"add",fill:"backwards"}); }catch(_){ } });
 }
+function syncOnlineWatch(){ const want=!!(me&&conn==="ok"&&!room&&(view==="main"||view==="online")); if(want!==onlineWatch){ onlineWatch=want; sendMsg({t:"online",watch:want}); } }
 function render(){
   const prevSeat=seatRects();
   renderInner();
-  chatSync(); showBubbles();
+  chatSync(); showBubbles(); try{ syncOnlineWatch(); }catch(_){ }
   if(post.length){ const jobs=post.splice(0); requestAnimationFrame(()=>jobs.forEach(f=>{ try{ f(); }catch(e){} })); }
   requestAnimationFrame(()=>glideSeat(prevSeat)); // после того, как веер посчитал нахлёст
 }
@@ -1838,6 +1854,7 @@ function renderInner(){
   if(view==="settings"){ renderSettings(); return; }
   if(view==="friends"){ app.append(viewHead("👥 Друзья"),friendsPanel()); return; }
   if(view==="dm"){ renderDm(); return; }
+  if(view==="online"){ app.append(viewHead("🌐 Онлайн"),onlineBody()); return; }
   if(view==="cg"){ document.body.classList.remove("tablemode"); renderCG(); return; }
   if(view==="shop"){ renderShop(); return; }
   if(view==="casino"){ renderCasino(); return; }
@@ -1877,9 +1894,40 @@ function renderMenu(){
     el("p",{class:"muted small"},"Партия только для тебя. Боты ходят сами."),
     el("div",{class:"row"},[1,2,3].map(n=>el("button",{class:n===1?"btn":"btn ghost",type:"button",onclick:()=>sendMsg({t:"practice",bots:n})},n===1?"Против 1 бота":`Против ${n} ботов`)))));
   app.append(friendsPanel());
-  app.append(openPanel());
+  app.append(onlinePanel());
   app.append(boardPanel());
   app.append(rulesPanel());
+}
+const MODE_CHIP={normal:"",blitz:"⚡ блиц",match:"🏆 матч до 3",stake:"💰 ставка"};
+function lobbyRow(l){
+  return el("div",{class:"olrow"+(l.open?"":" locked")},
+    el("div",{class:"otav"},l.names.slice(0,5).map((n,i)=>avatarEl({name:n,avatar:l.avatars&&l.avatars[i],color:"#2a5a50"},26))),
+    el("div",{class:"olinfo"},el("b",{text:l.host?`Стол ${l.host}`:"Стол"}),
+      el("span",{class:"muted small"},`${l.n}/5`,MODE_CHIP[l.mode]?" · "+MODE_CHIP[l.mode]+(l.stake?" $"+l.stake:""):""," · ждут ",el("span",{"data-since":String(l.since),text:mmss(Date.now()-l.since)}))),
+    l.open&&l.code?el("button",{class:"btn small",type:"button",onclick:()=>{ Sound.fx("pick"); sendMsg({t:"enter",code:l.code}); }},"Сесть"):el("span",{class:"lockt",title:"Закрытый стол — только по приглашению"},"🔒"));
+}
+function onlinePanel(){
+  const d=onlineData; const box=el("div",{class:"panel onlinep"},el("div",{class:"row",style:"justify-content:space-between"},el("h2",{style:"margin:0"},"🌐 Онлайн"),
+    el("button",{class:"btn ghost small",type:"button",onclick:()=>{ view="online"; Sound.fx("pick"); render(); scrollTo(0,0); }},"Весь онлайн →")));
+  if(!d){ box.append(el("p",{class:"muted small",text:"Загружаю…"})); return box; }
+  box.append(el("p",{class:"muted small onlc"},el("i",{class:"dot online"})," Сейчас в игре: ",el("b",{text:String(d.counts.total)}),` · за столами ${d.counts.game} · ждут игру ${d.counts.lobby}`));
+  if(!d.lobbies.length) box.append(el("p",{class:"muted small",text:"Никто не ждёт. Создай стол и включи «Открытый стол» — его увидят все."}));
+  else box.append(el("div",{class:"ollist"},d.lobbies.slice(0,4).map(lobbyRow)));
+  return box;
+}
+function onlineBody(){
+  const d=onlineData, box=el("div",{class:"onlinev"});
+  if(!d){ box.append(el("div",{class:"panel"},el("p",{class:"muted",text:"Загружаю…"}))); return box; }
+  const c=d.counts;
+  box.append(el("div",{class:"panel"},el("div",{class:"onstats"},
+    ...[["В игре",c.total],["За столами",c.game],["Ждут игру",c.lobby],["С ботами",c.practice]].map(([l,v])=>el("div",{class:"onstat"},el("span",{class:"muted small",text:l}),el("b",{text:String(v)})))),
+    d.peak?el("p",{class:"muted small",style:"margin:8px 0 0",text:`Пик сегодня: ${d.peak.n}`}):null));
+  box.append(el("div",{class:"panel"},el("h2",{},`Ждут игроков (${d.lobbies.length})`),
+    d.lobbies.length?el("div",{class:"ollist"},d.lobbies.map(lobbyRow)):el("p",{class:"muted small",text:"Пока никто не ждёт. Создай стол и включи «Открытый стол»."}),
+    el("p",{class:"muted small",text:"🔒 — закрытый стол, туда только по приглашению."})));
+  box.append(el("div",{class:"panel"},el("h2",{},`Идут партии (${d.games.length})`),
+    d.games.length?el("div",{class:"ollist"},d.games.map(g=>el("div",{class:"olrow"},el("span",{class:"olgame",text:"🃏"}),el("div",{class:"olinfo"},el("b",{text:g.names.join(" · ")}),el("span",{class:"muted small",text:(MODE_CHIP[g.mode]||"обычный")+(g.pot?" · банк $"+g.pot:"")+(g.status==="over"?" · партия закончилась":"")}))))):el("p",{class:"muted small",text:"Сейчас никто не играет."})));
+  return box;
 }
 function openPanel(){
   const box=el("div",{class:"panel"},el("h2",{},"Открытые столы"));
