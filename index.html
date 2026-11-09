@@ -908,6 +908,29 @@ body.beat::before{animation:beatv .5s ease-out}
 @keyframes frpulse{50%{transform:scale(1.08);opacity:.7}}
 @keyframes frorbit{to{transform:rotate(360deg)}}
 :root[data-anim="off"] .avframe .frfx,:root[data-anim="off"] .avframe .frfx::before,:root[data-anim="off"] .avframe .frfx::after{animation:none}
+
+/* ---------- телефон: стол помещается в экран ---------- */
+body.tablemode header.hdr{display:none}
+body.tablemode .wrap.app{min-height:100dvh;padding-top:calc(6px + var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px));padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+body.tablemode .center{min-height:0}
+body.tablemode .tbar-top{flex-wrap:nowrap}
+body.tablemode .tbar-top .row{flex-wrap:nowrap;gap:4px!important}
+body.tablemode .tbar-top .btn.tiny{padding:5px 8px}
+body.tablemode .tbar-top>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media (max-height:700px){:root{--cwb:clamp(34px,min(11vw,7.6vh),118px)} body.tablemode .wrap.app{gap:2px} body.tablemode .seat>.row .btn{padding:9px 8px} body.tablemode .reacts button{padding:2px 6px;font-size:15px} body.tablemode .need{display:none}}
+@media (max-height:600px){:root{--cwb:clamp(30px,min(10.5vw,7vh),118px)} body.tablemode .opps{gap:0} body.tablemode .opp{padding:1px 2px}}
+/* чат за столом свёрнут в кнопку */
+.chatbar{left:auto;right:auto;transform:none;left:10px;width:auto;padding:0;background:none;border:0}
+.chatbar>input,.chatbar>.ccount,.chatbar>button[type=submit]{display:none}
+.chatopen{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(6,14,12,.75);font-size:18px;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.chatbar.open{left:50%;transform:translateX(-50%);width:min(520px,calc(100% - 16px));background:rgba(6,14,12,.92);border:1px solid rgba(255,255,255,.12);padding:4px 4px 4px 6px}
+.chatbar.open>.chatopen{display:none}
+.chatbar.open>input,.chatbar.open>button[type=submit]{display:block}.chatbar.open>.ccount{display:inline}
+.chatbar.open>input{padding-left:8px}
+body.chaton .wrap.app{padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+body.tablemode .reacts{padding-left:52px}
+body.chaton .toast{bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+.tourfs{width:100%;margin-bottom:8px}
 </style>
 </head>
 <body>
@@ -2050,6 +2073,7 @@ function renderInner(){
       el("button",{class:"btn ghost tiny eyebtn","aria-pressed":String(!!Prefs.get("hideNames")),title:Prefs.get("hideNames")?"Показать имена":"Скрыть имена и аватарки","aria-label":Prefs.get("hideNames")?"Показать имена":"Скрыть имена",onclick:()=>{ Prefs.set("hideNames",!Prefs.get("hideNames")); Sound.fx("pick"); toast(Prefs.get("hideNames")?"Имена и аватарки скрыты":"Имена снова видны"); render(); }},Prefs.get("hideNames")?"🙈":"👁"),
       tableMode?el("button",{class:"btn ghost tiny","aria-pressed":String(!!Prefs.get("showLog")),title:"Ходы",onclick:()=>{ Prefs.set("showLog",!Prefs.get("showLog")); Sound.fx("pick"); render(); }},"📜"):null,
       room.mode&&room.mode!=="normal"?modeBadge(room):null,
+      tableMode&&fsAvail?el("button",{class:"btn ghost tiny",type:"button","aria-label":fsIsOn()?"Выйти из полного экрана":"На весь экран",onclick:()=>{ fsToggle(); setTimeout(render,400); }},fsIsOn()?"⤡":"⛶"):null,
       el("button",{class:"btn ghost tiny",type:"button",onclick:exitRoom},"В меню")))); }
   if(fatal){ app.append(el("div",{class:"banner",text:fatal})); return; }
   if(conn==="lost") app.append(el("div",{class:"banner"},"Связь с сервером пропала, переподключаюсь…"));
@@ -2088,13 +2112,13 @@ const Tour=(()=>{
   const panelWith=t=>()=>[...document.querySelectorAll("#app .panel")].find(p=>p.querySelector("h2")&&p.querySelector("h2").textContent.includes(t));
   const btnWith=t=>()=>[...document.querySelectorAll("#app button")].find(b=>b.textContent.trim()===t);
   const STEPS=[
-    {t:"Добро пожаловать за стол Кащея!",d:"Покажу за минуту, что тут где. Можно пропустить и вернуться к обучению потом в настройках."},
+    {t:"Добро пожаловать за стол Кащея!",d:"Покажу за минуту, что тут где. Можно пропустить и вернуться к обучению потом в настройках.",fs:true},
     {el:()=>document.getElementById("coinsBtn"),t:"💰 Баланс",d:"Игровые деньги. Дают за победы, ежедневный бонус и промокоды. Тратятся в магазине и казино."},
     {el:()=>document.getElementById("casinoBtn"),t:"🎰 Казино",d:"Слоты, рулетка, «Выше/ниже» и Бурмалда с иксами. Всё на игровые деньги."},
     {el:()=>document.getElementById("shopBtn"),t:"🛒 Магазин",d:"Фоны стола, колоды, цвет ника, титулы, реакции и эффекты победы."},
     {el:()=>document.getElementById("frBtn"),t:"👥 Друзья",d:"Добавляй друзей по коду, пиши им и зови за стол одной кнопкой. Зелёная точка — кто-то в сети."},
     {el:()=>document.getElementById("setBtn"),t:"⚙ Настройки",d:"Ник и фото, звук и музыка, анимации, подсказки и «Напряжённый момент»."},
-    {el:()=>{ const b=document.getElementById("fsBtn"); return b&&!b.hidden?b:null; },t:"⛶ Весь экран",d:"Открывает игру на весь экран телефона."},
+    {el:()=>{ const b=document.getElementById("fsBtn"); return b&&!b.hidden?b:null; },t:"⛶ Весь экран",d:"Открывает игру на весь экран телефона — так играть удобнее всего. За столом эта кнопка тоже есть, рядом с «В меню».",fs:true},
     {el:btnWith("Создать комнату"),t:"Свой стол",d:"Создай стол и позови друга: кнопка «Пригласить» отправит ссылку в Telegram. Или введи код, который прислали тебе."},
     {el:panelWith("Режимы игры"),t:"🎮 Режимы",d:"Китайские игры против ботов, дуэль на ставку, блиц на 5 секунд и матч до 3 побед."},
     {el:panelWith("Онлайн"),t:"🌐 Онлайн",d:"Кто сейчас играет и какие столы ждут игроков. За открытые можно сразу сесть."},
@@ -2119,6 +2143,7 @@ const Tour=(()=>{
     else if(tgt) scrollTo(0,0);
     const tip=layer.querySelector(".tourtip"); tip.replaceChildren(
       el("div",{class:"tstep",text:`${i+1} / ${STEPS.length}`}),el("b",{text:st.t}),el("p",{text:st.d}),
+      st.fs&&fsAvail&&!fsIsOn()?el("button",{class:"btn small tourfs",type:"button",onclick:e=>{ fsToggle(); e.currentTarget.textContent="✓ Полный экран включён"; e.currentTarget.disabled=true; setTimeout(place,500); }},"⛶ Открыть на весь экран"):null,
       el("div",{class:"row"},i<STEPS.length-1?el("button",{class:"btn ghost small",type:"button",onclick:()=>{ Sound.fx("unpick"); finish(); }},"Пропустить"):null,
         el("button",{class:"btn small",type:"button",onclick:()=>{ Sound.fx("pick"); i++; if(i>=STEPS.length) finish(); else show(); }},i<STEPS.length-1?"Дальше →":"Играть!")));
     tip.animate([{opacity:0,transform:"translateY(8px)"},{opacity:1,transform:"none"}],{duration:220});
@@ -2322,10 +2347,14 @@ function chatSync(){
   if(!chatBar){
     const inp=el("input",{type:"text",maxlength:"50",placeholder:"Сообщение…","aria-label":"Сообщение в чат",enterkeyhint:"send",autocomplete:"off"});
     const cnt=el("span",{class:"ccount","aria-hidden":"true"});
-    const go=()=>{ const t=inp.value.replace(/\s+/g," ").trim(); if(!t) return; sendMsg({t:"chat",text:t}); inp.value=""; cnt.textContent=""; inp.blur(); };
+    const go=()=>{ const t=inp.value.replace(/\s+/g," ").trim(); if(!t) return; sendMsg({t:"chat",text:t}); inp.value=""; cnt.textContent=""; inp.blur(); chatBar.classList.remove("open"); };
     let typT=0; inp.addEventListener("input",()=>{ const n=inp.value.length; cnt.textContent=n>=35?`${n}/50`:""; if(n&&Date.now()-typT>2000){ typT=Date.now(); sendMsg({t:"typing"}); } });
     inp.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); go(); } });
     chatBar=el("form",{class:"chatbar",onsubmit:e=>{ e.preventDefault(); go(); }},inp,cnt,el("button",{class:"btn",type:"submit","aria-label":"Отправить"},"➤"));
+    const open=el("button",{class:"chatopen",type:"button","aria-label":"Открыть чат"},"💬");
+    open.addEventListener("click",()=>{ chatBar.classList.add("open"); setTimeout(()=>inp.focus(),30); });
+    inp.addEventListener("blur",()=>setTimeout(()=>{ if(!inp.value.trim()) chatBar.classList.remove("open"); },150));
+    chatBar.prepend(open);
     document.body.append(chatBar);
   }
   chatBar.hidden=false;
@@ -2886,13 +2915,14 @@ document.getElementById("shopBtn").addEventListener("click",()=>{ if(casinoLock)
 document.getElementById("coinsBtn").addEventListener("click",()=>{ if(casinoLock) return; view="shop"; Sound.fx("pick"); render(); scrollTo(0,0); });
 document.getElementById("frBtn").addEventListener("click",()=>{ if(casinoLock) return toast("Дождись конца раунда"); view=view==="friends"?"main":"friends"; Sound.fx("pick"); sendMsg({t:"friends"}); render(); scrollTo(0,0); });
 document.getElementById("setBtn").addEventListener("click",()=>{ if(casinoLock) return toast("Дождись конца раунда"); view=view==="settings"?"main":"settings"; Sound.fx("pick"); render(); scrollTo(0,0); });
+let fsAvail=false; const fsToggle=()=>{ const b=document.getElementById("fsBtn"); if(b&&!b.hidden) b.click(); }; const fsIsOn=()=>document.body.classList.contains("fs");
 /* ---------- полный экран: официальный режим Telegram (Bot API 8.0+), иначе браузерный ---------- */
 (function setupFullscreen(){
   const b=document.getElementById("fsBtn"); if(!b) return;
   const tgFS=!!(TG&&typeof TG.requestFullscreen==="function"&&TG.isVersionAtLeast&&TG.isVersionAtLeast("8.0"));
   const brFS=!TG||!TG.initData ? !!(document.fullscreenEnabled&&document.documentElement.requestFullscreen) : false;
   if(!tgFS&&!brFS) return;
-  b.hidden=false;
+  b.hidden=false; fsAvail=true;
   const isOn=()=>tgFS?!!TG.isFullscreen:!!document.fullscreenElement;
   const sync=()=>{ const on=isOn(); b.setAttribute("aria-pressed",String(on)); b.textContent=on?"⤡":"⛶"; b.title=on?"Выйти из полного экрана":"На весь экран"; document.body.classList.toggle("fs",on); };
   b.addEventListener("click",()=>{ Sound.fx("pick");
