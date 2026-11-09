@@ -86,8 +86,9 @@ function topFourSame(pile) {
 }
 
 function afterPlay(st, pid, r) {
-  const h = st.hands[pid];
-  while (h.length < 3 && st.deck.length) h.push(st.deck.pop());
+  const h = st.hands[pid], drawn = [];
+  while (h.length < 3 && st.deck.length) { const c = st.deck.pop(); h.push(c); drawn.push(c); }
+  if (drawn.length) emit("draw", st, pid, { cards: drawn });
   sortHand(h);
   const burn = r === "10" || topFourSame(st.pile);
   if (!burn) st.burnStreak = 0;
@@ -126,6 +127,8 @@ function deal(st) {
   st.prevLoser = st.loser || null;
   st.deck = d; st.pile = []; st.pileBy = []; st.burned = 0; st.finished = []; st.loser = null; st.turn = 0; st.last = null; st.burnStreak = 0;
   st.status = "swap"; st.qg = {};
+  for (const p of st.players) emit("dealt", st, p.id, { cards: [...st.hands[p.id], ...st.up[p.id], ...st.down[p.id]] });
+  for (const p of st.players) emit("deal", st, p.id, { cards: [...st.down[p.id], ...st.up[p.id], ...st.hands[p.id]] });
   st.log = [];
   log(st, "Карты розданы. Поменяйте карты в руке и открытые, затем нажмите «Готов».");
 }

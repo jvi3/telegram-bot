@@ -529,7 +529,7 @@ function broadcast(room) {
       const board = boardRows();
       for (const ws of wss.clients) if (ws.user) send(ws, { t: "board", rows: board });
     }
-    if (room.st.status === "over") { rewardGame(room.st); settleModes(room.st); progress.gameOver(room.st, !!room.cg); room.st.rematch = {}; }
+    if (room.st.status === "over") { rewardGame(room.st); settleModes(room.st); progress.gameOver(room.st, !!room.cg); profileM.gameOver(room.st); room.st.rematch = {}; }
     room.lastStatus = room.st.status;
   }
   armTimer(room);
@@ -631,6 +631,37 @@ function handle(ws, msg) {
   /* ---------- ежедневное: серия, колесо, бонус-сундук ---------- */
   if (msg.t === "dailyGet") { if (myTg) daily.push(myTg); return; }
   if (msg.t === "progressGet") { if (myTg) progress.push(myTg); return; }
+  /* ---------- профиль игрока ---------- */
+  if (msg.t === "profileGet") {
+    const id = String(msg.id || myTg || "").replace(/^tg/, "");
+    const pp = /^\d+$/.test(id) && progress.publicProfile(id, myTg);
+    if (!pp) return send(ws, { t: "error", msg: "Профиль недоступен" });
+    if (id !== myTg) { const st = friendStatus(id); pp.online = st.status; pp.friend = !!(myU && (myU.friends || []).includes(id)); }
+    return send(ws, { t: "pprofile", ...pp });
+  }
+  if (msg.t === "setStatus") {
+    if (!myU) return;
+    myU.status = String(msg.text || "").replace(/[\u0000-\u001f\u007f<>]/g, "").replace(/\s+/g, " ").trim().slice(0, 40); save();
+    return send(ws, { t: "pprofile", ...progress.publicProfile(myTg, myTg) });
+  }
+  if (msg.t === "setShowcase") {
+    if (!myU) return;
+    const got = (myU.prog && myU.prog.got) || {};
+    myU.showcase = (Array.isArray(msg.ids) ? msg.ids : []).map(String).filter(id => got[id]).filter((x, i, a) => a.indexOf(x) === i).slice(0, 3); save();
+    return send(ws, { t: "pprofile", ...progress.publicProfile(myTg, myTg) });
+  }
+  if (msg.t === "pview") {
+    const id = String(msg.id || "").replace(/^tg/, "");
+    const v = profileM.view(id, myTg); if (!v) return send(ws, { t: "error", msg: "Профиль недоступен" });
+    return send(ws, { t: "pview", ...v });
+  }
+  if (msg.t === "setStatus" || msg.t === "setShowcase") {
+    if (!myU) return send(ws, { t: "error", msg: "Работает только в Telegram" });
+    const now = Date.now(); if (now - (ws.lastPedit || 0) < 500) return; ws.lastPedit = now;
+    const err = msg.t === "setStatus" ? profileM.setStatus(myTg, msg.text) : profileM.setShowcase(myTg, msg.ids);
+    if (err) return send(ws, { t: "error", msg: err });
+    return send(ws, { t: "pview", ...profileM.view(myTg, myTg) });
+  }
   if (msg.t === "daily" || msg.t === "dailyClaim") {
     if (!myU) return send(ws, { t: "error", msg: "Работает только в Telegram" });
     const r = daily.claimStreak(myTg); if (r.err) return send(ws, { t: "error", msg: r.err });
@@ -708,7 +739,7 @@ function handle(ws, msg) {
     const rig = (admin.isAdmin(myTg) && !!(data.rig && data.rig[myTg])) || !!(data.rigFor && data.rigFor[myTg]);
     try { r = casino.play(myTg, msg, { rig }); } catch (e) { console.error(e); r = { err: "Что-то пошло не так" }; }
     if (r.err) return send(ws, { t: "error", msg: r.err });
-    if (!r.rigged) { if (r.win) progress.casinoWin(myTg, r.win); if (r.game === "case" && !r.dup) progress.owned(myTg); }
+    if (!r.rigged) { if (r.win) { progress.casinoWin(myTg, r.win); profileM.casinoWin(myTg, r.win); } if (r.game === "case" && !r.dup) progress.owned(myTg); }
     { const bet = r.paid || r.bet || r.stake || 0, win = r.win || 0, mult = bet ? win / bet : (r.mult || (r.prizes ? r.prizes[r.i] : 0));
       const NM = { slots: "Кащей Слотс", lucky: "Лаки 7", chest: "Китайском сундуке", roulette: "Рулетке", hilo: "Выше/ниже", xmult: "Бурмалде" };
       if (!r.rigged && win > bet && (mult >= 10 || win >= 100)) setTimeout(() => pushFeed({ kind: "casino", name: feedName(myTg), avatar: avatarUrl(myTg), game: NM[r.game] || r.game, win, mult: Math.round(mult * 10) / 10 }), 3500); }
@@ -919,7 +950,8 @@ const progress = require("./progress")({ data, save, SHOP, giveCoins, sendTo: (t
 daily.onQuest = tg => progress.questDone(tg);
 daily.onStreak = (tg, n) => progress.streak(tg, n);
 daily.onOwned = tg => progress.owned(tg);
-R.hooks.ev = (...a) => { daily.ev(...a); progress.ev(...a); };
+const profileM = require("./profile")({ data, save, SHOP, progress, displayName: u => displayName(u), avatarUrl, friendStatus });
+R.hooks.ev = (...a) => { daily.ev(...a); progress.ev(...a); profileM.ev(...a); };
 const admin = require("./admin")({ tg, rooms, getData: () => data, data, save, adminIds: ADMIN_IDS, kickUser, closeRoom, onlineIds, onlineSnapshot: () => onlineSnapshot(), demoView: id => demoOn(id) ? demoAdd(onlineSnapshot()) : null, startedAt, sendProfile: id => sendProfile(id), appUrl, giveCoins, clearAvatar: id => { avatars.delete(String(id)); saveAvatar(String(id)); sendProfile(String(id)); } });
 
 // Чистим комнаты, где давно никто не играл

@@ -136,11 +136,15 @@ module.exports = function createProgress({ data, save, SHOP, giveCoins, sendTo, 
         count(tg, "burns");
         if (info.by === "four") { const r = (st.pile[st.pile.length - 1] || "").slice(0, -1); if (r === "2") count(tg, "four2"); if (r === "8") count(tg, "four8"); }
         const u = data.users[tg]; if (u) { const p = P(u), day = SHOP.today(); if (p.bday !== day) { p.bday = day; p.bxp = 0; } if (p.bxp < BURN_XP_CAP) { p.bxp += XP.burn; addXp(tg, XP.burn, "burn", st.practice); } }
+      } else if (type === "dealt" && tg) {
+        const u = data.users[tg]; if (u) { const p = P(u); p.cards = p.cards || {}; for (const c of info.cards || []) p.cards[c] = (p.cards[c] || 0) + 1; }
       } else if (type === "play" && tg) {
+        { const u = data.users[tg]; if (u) { const p = P(u); p.played = p.played || {}; p.played[info.r] = (p.played[info.r] || 0) + info.n; } }
         if (info.blind) count(tg, "blindok");
         if (info.r === "8" && (info.prevLit === "8" || info.n >= 2)) count(tg, "g8", info.prevLit === "8" ? info.n : info.n - 1);
       } else if (type === "take" && tg) {
         if (info.n >= 25) count(tg, "bigtake");
+        { const p = P(data.users[tg]); p.maxTake = Math.max(p.maxTake || 0, info.n); }
       }
     } catch (e) { console.error("progress ev", e); }
   }
@@ -167,6 +171,8 @@ module.exports = function createProgress({ data, save, SHOP, giveCoins, sendTo, 
         } else pr.c.wr = 0;
         if (fool) { count(tg, "fools"); pr.c.fr = (pr.c.fr || 0) + 1; count(tg, "foolrow", 0, pr.c.fr); } else pr.c.fr = 0;
         if (msk >= 3 && msk < 5) count(tg, "night");
+        pr.hist = [first ? "1" : fool ? "Д" : "✓", ...(pr.hist || [])].slice(0, 15);
+        if (online) { pr.h2h = pr.h2h || {}; for (const o of humans) { const ot = tgOf(o.id); if (ot === tg) continue; const mine = st.loser === p.id ? 99 : place, theirs = st.loser === o.id ? 99 : st.finished.indexOf(o.id); const r = pr.h2h[ot] = pr.h2h[ot] || [0, 0]; if (mine < theirs) r[0]++; else if (theirs < mine) r[1]++; } }
         if (online && isFriend) {
           pr.fset = pr.fset || [];
           for (const o of humans) { const ot = tgOf(o.id); if (ot !== tg && isFriend(tg, ot) && !pr.fset.includes(ot)) pr.fset.push(ot); }
@@ -179,7 +185,7 @@ module.exports = function createProgress({ data, save, SHOP, giveCoins, sendTo, 
   }
   function questDone(tg) { addXp(tg, XP.quest, "quest"); addSp(tg, SP.quest); count(tg, "quests"); }
   function streak(tg, n) { if (n >= 7) count(tg, "streak7"); }
-  function casinoWin(tg, win) { if (win >= 1000) count(tg, "bigcasino"); }
+  function casinoWin(tg, win) { const u = data.users[tg]; if (u) { const p = P(u); p.bestWin = Math.max(p.bestWin || 0, win); } if (win >= 1000) count(tg, "bigcasino"); }
   function owned(tg) { const u = data.users[tg]; if (!u) return; SHOP.ensureEco(u); count(tg, "owned", 0, u.owned.filter(id => /^(bg|deck):/.test(id)).length); }
 
   function view(tg) {
@@ -192,14 +198,39 @@ module.exports = function createProgress({ data, save, SHOP, giveCoins, sendTo, 
       ach: ACH.map(a => { const got = !!p.got[a.id]; const prog = Math.min(a.n, p.c[a.c] || 0); return { id: a.id, icon: a.t === "x" && !got ? "❓" : a.icon, name: a.t === "x" && !got ? "???" : a.name, desc: a.t === "x" && !got ? "Тайное достижение" : a.desc, tier: a.t, n: a.n, p: prog, got, coins: ACH_COINS[a.t] }; }),
       season: { id: s.id, name: SEASON_NAMES[si], icon: SEASON_ICONS[si], pts: s.pts, step: Math.min(STEPS, Math.floor(s.pts / STEP)), stepPts: STEP, steps: Array.from({ length: STEPS }, (_, i) => { const r = stepReward(i + 1, s.id); return { n: i + 1, kind: r.frame ? "frame" : r.chest ? "chest" : "coins", label: r.label, frame: r.frame ? SHOP.BY_ID[r.frame].key : null }; }),
         endsAt: seasonEnd(s.id), left: seasonEnd(s.id) - Date.now(), sp: SP,
-        top: rows.slice(0, 10).map(([id, x], i) => ({ i: i + 1, name: displayName(x), avatar: avatarUrl(id), pts: x.prog.season.pts, me: id === String(tg) })),
+        top: rows.slice(0, 10).map(([id, x], i) => ({ id, i: i + 1, name: displayName(x), avatar: avatarUrl(id), pts: x.prog.season.pts, me: id === String(tg) })),
         me: myIdx >= 0 ? { i: myIdx + 1, pts: s.pts } : null },
     };
+  }
+  const RANK_JOKE = { "3": "Карты явно над тобой издеваются", "4": "Скромно, зато стабильно", "5": "Пятёрка — твой вечный спутник", "6": "Шестёрка по жизни", "7": "Счастливое число, но не здесь", "8": "Прозрачный намёк судьбы", "9": "Почти десятка. Почти.", "10": "Рождён поджигать", "J": "Валет — твой верный оруженосец", "Q": "Дама сердца выбрала тебя", "K": "Король колоды на твоей стороне", "A": "Туз в рукаве — буквально", "2": "Двоечник со стажем" };
+  const RANK_NAME = { "3": "Тройка", "4": "Четвёрка", "5": "Пятёрка", "6": "Шестёрка", "7": "Семёрка", "8": "Восьмёрка", "9": "Девятка", "10": "Десятка", "J": "Валет", "Q": "Дама", "K": "Король", "A": "Туз", "2": "Двойка" };
+  const topKey = o => { let best = null, n = 0; for (const [k, v] of Object.entries(o || {})) if (v > n) { best = k; n = v; } return best ? { k: best, n } : null; };
+  function publicProfile(tg, viewer) {
+    const u = data.users[tg]; if (!u) return null; const p = P(u); SHOP.ensureEco(u);
+    const got = ACH.filter(a => p.got[a.id]);
+    const show = (u.showcase || []).filter(id => p.got[id]).slice(0, 3).map(id => { const a = ACH.find(x => x.id === id); return { id, icon: a.icon, name: a.name, tier: a.t }; });
+    const games = Math.max(p.c.games || 0, u.games || 0), wins = Math.max(p.c.wins || 0, u.wins || 0), fools = Math.max(p.c.fools || 0, u.fools || 0);
+    const fate = topKey(p.cards), fav = topKey(p.played);
+    const ownedCount = t => u.owned.filter(id => id.startsWith(t + ":")).length + SHOP.ITEMS.filter(i => i.type === t && i.price === 0 && !i.lvl && !i.season).length;
+    const out = {
+      id: String(tg), name: displayName(u), avatar: avatarUrl(tg), status: u.status || "", level: p.lvl, rank: rankOf(p.lvl),
+      title: (SHOP.BY_ID[u.equipped.title] || {}).key || "", frame: (SHOP.BY_ID[u.equipped.frame] || {}).key || "", color: (SHOP.BY_ID[u.equipped.color] || {}).key || "#f2c14e",
+      crown: crownOf(tg), showcase: show, achGot: got.length, achAll: ACH.length,
+      stats: { games, wins, fools, burns: p.c.burns || 0, maxTake: p.maxTake || 0, bestWin: p.bestWin || 0 },
+      hist: p.hist || [],
+      fate: fate ? { card: fate.k, n: fate.n, joke: RANK_JOKE[fate.k.slice(0, -1)] } : null,
+      fav: fav ? { rank: fav.k, name: RANK_NAME[fav.k], n: fav.n } : null,
+      coll: { bg: [ownedCount("bg"), SHOP.ITEMS.filter(i => i.type === "bg").length], deck: [ownedCount("deck"), SHOP.ITEMS.filter(i => i.type === "deck").length] },
+      season: { pts: S(u).pts },
+    };
+    if (viewer && String(viewer) !== String(tg)) { const vp = P(data.users[viewer] || {}); out.h2h = (vp.h2h || {})[tg] || [0, 0]; }
+    else out.myAch = got.map(a => ({ id: a.id, icon: a.icon, name: a.name, tier: a.t }));
+    return out;
   }
   function push(tg) { const v = view(tg); if (v) sendTo(tg, { t: "progress", ...v }); }
   const levelOf = tg => { const u = data.users[tg]; return u && u.prog ? u.prog.lvl || 1 : 1; };
 
-  return { view, push, ev, gameOver, questDone, streak, casinoWin, owned, addXp, crownOf, levelOf, _ACH: ACH };
+  return { publicProfile, view, push, ev, gameOver, questDone, streak, casinoWin, owned, addXp, crownOf, levelOf, _ACH: ACH };
 };
 module.exports.EXTRA_ITEMS = [...LEVEL_TITLES, ...SEASON_FRAMES];
 module.exports.need = need;

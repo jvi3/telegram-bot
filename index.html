@@ -1198,6 +1198,57 @@ body.lightbg.tablemode .tbar-top .btn{background:rgba(0,0,0,.35)}
 .lvov .citem{--rc:#ffcf4a}
 .lvov .lvbig{font-size:40px;color:#ffd27a;font-weight:700;animation:cpop .6s cubic-bezier(.3,1.6,.5,1);position:relative;text-shadow:0 0 20px rgba(255,210,122,.7)}
 .qpop.ach{border-color:var(--c);box-shadow:0 8px 24px rgba(0,0,0,.5),0 0 18px var(--c)}
+/* ---------- профиль игрока ---------- */
+[data-uid]{cursor:pointer}
+.psheet{position:fixed;inset:0;z-index:85;background:rgba(5,10,9,.7);display:flex;align-items:flex-end;justify-content:center;animation:dfade .25s;backdrop-filter:blur(2px)}
+.psheet .pbox{width:min(560px,100%);max-height:92dvh;overflow-y:auto;background:var(--panel,#0f2a25);border-radius:18px 18px 0 0;padding:14px 14px calc(14px + var(--tg-safe-bottom,0px));animation:psup .35s cubic-bezier(.2,1.2,.4,1);border-top:1.5px solid rgba(255,255,255,.12)}
+@keyframes psup{from{transform:translateY(100%)}}
+.psheet .pclose{position:sticky;top:0;float:right;z-index:3}
+.phero{position:relative;display:flex;gap:16px;align-items:center;padding:28px 4px 6px}
+.phero .pcover{position:absolute;left:-14px;right:-14px;top:-14px;height:74px;background:linear-gradient(120deg,#3a1a4a,#1a2a5a,#0a4a3a);opacity:.75;background-size:200% 100%;animation:pcov 8s ease-in-out infinite alternate}
+@keyframes pcov{to{background-position:100% 0}}
+.phero .pav{position:relative;flex:none}
+.phero .pav .pgbadge{position:absolute;right:-12px;bottom:-10px;width:34px;height:34px}.phero .pav .pgbadge b{font-size:12px}
+.phero .pinfo{position:relative;min-width:0;flex:1;padding-top:18px}
+.pnick{font-size:21px;font-weight:700;color:var(--pc,#f5ecd6);display:flex;align-items:center;gap:6px;flex-wrap:wrap;word-break:break-word}
+.pttl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#ffd27a}
+.pstatus{font-size:13px;margin-top:6px;font-style:italic;opacity:.92}
+.ponline{display:inline-flex;align-items:center;gap:5px;font-size:11px;margin-top:4px}
+.ponline i{width:7px;height:7px;border-radius:50%;background:#888}.ponline.online i,.ponline.game i{background:#4cd98a;animation:ppulse 1.4s infinite}
+@keyframes ppulse{0%{box-shadow:0 0 0 0 rgba(76,217,138,.6)}70%{box-shadow:0 0 0 6px rgba(76,217,138,0)}}
+.pshelf{display:flex;gap:10px;justify-content:space-around;position:relative}
+.pslot{flex:1;max-width:110px;text-align:center;font-size:11px}
+.pslot .med{width:56px;height:56px;margin:0 auto 5px;font-size:26px;position:relative;overflow:hidden}
+.pslot .med::after{content:"";position:absolute;inset:0;border-radius:50%;background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);background-size:300% 100%;animation:pshine 3s linear infinite;animation-delay:calc(var(--k)*-1s)}
+@keyframes pshine{from{background-position:150% 0}to{background-position:-150% 0}}
+.pslot.empty .med{border-style:dashed;border-color:rgba(255,255,255,.25);box-shadow:none;animation:none;opacity:.5}
+.pslot.empty .med::after{display:none}
+.ppick{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;position:relative}
+.ppick button{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--c);background:rgba(0,0,0,.25);font-size:18px;padding:0}
+.ppick button.on{box-shadow:0 0 10px var(--c);background:rgba(255,255,255,.12)}
+.pstats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;position:relative}
+.pst{background:rgba(0,0,0,.25);border-radius:10px;padding:9px 4px;text-align:center}
+.pst b{display:block;font-size:18px;color:#ffd27a}.pst span{font-size:11px;opacity:.75}
+.pwr{grid-column:span 3;display:flex;align-items:center;gap:10px;font-size:12px}
+.pwrbar{flex:1;height:10px;border-radius:5px;background:rgba(232,102,78,.45);overflow:hidden}
+.pwrbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#4fbf8f,#a8f5d2);transition:width 1.2s cubic-bezier(.3,1.2,.5,1)}
+.phist{display:flex;gap:5px;flex-wrap:wrap;position:relative}
+.phist i{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;animation:ppop .4s cubic-bezier(.3,1.6,.5,1) backwards;animation-delay:calc(var(--k)*.05s)}
+@keyframes ppop{from{transform:scale(0)}}
+.phist .h1{background:#2e7a58}.phist .hok{background:#3a5a6a}.phist .hf{background:#9a3a3a}
+.pcards{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:relative}
+.pcardi{background:rgba(0,0,0,.25);border-radius:12px;padding:10px;display:flex;gap:10px;align-items:center;--cw:40px}
+.pcardi .card{flex:none;animation:pfloat 3s ease-in-out infinite;pointer-events:none}
+.pcardi:nth-child(2) .card{animation-delay:-1.5s}
+@keyframes pfloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-4px) rotate(3deg)}}
+.pcardi b{font-size:13px;display:block}.pcardi span{font-size:11px;opacity:.8;display:block}
+.pcardi small{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#ffd27a;display:block}
+.pcoll{display:flex;gap:10px;position:relative}
+.pcoll>div{flex:1;background:rgba(0,0,0,.25);border-radius:10px;padding:10px;font-size:13px}
+.pcbar{height:6px;border-radius:3px;background:rgba(255,255,255,.12);margin-top:6px;overflow:hidden}.pcbar i{display:block;height:100%;background:linear-gradient(90deg,#b28bff,#ff6fd8,#b28bff);background-size:200% 100%;animation:dflow 1.6s linear infinite}
+.pbtns{display:flex;gap:8px;flex-wrap:wrap;position:relative}.pbtns .btn{flex:1}
+.pedit{position:absolute;top:10px;right:10px;z-index:2}
+@media (max-width:420px){.pcards{grid-template-columns:1fr}}
 :root[data-anim="off"] .dsec *,:root[data-anim="off"] .dsec::before,:root[data-anim="off"] .dmini *,:root[data-anim="off"] .casecard *,:root[data-anim="off"] .daydot{animation:none!important}
 </style>
 </head>
@@ -1745,7 +1796,8 @@ const anonOn=()=>!!(Prefs.get("hideNames")&&room);
 function anonIdx(id){ return room?room.players.findIndex(p=>p.id===id):-1; }
 function shownName(p){ if(!anonOn()||!p||!p.id||anonIdx(p.id)<0) return p&&p.name||"Игрок"; return p.id===me.id?"Ты":"соперник"; }
 function anonText(t){ if(!anonOn()) return t; let r=String(t); [...room.players].sort((a,b)=>b.name.length-a.name.length).forEach(p=>{ if(p.name) r=r.split(p.name).join(shownName(p)); }); return r; }
-function avatarEl(p,size){
+function avatarEl(p,size){ const e=avatarEl1(p,size); const uid=p&&(p.uid||(p.id&&/^tg\d+$/.test(p.id)?p.id:null)); if(uid&&e&&e.setAttribute) e.setAttribute("data-uid",uid); return e; }
+function avatarEl1(p,size){
   if(p&&p.frame&&!(anonOn()&&p.id&&anonIdx(p.id)>=0)){ const inner=avatarEl0(p,size); return el("span",{class:"avframe fr-"+p.frame,style:`width:${size}px;height:${size}px;--s:${size}px`},inner,el("i",{class:"frfx","aria-hidden":"true"})); }
   return avatarEl0(p,size);
 }
@@ -2183,6 +2235,58 @@ function hiloNode(){
 
 /* ---------- экран казино ---------- */
 let casinoCfg={};
+/* ---------- профиль игрока: открывается по нажатию на аватарку ---------- */
+let ppData=null, ppEdit=false;
+function openProfile(uid){ uid=String(uid||"").replace(/^tg/,""); if(!/^\d+$/.test(uid)) return; Sound.fx("pick"); ppEdit=false; ppData={loading:true,id:uid}; ppDraw(); sendMsg({t:"profileGet",id:uid}); }
+function ppClose(){ document.querySelector(".psheet")?.remove(); ppData=null; }
+function ppDraw(){ let sh=document.querySelector(".psheet"); const box=ppBody(); if(sh){ sh.querySelector(".pbox").replaceChildren(...box); return; }
+  sh=el("div",{class:"psheet",onclick:e=>{ if(e.target===sh) ppClose(); }},el("div",{class:"pbox"},...box)); document.body.append(sh); }
+function ppBody(){
+  const d=ppData, close=el("button",{class:"btn ghost tiny pclose",type:"button","aria-label":"Закрыть",onclick:ppClose},"✕");
+  if(!d||d.loading) return [close,el("p",{class:"muted",style:"padding:30px 0;text-align:center",text:"Загружаю профиль…"})];
+  const mine=me&&("tg"+d.id)===me.id, out=[close];
+  const st=d.stats, wr=st.games?Math.round(st.wins/st.games*100):0;
+  // шапка
+  const pav=el("div",{class:"pav"},avatarEl({name:d.name,avatar:d.avatar,color:d.color,frame:d.frame},84),lvBadge(d.level));
+  const statusEl=ppEdit&&mine?(()=>{ const i=el("input",{maxlength:"40",value:d.status,placeholder:"Пара слов о себе",style:"width:100%;margin-top:6px"}); const save=()=>{ sendMsg({t:"setStatus",text:i.value}); ppEdit=false; }; i.addEventListener("keydown",e=>{ if(e.key==="Enter") save(); }); return el("div",{},i,el("div",{class:"row",style:"margin-top:6px"},el("button",{class:"btn small",type:"button",onclick:save},"Сохранить"))); })()
+    :el("div",{class:"pstatus",text:d.status?`«${d.status}»`:(mine?"Статус не задан — нажми ✏️":"")});
+  const onl=d.online?el("div",{class:"ponline "+d.online},el("i"),{online:"в сети",game:"в игре",offline:"не в сети"}[d.online]):null;
+  out.push(el("div",{class:"panel dsec"},el("div",{class:"phero"},el("div",{class:"pcover"}),pav,el("div",{class:"pinfo"},
+    el("div",{class:"pnick",style:`--pc:${d.color}`},d.crown?el("i",{class:"crown c"+d.crown,text:"👑"}):null,el("span",{text:d.name})),
+    el("div",{class:"pttl",text:`${d.title||d.rank} · уровень ${d.level}`}),statusEl,onl)),
+    mine&&!ppEdit?el("button",{class:"btn ghost tiny pedit",type:"button",onclick:()=>{ ppEdit=true; ppDraw(); }},"✏️"):null));
+  // витрина
+  const shelf=el("div",{class:"pshelf"},[0,1,2].map(k=>{ const a=d.showcase[k]; return a?el("div",{class:"pslot"},el("div",{class:"med",style:`--c:${TIERC[a.tier]};--k:${k}`,text:a.icon}),a.name):el("div",{class:"pslot empty"},el("div",{class:"med",text:"+"}),"пусто"); }));
+  const sec=el("div",{class:"panel dsec"},el("h2",{},"🏅 Витрина ",el("small",{text:`· медалей ${d.achGot}/${d.achAll}`})),shelf);
+  if(mine){ let pick=d.showcase.map(a=>a.id); const pk=el("div",{class:"ppick",hidden:true},(d.myAch||[]).map(a=>{ const b=el("button",{type:"button",class:pick.includes(a.id)?"on":"",style:`--c:${TIERC[a.tier]}`,title:a.name,text:a.icon,onclick:()=>{ if(pick.includes(a.id)) pick=pick.filter(x=>x!==a.id); else { pick.push(a.id); if(pick.length>3) pick.shift(); } Sound.fx("pick"); sendMsg({t:"setShowcase",ids:pick}); }}); return b; }));
+    if(!(d.myAch||[]).length) pk.append(el("span",{class:"muted small",text:"Пока нет медалей — получи первую в «Мой путь»"}));
+    sec.append(el("button",{class:"btn ghost tiny pedit",type:"button",onclick:()=>{ pk.hidden=!pk.hidden; }},"✏️"),pk); }
+  out.push(sec);
+  // статистика
+  const bar=el("i"); setTimeout(()=>bar.style.width=wr+"%",200);
+  out.push(el("div",{class:"panel dsec"},el("h2",{},"📊 Статистика"),el("div",{class:"pstats"},
+    [[st.games,"партий"],[st.wins,"вышел первым"],[st.fools,"раз дурак"],[st.burns,"сожжено стопок"],[st.maxTake,"макс. стопка"],["$"+st.bestWin.toLocaleString("ru"),"лучший занос"]].map(([v,n])=>el("div",{class:"pst"},el("b",{text:String(v)}),el("span",{text:n}))),
+    el("div",{class:"pwr"},el("span",{class:"muted",text:"Победы"}),el("div",{class:"pwrbar"},bar),el("b",{style:"color:#7ee0b5",text:wr+"%"}))),
+    d.h2h?el("p",{class:"muted small",style:"margin:10px 0 0;position:relative"},"Ваши партии друг с другом: ",el("b",{style:"color:#7ee0b5",text:String(d.h2h[0])})," : ",el("b",{style:"color:#ff8b7b",text:String(d.h2h[1])}),d.h2h[0]>d.h2h[1]?" в твою пользу":d.h2h[1]>d.h2h[0]?" не в твою пользу":""):null));
+  // последние партии
+  if(d.hist.length) out.push(el("div",{class:"panel dsec"},el("h2",{},"🕘 Последние партии"),el("div",{class:"phist"},d.hist.map((h,k)=>el("i",{class:h==="1"?"h1":h==="Д"?"hf":"hok",style:`--k:${k}`,text:h}))),el("p",{class:"muted small",style:"margin:8px 0 0;position:relative",text:"1 — вышел первым · ✓ — не дурак · Д — остался дураком"})));
+  // карты
+  if(d.fate||d.fav) out.push(el("div",{class:"panel dsec"},el("h2",{},"🃏 Карты"),el("div",{class:"pcards"},
+    d.fate?el("div",{class:"pcardi"},plainCard(d.fate.card),el("div",{},el("small",{text:"Карта судьбы"}),el("b",{text:prettyCard(d.fate.card)+` · попадалась ${d.fate.n} раз`}),el("span",{text:d.fate.joke}))):null,
+    d.fav?el("div",{class:"pcardi"},plainCard(d.fav.rank+"h"),el("div",{},el("small",{text:"Любимая карта"}),el("b",{text:d.fav.name}),el("span",{text:`сыграно ${d.fav.n} раз — чаще всех остальных`}))):null)));
+  // коллекция
+  out.push(el("div",{class:"panel dsec"},el("h2",{},"🎨 Коллекция"),el("div",{class:"pcoll"},[["Фоны",d.coll.bg],["Колоды",d.coll.deck]].map(([n,[a,b]])=>el("div",{},el("b",{text:`${n} ${a}/${b}`}),el("div",{class:"pcbar"},el("i",{style:`width:${a/b*100}%`})))))));
+  // кнопки для чужого профиля
+  if(!mine){ const f=frById(d.id);
+    out.push(el("div",{class:"panel"},el("div",{class:"pbtns"},
+      d.friend&&f?el("button",{class:"btn",type:"button",onclick:()=>{ ppClose(); inviteFriend(f); }},"🎮 Позвать играть"):null,
+      d.friend?el("button",{class:"btn ghost",type:"button",onclick:()=>{ ppClose(); openDm(d.id); }},"✉️ Написать"):el("button",{class:"btn",type:"button",onclick:()=>{ sendMsg({t:"addFriend",pid:"tg"+d.id}); setTimeout(()=>sendMsg({t:"profileGet",id:d.id}),600); }},"🤝 В друзья")))); }
+  return out;
+}
+function plainCard(c){ const e=cardEl(c); e.classList.remove("glass","special"); return e; }
+function prettyCard(c){ return c.slice(0,-1)+({s:"♠",h:"♥",d:"♦",c:"♣"}[c.slice(-1)]||""); }
+// нажатие на любую аватарку с игроком открывает профиль
+document.addEventListener("click",e=>{ const a=e.target.closest&&e.target.closest("[data-uid]"); if(!a||a.closest(".psheet")) return; if(anonOn()&&room&&room.status!=="lobby") return; e.preventDefault(); e.stopPropagation(); openProfile(a.dataset.uid); },true);
 /* ---------- уровень, достижения, сезон ---------- */
 let progData=null, progTab="lv";
 const TIERC={b:"#c98a5a",s:"#c9d3dc",g:"#ffcf4a",x:"#b28bff"};
@@ -2210,7 +2314,7 @@ function progSeason(d){
   const track=el("div",{class:"strack"},S.steps.map(s=>el("div",{class:"sst"+(s.n<=S.step?" got":"")+(s.n===S.step+1?" cur":"")+(s.kind!=="coins"?" big":"")},el("div",{class:"box"},s.kind==="frame"?avatarEl({name:me?me.name:"Я",avatar:profile&&profile.avatar||"",color:"#f2c14e",frame:s.frame},30):el("span",{text:s.kind==="chest"?"🎁":s.n%5===0?"⭐":"💰"})),el("div",{class:"n",text:s.kind==="coins"?s.label:s.label}))));
   setTimeout(()=>{ const n=track.querySelector(".cur"); if(n) track.scrollLeft=n.offsetLeft-track.clientWidth/2+29; },0);
   const inStep=S.pts-S.step*S.stepPts;
-  const rows=S.top.map(r=>el("div",{class:"slr"+(r.me?" me":"")},el("span",{class:"p",text:r.i<=3?["🥇","🥈","🥉"][r.i-1]:String(r.i)}),avatarEl({name:r.name,avatar:r.avatar,color:"#f2c14e"},26),el("span",{text:r.name}),el("span",{class:"s",text:String(r.pts)})));
+  const rows=S.top.map(r=>el("div",{class:"slr"+(r.me?" me":"")},el("span",{class:"p",text:r.i<=3?["🥇","🥈","🥉"][r.i-1]:String(r.i)}),avatarEl({uid:r.id?"tg"+r.id:null,name:r.name,avatar:r.avatar,color:"#f2c14e"},26),el("span",{text:r.name}),el("span",{class:"s",text:String(r.pts)})));
   if(S.me&&!S.top.some(r=>r.me)) rows.push(el("div",{class:"muted small",style:"text-align:center",text:"…"}),el("div",{class:"slr me"},el("span",{class:"p",text:String(S.me.i)}),el("span",{text:"Ты"}),el("span",{class:"s",text:String(S.me.pts)})));
   return [el("div",{class:"panel dsec"},el("div",{class:"sshead"},el("div",{},el("span",{class:"muted small",text:`Сезон ${S.id}`}),el("div",{class:"ssname",text:`${S.icon} ${S.name}`})),el("div",{class:"sstimer",text:`⏳ до конца ${fmtDays(S.left)}`})),
       el("div",{class:"xpbar"},el("i",{style:`width:${S.step>=S.steps.length?100:inStep/S.stepPts*100}%`})),
@@ -2514,6 +2618,7 @@ function connect(){
     } else if(m.t==="wheelRes"){ if(wheelWait){ const f=wheelWait; wheelWait=null; f(m); }
     } else if(m.t==="chestOpen"){ chestReveal(m);
     } else if(m.t==="questDone"){ questPop(m);
+    } else if(m.t==="pprofile"){ if(ppData&&String(ppData.id)===String(m.id)){ ppData=m; ppDraw(); }
     } else if(m.t==="progress"){ progData=m; refreshProg();
     } else if(m.t==="levelUp"){ levelUpShow(m);
     } else if(m.t==="achGot"){ setTimeout(()=>achPop(m),document.querySelector(".qpop")?3500:0);
@@ -2623,7 +2728,7 @@ function renderMenu(){
   app.append(feedPanel());
   app.append(el("div",{class:"panel"},
     el("h2",{},`Привет, ${me.name}!`),
-    profile?el("div",{class:"row"},el("span",{class:"coins",text:`💰 $${profile.coins}`}),el("button",{class:"btn ghost small",type:"button",onclick:()=>{view="shop";render();}},"🛒 Магазин"),el("button",{class:"btn ghost small",type:"button",onclick:()=>{view="casino";render();}},"🎰 Казино")):null,
+    profile?el("div",{class:"row"},el("span",{class:"coins",text:`💰 $${profile.coins}`}),el("button",{class:"btn ghost small",type:"button",onclick:()=>openProfile(me.id)},"👤 Профиль"),el("button",{class:"btn ghost small",type:"button",onclick:()=>{view="shop";render();}},"🛒 Магазин"),el("button",{class:"btn ghost small",type:"button",onclick:()=>{view="casino";render();}},"🎰 Казино")):null,
     el("p",{class:"muted small"},"Создай комнату и позови друга, или войди по коду, который тебе прислали."),
     el("div",{class:"row"},
       el("button",{class:"btn",type:"button",onclick:()=>sendMsg({t:"create"})},"Создать комнату"),
@@ -2650,6 +2755,7 @@ const Tour=(()=>{
   const STEPS=[
     {t:"Добро пожаловать за стол Кащея!",d:"Покажу за минуту, что тут где. Можно пропустить и вернуться к обучению потом в настройках.",fs:true},
     {el:()=>document.getElementById("coinsBtn"),t:"💰 Баланс",d:"Игровые деньги. Дают за победы, ежедневные награды и промокоды. Тратятся в магазине и казино."},
+    {el:()=>[...document.querySelectorAll("#app button")].find(b=>b.textContent.includes("Профиль")),t:"👤 Профиль",d:"Твоя витрина медалей, статистика, карта судьбы и статус. Профиль любого игрока открывается нажатием на его аватарку."},
     {el:()=>document.querySelector(".progmini"),t:"⭐ Мой путь",d:"Уровень растёт за любые партии и задания. Тут же достижения и сезон на 30 дней с бесплатными наградами и рейтингом."},
     {el:()=>document.getElementById("dayBtn"),t:"🎁 Ежедневное",d:"Заходи каждый день: серия входов, три необычных задания (выполняются и с ботами) и бесплатное колесо. В сундуках — фоны и колоды."},
     {el:()=>document.getElementById("casinoBtn"),t:"🎰 Казино",d:"Слоты, рулетка, кейсы с фонами и колодами, «Выше/ниже» и Бурмалда с иксами. Всё на игровые деньги."},
@@ -2747,7 +2853,7 @@ function boardPanel(){
   else box.append(el("div",{class:"tablewrap"},el("table",{class:"board"},
     el("thead",{},el("tr",{},["#","Игрок","Очки","Побед","Дурак","💰"].map(t=>el("th",{text:t})))),
     el("tbody",{},board.map((r,i)=>el("tr",{class:me&&r.id===me.id?"meRow":""},
-      el("td",{text:i+1}),el("td",{class:"nm"},el("div",{style:"display:flex;align-items:center;gap:6px"},avatarEl({name:r.name,avatar:r.avatar,color:"#2a5a50"},20),el("span",{text:r.name+(me&&r.id===me.id?" (ты)":"")})),r.title?el("div",{class:"ptitle",style:"padding-left:0",text:r.title}):null),el("td",{text:r.points}),el("td",{text:r.wins}),el("td",{text:r.fools}),el("td",{text:"$"+(r.coins||0)})))))),
+      el("td",{text:i+1}),el("td",{class:"nm"},el("div",{style:"display:flex;align-items:center;gap:6px"},avatarEl({uid:r.id,name:r.name,avatar:r.avatar,color:"#2a5a50"},20),el("span",{text:r.name+(me&&r.id===me.id?" (ты)":"")})),r.title?el("div",{class:"ptitle",style:"padding-left:0",text:r.title}):null),el("td",{text:r.points}),el("td",{text:r.wins}),el("td",{text:r.fools}),el("td",{text:"$"+(r.coins||0)})))))),
     el("p",{class:"muted small"},"Очки за место: кто вышел первым — больше всех, дурак — 0. Победа — выйти первым."));
   return box;
 }
@@ -2913,7 +3019,7 @@ function dmMsgEl(m){ const mine=m.f!==dmWith; return el("div",{class:"dmm"+(mine
 function renderDm(){
   const f=frById(dmWith); if(!f){ view="friends"; return render(); }
   app.append(el("div",{class:"top"},el("button",{class:"btn ghost",type:"button",onclick:()=>{ view="friends"; dmWith=null; render(); }},"← Друзья"),
-    el("div",{class:"dmhead"},el("span",{class:"frav"},avatarEl({name:f.name,avatar:f.avatar,color:"#2a5a50"},34),el("i",{class:"dot "+f.status})),el("div",{class:"frn"},el("b",{text:f.name}),el("span",{class:"muted small dmst",text:stText(f)}))),
+    el("div",{class:"dmhead"},el("span",{class:"frav"},avatarEl({uid:"tg"+f.id,name:f.name,avatar:f.avatar,color:"#2a5a50"},34),el("i",{class:"dot "+f.status})),el("div",{class:"frn"},el("b",{text:f.name}),el("span",{class:"muted small dmst",text:stText(f)}))),
     el("button",{class:"btn small",type:"button",onclick:()=>inviteFriend(f)},"🃏 Позвать")));
   const list=el("div",{class:"dmlist",role:"log","aria-live":"polite"});
   const items=dmItems[dmWith]||[];
@@ -2941,7 +3047,7 @@ function friendsPanel(){
     el("div",{class:"row"},inp,el("button",{class:"btn small",type:"button",onclick:add},"Добавить")));
   if(!friends.length) box.append(el("p",{class:"muted small",text:"Пока никого. Отправь другу свой код друга (6 символов) — это не код комнаты, он не меняется. Или добавь игрока прямо за столом кнопкой 🤝."}));
   else box.append(el("div",{class:"frlist"},friends.map(f=>el("div",{class:"frrow"},
-    el("span",{class:"frav"},avatarEl({name:f.name,avatar:f.avatar,color:"#2a5a50"},34),el("i",{class:"dot "+f.status})),
+    el("span",{class:"frav"},avatarEl({uid:"tg"+f.id,name:f.name,avatar:f.avatar,color:"#2a5a50"},34),el("i",{class:"dot "+f.status})),
     el("button",{class:"frn",type:"button",onclick:()=>openDm(f.id),"aria-label":"Написать "+f.name},el("b",{text:f.name}),el("span",{class:"muted small",text:stText(f)})),
     el("button",{class:"btn ghost tiny frmsg",type:"button",onclick:()=>openDm(f.id),"aria-label":"Написать "+f.name},"💬",f.unread?el("span",{class:"unb",text:String(Math.min(f.unread,99))}):null),
     delFr===f.id?el("button",{class:"btn ghost tiny",type:"button",onclick:()=>{ delFr=null; sendMsg({t:"delFriend",id:f.id}); }},"Удалить?"):el("button",{class:"btn ghost tiny frx",type:"button","aria-label":"Удалить из друзей",onclick:()=>{ delFr=f.id; const o=document.querySelector(".friendsp"); if(o) o.replaceWith(friendsPanel()); setTimeout(()=>{ if(delFr===f.id){ delFr=null; const o2=document.querySelector(".friendsp"); if(o2) o2.replaceWith(friendsPanel()); } },3000); }},"✕"),
