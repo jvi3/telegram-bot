@@ -962,7 +962,7 @@ body.tablemode .tbar-top>span{white-space:nowrap;overflow:hidden;text-overflow:e
 .chatbar.open>input,.chatbar.open>button[type=submit]{display:block}.chatbar.open>.ccount{display:inline}
 .chatbar.open>input{padding-left:8px}
 body.chaton .wrap.app{padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
-body.tablemode .reacts{padding-right:40px}
+
 body.chaton .toast{bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .tourfs{width:100%;margin-bottom:8px}
 
@@ -973,11 +973,16 @@ body.chaton .toast{bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 
 /* ---------- телефон (определяется автоматически): всё компактнее и выше ---------- */
 .reactopen{display:none}
-:root[data-mobile] body.tablemode .reactopen{display:inline-grid;place-items:center;margin-right:6px}
+body.tablemode .reactopen{display:inline-grid;place-items:center;margin-right:6px}
 .chatbar{display:flex;align-items:center}
 .chatbar.open>.reactopen{display:none!important}
-:root[data-mobile] body.tablemode .reacts{display:none}
-:root[data-mobile] body.tablemode.reactsopen .reacts{display:flex;position:fixed;right:10px;bottom:calc(50px + env(safe-area-inset-bottom,0px));z-index:13;background:rgba(6,14,12,.9);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:6px;flex-wrap:wrap;max-width:calc(100% - 20px);justify-content:center;gap:4px}
+body.tablemode .reacts{display:none}
+body.tablemode.reactsopen .reacts{display:flex;flex-direction:column;position:fixed;right:10px;bottom:calc(50px + env(safe-area-inset-bottom,0px));z-index:13;background:rgba(6,14,12,.94);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:8px;width:min(330px,calc(100% - 20px));gap:6px;box-shadow:0 10px 26px rgba(0,0,0,.5);animation:sheetup2 .2s ease-out}
+@keyframes sheetup2{from{transform:translateY(10px);opacity:0}}
+.rgrp{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.rlbl{font-size:11px;color:#b9b4a6;text-align:left;padding-left:2px}
+.reacts button.fav{box-shadow:inset 0 0 0 1.5px #f2c14e}
+.rhint{font-size:10px;color:#8f8a7e;text-align:center}
 :root[data-mobile] body.tablemode .wrap.app{gap:2px;padding-inline:8px}
 :root[data-mobile] body.tablemode .tbar-top{margin-bottom:0}
 :root[data-mobile] body.tablemode .opp{padding:1px 2px}
@@ -1030,6 +1035,12 @@ body.lightbg.tablemode .tbar-top .btn{background:rgba(0,0,0,.35)}
 :root[data-mobile] .cgjcard{width:96px;min-height:132px}
 :root[data-mobile] .swapstage{gap:8px}
 :root[data-mobile] .tensestage{gap:10px}
+
+.contp{border:1px solid rgba(126,224,181,.45)}
+.controw{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.contico{font-size:22px;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:rgba(126,224,181,.15);flex:none}
+.contbody{display:flex;flex-direction:column}
+.contp .row .btn{flex:1}
 </style>
 </head>
 <body>
@@ -2096,7 +2107,7 @@ function buildAudioBar(){
 
 
 /* ---------- очередь состояний: даём доиграть перевороту закрытой карты ---------- */
-let onlineData=null, onlineWatch=false;
+let onlineData=null, onlineWatch=false, practiceSave=null;
 let chatB={}, friends=[], myFcode="", pendingInvite=null, delFr=null, dmWith=null, dmItems={}, dmDraft={};
 let holding=false; const stateQ=[]; let blindSeen=null, celebrated=null, exitSheet=false, countAt=null, waitAt=null, openTables=[], feed=[];
 function queueState(nr,at){ stateQ.push([nr,at]); if(!holding) pumpStates(); }
@@ -2171,6 +2182,7 @@ function connect(){
         if(view==="friends"||(!room&&view==="main")){ const o=document.querySelector(".friendsp"); if(o) o.replaceWith(friendsPanel()); } }
     } else if(m.t==="react"){
       const box=document.querySelector(`[data-pid="${CSS.escape(m.from)}"]`); Fx.emoji(m.e,box); if(m.from!==me.id) Sound.fx("pick");
+    } else if(m.t==="practiceSave"){ practiceSave=m.info; if(!room&&view==="main"){ const o=document.querySelector(".contp"); const n=continuePanel(); if(o) o.replaceWith(n); else render(); }
     } else if(m.t==="online"){ onlineData=m; if(view==="online"){ const o=document.querySelector(".onlinev"); if(o) o.replaceWith(onlineBody()); } else if(!room&&view==="main"){ const o=document.querySelector(".onlinep"); if(o) o.replaceWith(onlinePanel()); }
     } else if(m.t==="openTables"){ openTables=m.list||[]; if(!room&&view==="main") render();
     } else if(m.t==="feed"){ feed=m.items||[]; if((!room&&view==="main")||view==="casino"){ const old=document.querySelector(".feed"); if(old) old.replaceWith(feedPanel()); else if(!room&&view==="main") render(); }
@@ -2253,7 +2265,7 @@ function renderInner(){
   if(room.status==="lobby") return renderWaiting();
   renderTable();
 }
-function exitRoom(){ Pressure.set(0); sendMsg({t:"exit"}); room=null; store.del("durak.room"); if(cg.active){ cgQuit(); view="main"; } render(); }
+function exitRoom(){ Pressure.set(0); sendMsg({t:"exit"}); room=null; store.del("durak.room"); if(cg.active){ cgSave(); cgQuit(); view="main"; } render(); }
 
 function renderMenu(){
   const codeIn=el("input",{id:"joincode",maxlength:"6",placeholder:"КОД","aria-label":"Код комнаты",style:"width:6.5em;text-transform:uppercase;letter-spacing:.15em"});
@@ -2266,6 +2278,7 @@ function renderMenu(){
       el("button",{class:"btn",type:"button",onclick:()=>sendMsg({t:"create"})},"Создать комнату"),
       codeIn,
       el("button",{class:"btn ghost",type:"button",onclick:()=>{const c=codeIn.value.trim().toUpperCase(); if(/^[A-Z0-9]{6}$/.test(c)){ codeIn.value=""; return sendMsg({t:"addFriend",code:c}); } if(!/^[A-Z0-9]{4}$/.test(c)) return toast("Код комнаты — 4 символа, код друга — 6"); sendMsg({t:"enter",code:c});}},"Войти"))));
+  app.append(continuePanel());
   app.append(modesPanel());
   app.append(el("div",{class:"panel"},
     el("h2",{},"Тренировка с ботами"),
@@ -2627,11 +2640,14 @@ const cgOn=()=>cg.active&&room&&room.practice;
 const cgHas=id=>cg.jokers.some(j=>j.id===id);
 const cgVal=r=>r==="2"?15:r==="J"?11:r==="Q"?12:r==="K"?13:r==="A"?14:+r;
 function cgTone(f,d,g,ty){ try{ Sound.fx("pick"); }catch(_){ } }
-function cgStart(){ cg={active:true,floor:1,jokers:[],score:0,combo:0,key:"",takeSeq:null,blindSeq:null,picking:cgOffer(),over:null,hello:false}; view="cg"; render(); }
+function cgStart(){ cgDrop(); if(practiceSave) sendMsg({t:"dropPractice"}); cg={active:true,floor:1,jokers:[],score:0,combo:0,key:"",takeSeq:null,blindSeq:null,picking:cgOffer(),over:null,hello:false}; view="cg"; render(); }
 function cgOffer(){ const pool=CG_JOKERS.filter(j=>!cgHas(j.id)); const out=[]; while(out.length<3&&pool.length) out.push(pool.splice(Math.random()*pool.length|0,1)[0]); return out; }
-function cgFloorGo(){ cg.hello=false; if(room){ sendMsg({t:"exit"}); room=null; store.del("durak.room"); } cg.score=0; cg.combo=0; cg.key=""; cg.takeSeq=null; cg.blindSeq=null; cg.over=null; cg.picking=null; view="main"; sendMsg({t:"practice",bots:cgBots(cg.floor)}); }
-function cgExit(){ if(room){ sendMsg({t:"exit"}); room=null; store.del("durak.room"); } cgQuit(); view="main"; document.body.classList.remove("tablemode"); render(); scrollTo(0,0); }
+function cgFloorGo(){ cg.hello=false; if(room){ sendMsg({t:"exit"}); room=null; store.del("durak.room"); } cg.score=0; cg.combo=0; cg.key=""; cg.takeSeq=null; cg.blindSeq=null; cg.over=null; cg.picking=null; view="main"; sendMsg({t:"practice",bots:cgBots(cg.floor),cg:true}); cgSave(); }
+function cgExit(){ if(room){ sendMsg({t:"exit"}); room=null; store.del("durak.room"); } if(cg.over&&!cg.over.pass) cgDrop(); cgQuit(); view="main"; document.body.classList.remove("tablemode"); render(); scrollTo(0,0); }
 function cgQuit(){ cg.active=false; cg.picking=null; cg.over=null; applyCosmetics(); }
+function cgSave(){ try{ if(!cg.active||cg.over) return; localStorage.setItem("durak.cg",JSON.stringify({floor:cg.floor,jokers:cg.jokers,score:cg.score,combo:cg.combo,key:cg.key,takeSeq:cg.takeSeq,blindSeq:cg.blindSeq})); }catch(_){ } }
+function cgDrop(){ try{ localStorage.removeItem("durak.cg"); }catch(_){ } }
+function cgLoad(){ try{ return JSON.parse(localStorage.getItem("durak.cg")||"null"); }catch(_){ return null; } }
 // считаем очки за мой ход
 function cgScore(cards,burned,streak){
   let chips=0,mult=cards.length; const parts=[];
@@ -2677,7 +2693,7 @@ function cgPop(sc){
       setTimeout(()=>{ box.remove(); cgAdd(sc.total); },650*T); },320*T); });
 }
 function cgBonus(v,id,label){ cgJokerKick(id); const hud=document.querySelector(".cghud .cgsc"); if(hud){ const r=hud.getBoundingClientRect(); const p=el("div",{class:"cgpop done",text:label}); p.style.left=(r.left+r.width/2)+"px"; p.style.top=(r.bottom+6)+"px"; document.body.append(p); setTimeout(()=>p.remove(),900); } cgAdd(v); }
-function cgAdd(v){ const from=cg.score; cg.score+=v; const n=document.querySelector(".cghud .cgsv"); if(n){ cgCount(n,from,cg.score,400); const h=document.querySelector(".cghud"); h.animate([{transform:"scale(1)"},{transform:"scale(1.06)"},{transform:"scale(1)"}],{duration:250}); const t=cgTarget(cg.floor); h.classList.toggle("reached",cg.score>=t); } }
+function cgAdd(v){ const from=cg.score; cg.score+=v; cgSave(); const n=document.querySelector(".cghud .cgsv"); if(n){ cgCount(n,from,cg.score,400); const h=document.querySelector(".cghud"); h.animate([{transform:"scale(1)"},{transform:"scale(1.06)"},{transform:"scale(1)"}],{duration:250}); const t=cgTarget(cg.floor); h.classList.toggle("reached",cg.score>=t); } }
 function cgCount(elm,a,b,ms){ return new Promise(res=>{ const st=performance.now(); const f=now=>{ const k=Math.min(1,(now-st)/ms); elm.textContent=Math.round(a+(b-a)*k); if(k<1) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); }); }
 function cgJokerKick(id){ const j=document.querySelector(`.cgj[data-id="${id}"]`); if(!j) return; j.animate([{transform:"none"},{transform:"translateY(-10px) rotate(-10deg) scale(1.2)"},{transform:"rotate(6deg)"},{transform:"none"}],{duration:450,easing:"cubic-bezier(.3,1.6,.5,1)"}); cgPluck(8); }
 function cgWave(t,cls){ return el("div",{class:"cgwave "+(cls||"")},[...t].map((ch,i)=>{ const sp=el("span",{text:ch===" "?"\u00a0":ch}); sp.style.animationDelay=(-i*.1)+"s"; return sp; })); }
@@ -2701,7 +2717,7 @@ function cgFinish(st){
   if(!fool){ const k=place===0?1.5:1.2; lines.push([place===0?"Вышел первым ×1.5":"Не дурак ×1.2","×"+k]); total=Math.round(total*k);
     if(place===0&&cgHas("finish")){ lines.push(["Скороходы ×1.5","×1.5"]); total=Math.round(total*1.5); } }
   const target=cgTarget(cg.floor), pass=!fool&&total>=target;
-  cg.over={lines,total,target,pass,fool};
+  cg.over={lines,total,target,pass,fool}; if(!pass) cgDrop(); else { try{ localStorage.setItem("durak.cg",JSON.stringify({floor:cg.floor+1,jokers:cg.jokers,score:0,pickNext:true})); }catch(_){ } }
   if(pass){ try{ if(cg.floor>cgBest()) localStorage.setItem("durak.cgBest",String(cg.floor)); }catch(_){ } cg.picking=cgOffer(); }
   view="cg"; render();
 }
@@ -2730,6 +2746,36 @@ function cgPickRow(next){
   return el("div",{class:"cgpick"},cg.picking.map((j,i)=>{ const b=el("button",{class:"cgjcard",type:"button",onclick:()=>{ cg.jokers.push(j); if(cg.jokers.length>5) cg.jokers.shift(); Sound.fx("coin"); if(next) cg.floor++; cgFloorGo(); }},
       el("span",{class:"cgjico",text:j.ico}),el("b",{text:j.name}),el("span",{class:"cgjtxt",text:j.txt}));
     b.style.animationDelay=(i*120)+"ms"; return b; }));
+}
+function continuePanel(){
+  const ps=practiceSave, run=cgLoad();
+  if(!ps&&!(run&&run.pickNext)) return el("div",{class:"contp",hidden:true});
+  const isCg=ps&&ps.cg&&run;
+  const what=isCg?`🀄 Китайские игры · этаж ${run.floor}`:run&&run.pickNext&&!ps?`🀄 Китайские игры · этаж ${run.floor}`:`🤖 Партия против ${ps.bots} ${ps.bots===1?"бота":"ботов"}`;
+  const resume=()=>{ Sound.fx("pick");
+    if(run&&(isCg||(run.pickNext&&!ps))){ cg={active:true,floor:run.floor,jokers:run.jokers||[],score:run.score||0,combo:run.combo||0,key:run.key||"",takeSeq:run.takeSeq,blindSeq:run.blindSeq,picking:null,over:null,hello:true};
+      if(run.pickNext&&!ps){ cg.picking=cgOffer(); view="cg"; return render(); } }
+    sendMsg({t:"resumePractice"}); };
+  const fresh=()=>{ Sound.fx("unpick"); sendMsg({t:"dropPractice"}); cgDrop(); practiceSave=null; render(); };
+  return el("div",{class:"panel contp"},el("div",{class:"controw"},el("div",{class:"contico",text:"⏸"}),el("div",{class:"contbody"},el("b",{text:"Незаконченная игра"}),el("span",{class:"muted small",text:what+(ps?` · ${ago(ps.at)}`:"")}))),
+    el("div",{class:"row"},el("button",{class:"btn",type:"button",onclick:resume},"▶ Вернуться в игру"),el("button",{class:"btn ghost",type:"button",onclick:fresh},"Начать новую")));
+}
+// реакции: одна кнопка 😀, внутри выбор; зажми реакцию — она станет любимой и встанет первой
+const favReacts=()=>{ try{ return JSON.parse(localStorage.getItem("durak.favReacts")||"[]"); }catch(_){ return []; } };
+function toggleFav(e){ let f=favReacts(); f=f.includes(e)?f.filter(x=>x!==e):[...f,e].slice(-8); try{ localStorage.setItem("durak.favReacts",JSON.stringify(f)); }catch(_){ } toast(f.includes(e)?"⭐ Добавлено в любимые":"Убрано из любимых"); haptic("medium"); const o=document.querySelector(".reacts"); if(o&&profile) o.replaceWith(reactPicker(profile.reacts)); }
+function reactBtn(e,isFav){
+  const b=el("button",{type:"button",class:(Meme.is(e)?"mreact":"")+(isFav?" fav":""),"aria-label":"Реакция "+(Meme.is(e)?Meme.label(e):e)+(isFav?", любимая":""),title:(Meme.is(e)?Meme.label(e)+" · ":"")+"зажми, чтобы "+(isFav?"убрать из любимых":"добавить в любимые")},Meme.is(e)?Meme.icon(e):e);
+  let t=null, long=false;
+  b.addEventListener("pointerdown",()=>{ long=false; t=setTimeout(()=>{ long=true; toggleFav(e); },500); });
+  ["pointerup","pointerleave","pointercancel"].forEach(k=>b.addEventListener(k,()=>clearTimeout(t)));
+  b.addEventListener("contextmenu",ev=>{ ev.preventDefault(); });
+  b.addEventListener("click",ev=>{ if(long){ ev.preventDefault(); return; } sendMsg({t:"react",e}); });
+  return b;
+}
+function reactPicker(list){
+  const fav=favReacts().filter(e=>list.includes(e)), emo=list.filter(e=>!Meme.is(e)), faces=list.filter(e=>e.startsWith("m:")), st=list.filter(e=>e.startsWith("s:"));
+  const grp=(lbl,arr)=>arr.length?[el("div",{class:"rlbl",text:lbl}),el("div",{class:"rgrp"},arr.map(e=>reactBtn(e,fav.includes(e))))]:[];
+  return el("div",{class:"reacts",role:"group","aria-label":"Реакции"},...grp("⭐ Любимые",fav),...grp("Эмодзи",emo),...grp("Мемы",faces),...grp("Печати",st),el("div",{class:"rhint",text:"Зажми реакцию, чтобы добавить её в любимые"}));
 }
 function modesPanel(){
   const amt=el("input",{type:"number",min:"5",step:"5",value:"25","aria-label":"Ставка",inputmode:"numeric",style:"width:5.5em"});
@@ -3077,7 +3123,7 @@ function renderSeat(st,myTurn){
     else actions.append(el("span",{class:"small hint"},"Открой одну из закрытых карт — вслепую."));
     actions.append(el("button",{class:"btn ghost",type:"button",disabled:!st.pile.length,onclick:()=>act("take")},"Забрать стопку"));
   }
-  const reacts=(profile&&profile.reacts||[]).length&&st.players.some(p=>p.id!==me.id)?el("div",{class:"reacts",role:"group","aria-label":"Реакции"},profile.reacts.map(e=>el("button",{type:"button",class:Meme.is(e)?"mreact":"","aria-label":"Реакция "+(Meme.is(e)?Meme.label(e):e),title:Meme.is(e)?Meme.label(e):"",onclick:()=>sendMsg({t:"react",e})},Meme.is(e)?Meme.icon(e):e))):null;
+  const reacts=(profile&&profile.reacts||[]).length&&st.players.some(p=>p.id!==me.id)?reactPicker(profile.reacts):null;
   seat.append(el("div",{class:"meline"},nameTag({...myP,name:me.name,avatar:myP.avatar||(profile&&profile.avatar)||""},{you:true}),tab),
     handBox,actions,reacts);
   return seat;

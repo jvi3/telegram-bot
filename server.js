@@ -498,8 +498,17 @@ function sendOpenTables(ws) {
 }
 setInterval(() => sendOpenTables(), 15000);
 
+// партии с ботами сохраняются: можно выйти и вернуться, даже после перезапуска сервера
+function savePractice(room) {
+  const st = room.st; if (!st.practice) return; const h = st.players.find(p => !p.bot); const tg = h && h.id.startsWith("tg") ? h.id.slice(2) : null; if (!tg || !data.users[tg]) return;
+  data.psave = data.psave || {};
+  if (st.status === "over") { if (data.psave[tg] && data.psave[tg].code === st.code) { delete data.psave[tg]; save(); } return; }
+  data.psave[tg] = { code: st.code, at: Date.now(), bots: st.players.filter(p => p.bot).length, cg: !!room.cg, st: JSON.parse(JSON.stringify({ ...st, deadline: null })) };
+  save();
+}
+function practiceInfo(tg) { const p = data.psave && data.psave[tg]; return p ? { bots: p.bots, at: p.at, cg: p.cg } : null; }
 function broadcast(room) {
-  room.st.updated = Date.now(); sendOnline();
+  room.st.updated = Date.now(); sendOnline(); savePractice(room);
   if (room.lastStatus !== room.st.status) {
     if (room.st.status === "over" && !room.st.practice) {
       data.stats.games++;
@@ -569,15 +578,33 @@ function handle(ws, msg) {
     if (tgId && data.users[tgId]) send(ws, { t: "profile", ...fullProfile(tgId) });
     sendOpenTables(ws);
     send(ws, { t: "feed", items: (data.feed || []).slice(0, 12) });
-    return send(ws, { t: "me", me: { id: user.id, name: user.name }, bot: botUsername });
+    send(ws, { t: "me", me: { id: user.id, name: user.name }, bot: botUsername });
+    return send(ws, { t: "practiceSave", info: tgId ? practiceInfo(tgId) : null });
   }
   if (!ws.user) return;
   const me = ws.user;
 
   const MAINT = "Идут техработы, новые игры пока не создаются. Загляни чуть позже.";
+  const myTgEarly = me.id.startsWith("tg") ? me.id.slice(2) : null;
+  if (msg.t === "resumePractice") {
+    const ps = myTgEarly && data.psave && data.psave[myTgEarly]; if (!ps) return send(ws, { t: "error", msg: "Сохранённой партии нет" });
+    let room = rooms.get(ps.code);
+    if (!room || !room.st.practice) { // сервер перезапускался — восстанавливаем из сохранения
+      const st = ps.st; if (rooms.has(st.code)) st.code = genCode();
+      room = { st, subs: new Set(), timer: null }; if (ps.cg) room.cg = true; rooms.set(st.code, room);
+    }
+    room.st.players.forEach(p => { if (p.id === me.id) p.name = me.name; });
+    subscribe(ws, room); broadcast(room); return scheduleBots(room);
+  }
+  if (msg.t === "dropPractice") {
+    if (myTgEarly && data.psave && data.psave[myTgEarly]) { const old = rooms.get(data.psave[myTgEarly].code); if (old && old.st.practice && !old.subs.size) rooms.delete(old.st.code); delete data.psave[myTgEarly]; save(); }
+    return send(ws, { t: "practiceSave", info: null });
+  }
   if (msg.t === "create" || msg.t === "practice") {
     if (data.maintenance && !admin.isAdmin(me.id.replace(/^tg/, ""))) return send(ws, { t: "error", msg: MAINT });
+    if (msg.t === "practice" && myTgEarly && data.psave && data.psave[myTgEarly]) { const old = rooms.get(data.psave[myTgEarly].code); if (old && old.st.practice) { clearTimeout(old.timer); clearTimeout(old.turnT); rooms.delete(old.st.code); } delete data.psave[myTgEarly]; }
     const room = newRoom(me, msg.t === "practice");
+    if (msg.t === "practice" && msg.cg) room.cg = true;
     if (msg.t === "create" && msg.mode) setMode(room.st, String(msg.mode), msg.amount);
     if (msg.t === "practice") {
       const n = Math.min(3, Math.max(1, Number(msg.bots) || 1));
@@ -760,7 +787,7 @@ function handle(ws, msg) {
       const room = ws.room;
       room.subs.delete(ws);
       ws.room = null;
-      if (room.st.practice) { clearTimeout(room.timer); rooms.delete(room.st.code); }
+      if (room.st.practice) { /* партия с ботами остаётся — к ней можно вернуться */ const tg = me.id.startsWith("tg") ? me.id.slice(2) : null; if (tg) for (const w of wsOf(tg)) send(w, { t: "practiceSave", info: practiceInfo(tg) }); }
       else { checkCountdown(room); broadcast(room); }
     }
     sendOpenTables(ws);
@@ -870,6 +897,7 @@ setInterval(() => {
   const now = Date.now();
   for (const [code, room] of rooms) {
     const idle = now - room.st.updated;
+    if (room.st.practice && room.subs.size === 0 && idle < 24 * 3600e3) continue; // сохранённая партия с ботами
     if (idle > 6 * 3600e3 || (room.subs.size === 0 && idle > 30 * 60e3)) { clearTimeout(room.timer); clearTimeout(room.turnT); clearTimeout(room.cdT); rooms.delete(code); }
   }
 }, 10 * 60e3);
