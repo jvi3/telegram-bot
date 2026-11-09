@@ -1,7 +1,13 @@
-// Казино на игровую валюту (by Кащей). Все броски делает сервер, чтобы никто не подкрутил шансы.
+// Казино на игровую валюту. Все броски делает сервер, чтобы никто не подкрутил шансы.
 "use strict";
 const crypto = require("crypto");
 const rnd = n => crypto.randomInt(n);
+const SHOP = require("./shop");
+// Кейсы: внутри только фоны или только колоды; дорогие выпадают реже. Повтор — возврат части цены
+const CASES = { bg: { name: "Кейс фонов", price: 45 }, deck: { name: "Кейс колод", price: 45 } };
+const CASE_POW = 1.5, CASE_DUP = 0.3;
+function caseItems(kind) { return SHOP.ITEMS.filter(i => i.type === kind && i.price > 0); }
+function caseOdds(kind) { const L = caseItems(kind), w = L.map(i => 1 / Math.pow(i.price, CASE_POW)), T = w.reduce((a, b) => a + b, 0); return L.map((i, k) => ({ id: i.id, p: w[k] / T })); }
 // Тестовая подкрутка для админа: всё выпадает по максимуму, деньги при этом не меняются
 let RIG = false;
 
@@ -41,7 +47,7 @@ const rIdx = c => RANKS.indexOf(c.slice(0, -1));
 function hiloChance(card, up) { const i = rIdx(card); return (up ? 12 - i : i) / 13; }
 
 
-/* ---------- автоматы 5×3 с бонусами: «Лаки 7» (бесплатные вращения) и «Сундук Кащея» (выбор сундука) ---------- */
+/* ---------- автоматы 5×3 с бонусами: «Лаки 7» (бесплатные вращения) и «Китайский сундук» (выбор сундука) ---------- */
 const LINES = [[1, 1, 1, 1, 1], [0, 0, 0, 0, 0], [2, 2, 2, 2, 2], [0, 1, 2, 1, 0], [2, 1, 0, 1, 2]];
 const MACHINES = {
   lucky: {
@@ -51,7 +57,7 @@ const MACHINES = {
     wild: "wild", scatter: "star", free: { 3: 8, 4: 12, 5: 20 }, freeMult: 2,
   },
   chest: {
-    name: "Сундук Кащея",
+    name: "Китайский сундук",
     weights: { coin: 16, clover: 14, gem: 11, crown: 8, bar: 6, seven: 4, wild: 3, chest: 3 },
     pay: { coin: [3, 7, 20], clover: [4, 8, 27], gem: [7, 16, 47], crown: [11, 33, 107], bar: [16, 53, 160], seven: [33, 133, 667], wild: [33, 133, 667] },
     wild: "wild", scatter: "chest", prizes: { 3: [5, 10, 20], 4: [10, 20, 40], 5: [25, 50, 100] },
@@ -177,6 +183,19 @@ module.exports = function createCasino({ data, save, users }) {
       win = Math.floor(win); u.coins += win; stat(game, b.bet, win); save();
       return { ...res, win, coins: u.coins };
     }
+    if (game === "case") {
+      const kind = CASES[msg.kind] ? msg.kind : null; if (!kind) return { err: "Такого кейса нет" };
+      const b = takeBet(u, CASES[kind].price); if (b.err) return b;
+      const odds = caseOdds(kind), L = caseItems(kind);
+      let it;
+      if (RIG) it = L.reduce((a, x) => x.price > a.price ? x : a, L[0]);
+      else { let r = rnd(1e9) / 1e9; it = L[L.length - 1]; for (const o of odds) { r -= o.p; if (r < 0) { it = SHOP.BY_ID[o.id]; break; } } }
+      if (!Array.isArray(u.owned)) u.owned = [];
+      const dup = u.owned.includes(it.id); let win = 0;
+      if (dup) win = Math.floor(it.price * CASE_DUP); else if (!RIG) u.owned.push(it.id);
+      u.coins += win; stat("case_" + kind, b.bet, win); save();
+      return { game, kind, bet: b.bet, item: { id: it.id, name: it.name, type: it.type, key: it.key, price: it.price }, dup, win, coins: u.coins };
+    }
     if (game === "roulette") {
       const pick = ["red", "black", "green"].includes(msg.pick) ? msg.pick : null;
       if (!pick) return { err: "Выбери цвет" };
@@ -222,7 +241,7 @@ module.exports = function createCasino({ data, save, users }) {
     }
     return { err: "Такой игры нет" };
   }
-  return { play, ROUL, PAY3, MACHINES: { ...Object.fromEntries(Object.entries(MACHINES).map(([k, m]) => [k, { name: m.name, pay: m.pay, free: m.free, prizes: m.prizes }])), xmult: { name: XM.name, pay: XM.pay, spins: XM.spins, buy: XM.buy, xVals: XM.xVals } } };
+  return { play, ROUL, PAY3, MACHINES: { ...Object.fromEntries(Object.entries(MACHINES).map(([k, m]) => [k, { name: m.name, pay: m.pay, free: m.free, prizes: m.prizes }])), xmult: { name: XM.name, pay: XM.pay, spins: XM.spins, buy: XM.buy, xVals: XM.xVals } }, CASES: Object.fromEntries(Object.entries(CASES).map(([k, c]) => [k, { ...c, dup: CASE_DUP, odds: caseOdds(k) }])) };
 };
 module.exports.slotPay = slotPay;
 module.exports._eng = { MACHINES, spinGrid, evalGrid, LINES, XM, xBonus };

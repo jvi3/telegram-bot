@@ -51,6 +51,9 @@ function sourceOf(st, pid) {
 
 const nameOf = (st, pid) => (st.players.find(p => p.id === pid) || {}).name || "Игрок";
 const sortHand = h => h.sort((a, b) => val(rk(a)) - val(rk(b)) || a.localeCompare(b));
+// крючок для ежедневных заданий: сервер подписывается и считает события партии
+const hooks = { ev: null };
+function emit(type, st, pid, info) { if (hooks.ev) hooks.ev(type, st, pid, info); }
 function log(st, msg) { st.log = [msg, ...(st.log || [])].slice(0, 8); }
 function isOut(st, pid) {
   return !st.hands[pid].length && !st.up[pid].length && !st.down[pid].length && !st.deck.length;
@@ -89,6 +92,7 @@ function afterPlay(st, pid, r) {
   const burn = r === "10" || topFourSame(st.pile);
   if (!burn) st.burnStreak = 0;
   if (burn) {
+    emit("burn", st, pid, { by: r === "10" ? "10" : "four", streak: (st.burnStreak || 0) + 1 });
     st.burned += st.pile.length;
     st.pile = [];
     st.pileBy = [];
@@ -99,6 +103,7 @@ function afterPlay(st, pid, r) {
   }
   if (isOut(st, pid)) {
     finish(st, pid);
+    emit("out", st, pid, { r, place: st.finished.indexOf(pid) });
     if (st.status === "over") return;
     advance(st);
     return;
@@ -120,7 +125,7 @@ function deal(st) {
   }
   st.prevLoser = st.loser || null;
   st.deck = d; st.pile = []; st.pileBy = []; st.burned = 0; st.finished = []; st.loser = null; st.turn = 0; st.last = null; st.burnStreak = 0;
-  st.status = "swap";
+  st.status = "swap"; st.qg = {};
   st.log = [];
   log(st, "Карты розданы. Поменяйте карты в руке и открытые, затем нажмите «Готов».");
 }
@@ -194,7 +199,9 @@ const A = {
     if (!cards.every(c => rk(c) === r)) return "Класть можно только одинаковые карты";
     if (!canPlay(r, st.pile)) return "Эта карта не бьёт верхнюю";
     for (const c of cards) arr.splice(arr.indexOf(c), 1);
+    const prevLit = st.pile.length ? rk(st.pile[st.pile.length - 1]) : null, eff = effectiveTop(st.pile);
     st.pile.push(...cards);
+    emit("play", st, pid, { r, n: cards.length, prevLit, eff: eff ? rk(eff) : null });
     st.pileBy = (st.pileBy || []).concat(cards.map(() => pid));
     st.last = { pid, cards };
     log(st, `${nameOf(st, pid)}: ${cards.map(pretty).join(" ")}${r === "8" ? " (прозрачная)" : ""}`);
@@ -210,14 +217,17 @@ const A = {
     st.seq = (st.seq || 0) + 1;
     st.lastBlind = { pid, card: c, ok: canPlay(r, st.pile), n: st.pile.length + 1, seq: st.seq };
     if (st.lastBlind.ok) {
+      const prevLit = st.pile.length ? rk(st.pile[st.pile.length - 1]) : null, eff = effectiveTop(st.pile);
       st.pile.push(c);
+      emit("play", st, pid, { r, n: 1, blind: true, prevLit, eff: eff ? rk(eff) : null });
       st.pileBy = (st.pileBy || []).concat([pid]);
       st.last = { pid, cards: [c] };
       log(st, `${nameOf(st, pid)} открыл ${pretty(c)} вслепую — подошла`);
       afterPlay(st, pid, r);
     } else {
-      const n = st.pile.length + 1;
+      const n = st.pile.length + 1, by = (st.pileBy || [])[(st.pileBy || []).length - 1];
       st.hands[pid].push(c, ...st.pile);
+      emit("take", st, pid, { n, by, blind: true, hand: st.hands[pid].length });
       sortHand(st.hands[pid]);
       st.lastTake = { pid, n, seq: st.seq, blind: true };
       st.pile = [];
@@ -232,8 +242,9 @@ const A = {
     if (st.status !== "play") return false;
     if (st.players[st.turn].id !== pid) return "Сейчас не твой ход";
     if (!st.pile.length) return "Стопка пустая — положи любую карту";
-    const n = st.pile.length;
+    const n = st.pile.length, by = (st.pileBy || [])[(st.pileBy || []).length - 1];
     st.hands[pid].push(...st.pile);
+    emit("take", st, pid, { n, by, hand: st.hands[pid].length });
     sortHand(st.hands[pid]);
     st.seq = (st.seq || 0) + 1;
     st.lastTake = { pid, n, seq: st.seq };
@@ -324,4 +335,4 @@ function botToAct(st) {
   return null;
 }
 
-module.exports = { A, BOT_NAMES, deal, botToAct, rk, canPlay, sourceOf };
+module.exports = { A, hooks, BOT_NAMES, deal, botToAct, rk, canPlay, sourceOf };

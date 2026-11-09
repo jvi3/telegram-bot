@@ -401,7 +401,7 @@ function viewFor(st, uid) {
   }
   // Неподошедшую закрытую карту видит только тот, кто её открыл: она ушла ему в руку
   const lb = st.lastBlind && !st.lastBlind.ok && st.lastBlind.pid !== uid ? { ...st.lastBlind, card: null } : st.lastBlind;
-  return { ...st, lastBlind: lb, players: decorate(st), hands, down, deck: st.deck.length, pileBy: st.pileBy || [],
+  return { ...st, qg: undefined, lastBlind: lb, players: decorate(st), hands, down, deck: st.deck.length, pileBy: st.pileBy || [],
     turnLeft: st.deadline ? Math.max(0, st.deadline - Date.now()) : 0,
     countLeft: st.countdownAt ? Math.max(0, st.countdownAt - Date.now()) : 0,
     waitedMs: st.waitSince ? Date.now() - st.waitSince : 0,
@@ -574,11 +574,12 @@ function handle(ws, msg) {
     if (tgId) { touchUser(tgId, user.from); user.name = displayName(data.users[tgId], user.name).slice(0, 16); }
     ws.user = user;
     send(ws, { t: "board", rows: boardRows() });
-    send(ws, { t: "catalog", items: SHOP.ITEMS, eco: SHOP.ECONOMY, casino: { roul: casino.ROUL, classic: casino.PAY3, machines: casino.MACHINES } });
+    send(ws, { t: "catalog", items: SHOP.ITEMS, eco: SHOP.ECONOMY, casino: { roul: casino.ROUL, classic: casino.PAY3, machines: casino.MACHINES, cases: casino.CASES } });
     if (tgId && data.users[tgId]) send(ws, { t: "profile", ...fullProfile(tgId) });
     sendOpenTables(ws);
     send(ws, { t: "feed", items: (data.feed || []).slice(0, 12) });
     send(ws, { t: "me", me: { id: user.id, name: user.name }, bot: botUsername });
+    if (tgId && data.users[tgId]) daily.push(tgId);
     return send(ws, { t: "practiceSave", info: tgId ? practiceInfo(tgId) : null });
   }
   if (!ws.user) return;
@@ -627,13 +628,33 @@ function handle(ws, msg) {
   }
   const myTg = me.id.startsWith("tg") ? me.id.slice(2) : null;
   const myU = myTg && data.users[myTg];
-  if (msg.t === "buy" || msg.t === "equip" || msg.t === "daily") {
+  /* ---------- ежедневное: серия, колесо, бонус-сундук ---------- */
+  if (msg.t === "dailyGet") { if (myTg) daily.push(myTg); return; }
+  if (msg.t === "daily" || msg.t === "dailyClaim") {
+    if (!myU) return send(ws, { t: "error", msg: "Работает только в Telegram" });
+    const r = daily.claimStreak(myTg); if (r.err) return send(ws, { t: "error", msg: r.err });
+    send(ws, { t: "streakRes", day: r.day });
+    if (r.chest) send(ws, { t: "chestOpen", src: "streak", ...r.chest });
+    sendProfile(myTg); return;
+  }
+  if (msg.t === "dailySpin") {
+    if (!myU) return send(ws, { t: "error", msg: "Работает только в Telegram" });
+    const r = daily.spin(myTg); if (r.err) return send(ws, { t: "error", msg: r.err });
+    send(ws, { t: "wheelRes", seg: r.seg, prize: r.prize, swap: !!r.swap });
+    setTimeout(() => { r.apply(); if (r.chest) for (const s of wsOf(myTg)) send(s, { t: "chestOpen", src: "wheel", ...r.chest }); daily.push(myTg); sendProfile(myTg); }, 4600);
+    return;
+  }
+  if (msg.t === "dailyBonus") {
+    if (!myU) return send(ws, { t: "error", msg: "Работает только в Telegram" });
+    const r = daily.claimBonus(myTg); if (r.err) return send(ws, { t: "error", msg: r.err });
+    send(ws, { t: "chestOpen", src: "bonus", ...r.chest }); sendProfile(myTg); return;
+  }
+  if (msg.t === "buy" || msg.t === "equip") {
     if (!myU) return send(ws, { t: "error", msg: "Магазин работает только в Telegram" });
-    const err = msg.t === "buy" ? SHOP.buy(myU, String(msg.id)) : msg.t === "equip" ? SHOP.equip(myU, String(msg.id)) : SHOP.claimDaily(myU);
+    const err = msg.t === "buy" ? SHOP.buy(myU, String(msg.id)) : SHOP.equip(myU, String(msg.id));
     if (err) return send(ws, { t: "error", msg: err });
     save();
-    if (msg.t === "daily") { for (const s of wsOf(myTg)) send(s, { t: "reward", delta: SHOP.ECONOMY.daily, coins: myU.coins, reason: "Ежедневный бонус" }); }
-    else { const it = SHOP.BY_ID[String(msg.id)]; send(ws, { t: "toast", msg: msg.t === "buy" ? (it.type === "reacts" ? `Куплено: ${it.name}` : `Куплено и установлено: ${it.name}`) : `Установлено: ${it.name}` }); }
+    { const it = SHOP.BY_ID[String(msg.id)]; send(ws, { t: "toast", msg: msg.t === "buy" ? (it.type === "reacts" ? `Куплено: ${it.name}` : `Куплено и установлено: ${it.name}`) : `Установлено: ${it.name}` }); }
     sendProfile(myTg);
     if (ws.room) broadcast(ws.room); // чтобы соседи по столу увидели новый цвет или титул
     return;
@@ -686,7 +707,7 @@ function handle(ws, msg) {
     try { r = casino.play(myTg, msg, { rig }); } catch (e) { console.error(e); r = { err: "Что-то пошло не так" }; }
     if (r.err) return send(ws, { t: "error", msg: r.err });
     { const bet = r.paid || r.bet || r.stake || 0, win = r.win || 0, mult = bet ? win / bet : (r.mult || (r.prizes ? r.prizes[r.i] : 0));
-      const NM = { slots: "Кащей Слотс", lucky: "Лаки 7", chest: "Сундук Кащея", roulette: "Рулетке", hilo: "Выше/ниже", xmult: "Бурмалде" };
+      const NM = { slots: "Кащей Слотс", lucky: "Лаки 7", chest: "Китайском сундуке", roulette: "Рулетке", hilo: "Выше/ниже", xmult: "Бурмалде" };
       if (!r.rigged && win > bet && (mult >= 10 || win >= 100)) setTimeout(() => pushFeed({ kind: "casino", name: feedName(myTg), avatar: avatarUrl(myTg), game: NM[r.game] || r.game, win, mult: Math.round(mult * 10) / 10 }), 3500); }
     if (profileCoins(myTg) !== null) for (const s of wsOf(myTg)) if (s !== ws) send(s, { t: "profile", ...fullProfile(myTg) });
     return send(ws, { t: "casinoRes", ...r });
@@ -890,6 +911,8 @@ function onlineIds() {
   return s;
 }
 const casino = createCasino({ data, save, users: new Proxy({}, { get: (_, id) => data.users[id] }) });
+const daily = require("./daily")({ data, save, SHOP, giveCoins, sendTo: (tg, m) => { for (const w of wsOf(tg)) send(w, m); } });
+R.hooks.ev = daily.ev;
 const admin = require("./admin")({ tg, rooms, getData: () => data, data, save, adminIds: ADMIN_IDS, kickUser, closeRoom, onlineIds, onlineSnapshot: () => onlineSnapshot(), demoView: id => demoOn(id) ? demoAdd(onlineSnapshot()) : null, startedAt, sendProfile: id => sendProfile(id), appUrl, giveCoins, clearAvatar: id => { avatars.delete(String(id)); saveAvatar(String(id)); sendProfile(String(id)); } });
 
 // Чистим комнаты, где давно никто не играл

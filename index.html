@@ -1041,6 +1041,111 @@ body.lightbg.tablemode .tbar-top .btn{background:rgba(0,0,0,.35)}
 .contico{font-size:22px;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:rgba(126,224,181,.15);flex:none}
 .contbody{display:flex;flex-direction:column}
 .contp .row .btn{flex:1}
+/* ---------- ежедневное: серия, задания, колесо, сундуки ---------- */
+#dayBtn{position:relative}
+.daydot{position:absolute;top:2px;right:2px;width:9px;height:9px;border-radius:50%;background:#e8664e;box-shadow:0 0 0 2px #0e1f1b;animation:ddp 1.4s ease-in-out infinite}
+@keyframes ddp{50%{transform:scale(1.35)}}
+.dsec{position:relative;overflow:hidden}
+.dsec::before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 40%,rgba(255,230,160,.07) 50%,transparent 60%);background-size:250% 100%;animation:dsweep 5s linear infinite;pointer-events:none}
+@keyframes dsweep{from{background-position:150% 0}to{background-position:-100% 0}}
+.dsec h2 small{font-family:var(--body);font-size:12px;color:var(--muted,#c9c3b3);font-weight:400;letter-spacing:0;text-transform:none}
+.ddays{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;position:relative}
+.dday{border-radius:10px;background:rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.12);padding:7px 1px;text-align:center;font-size:10px;position:relative;animation:dbob 3s ease-in-out infinite;animation-delay:calc(var(--k)*-.4s);min-width:0}
+@keyframes dbob{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-4px) rotate(1deg)}}
+.dday b{display:block;font-size:12px;margin-top:3px;color:#ffd27a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dday b.sm{font-size:10px}
+.dday i{font-style:normal;font-size:20px;display:block}
+.dday.chest i{animation:dshake 2.4s ease-in-out infinite}
+@keyframes dshake{0%,70%,100%{transform:rotate(0)}74%{transform:rotate(-14deg) scale(1.1)}78%{transform:rotate(12deg) scale(1.1)}82%{transform:rotate(-8deg)}86%{transform:rotate(5deg)}}
+.dday.done{opacity:.5;animation:none}.dday.done::after{content:"✓";position:absolute;top:1px;right:4px;color:#7ee0b5;font-weight:700}
+.dday.today{border-color:#f2c14e;animation:dbob 3s ease-in-out infinite,dglow 1.6s ease-in-out infinite}
+.dday.today i{animation:dhop 1.2s ease-in-out infinite}
+@keyframes dhop{0%,100%{transform:translateY(0) scale(1)}40%{transform:translateY(-6px) scale(1.15)}60%{transform:translateY(0) scale(.95)}}
+@keyframes dglow{0%,100%{box-shadow:0 0 6px rgba(242,193,78,.3)}50%{box-shadow:0 0 18px rgba(242,193,78,.8)}}
+.dday.big{background:linear-gradient(160deg,rgba(242,193,78,.28),rgba(0,0,0,.3))}
+.dday.big::before{content:"✦";position:absolute;top:1px;left:4px;color:#ffe6a0;font-size:10px;animation:dtwk 1.3s ease-in-out infinite}
+@keyframes dtwk{0%,100%{opacity:.2;transform:scale(.6)}50%{opacity:1;transform:scale(1.2)}}
+.drow{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px;position:relative;flex-wrap:wrap}
+.dflame{display:inline-block;animation:dflick .5s ease-in-out infinite alternate}
+@keyframes dflick{from{transform:scale(1) rotate(-6deg)}to{transform:scale(1.2) rotate(6deg)}}
+.dpulse{animation:dpulse 1.8s ease-in-out infinite}
+@keyframes dpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.dq{display:flex;gap:10px;align-items:center;background:rgba(0,0,0,.25);border-radius:12px;padding:10px;margin-bottom:8px;position:relative;animation:dfloat 4s ease-in-out infinite;animation-delay:calc(var(--k)*-1.3s)}
+@keyframes dfloat{0%,100%{transform:translateX(0) rotate(-.4deg)}50%{transform:translateX(3px) rotate(.4deg)}}
+.dqi{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:22px;background:rgba(242,193,78,.15);flex:none;animation:dwob 2.2s ease-in-out infinite;animation-delay:calc(var(--k)*-.7s)}
+@keyframes dwob{0%,100%{transform:rotate(-8deg) scale(1)}50%{transform:rotate(8deg) scale(1.08)}}
+.dqb{flex:1;min-width:0}.dqb b{font-size:14px;display:block}.dqb>span{font-size:12px;opacity:.75;display:block;margin:2px 0 6px}
+.dstars{color:#f2c14e;font-size:11px;animation:dtwk2 2s ease-in-out infinite}
+@keyframes dtwk2{0%,100%{opacity:.7}50%{opacity:1;text-shadow:0 0 6px #f2c14e}}
+.dbar{height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
+.dbar i{display:block;height:100%;transition:width .6s;background:linear-gradient(90deg,#4fbf8f,#a8f5d2,#4fbf8f);background-size:200% 100%;animation:dflow 1.5s linear infinite}
+@keyframes dflow{from{background-position:0 0}to{background-position:-200% 0}}
+.dqr{font-size:13px;color:#ffd27a;font-weight:700;white-space:nowrap;text-align:right}
+.dqr small{display:block;opacity:.7;font-weight:400;font-size:11px;color:#f5ecd6}
+.dq.ok{outline:2px solid #7ee0b5;animation:dfloat 4s ease-in-out infinite,dokg 1.4s ease-in-out infinite}
+@keyframes dokg{0%,100%{box-shadow:0 0 0 rgba(126,224,181,0)}50%{box-shadow:0 0 14px rgba(126,224,181,.6)}}
+.dchestb{display:inline-block;animation:dshake 2.4s ease-in-out infinite}
+.dx2{display:inline-block;background:#6a3a9a;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;margin-left:6px;animation:dpulse 1.2s ease-in-out infinite}
+.dwheelwrap{display:flex;gap:18px;align-items:center;flex-wrap:wrap;justify-content:center;position:relative;padding:6px 0}
+.dwheel{position:relative;width:210px;height:210px;animation:dhover 3s ease-in-out infinite}
+@keyframes dhover{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.dwheel canvas{width:210px;height:210px;border-radius:50%;box-shadow:0 0 0 4px #f2c14e,0 0 22px rgba(242,193,78,.4)}
+.dlights{position:absolute;inset:0;pointer-events:none}
+.dlights i{position:absolute;width:7px;height:7px;border-radius:50%;background:#fff3c4;box-shadow:0 0 6px #ffd27a;animation:dblink 1s steps(1) infinite}
+@keyframes dblink{50%{opacity:.15}}
+.dptr{position:absolute;left:50%;top:-12px;margin-left:-10px;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:20px solid #f2c14e;filter:drop-shadow(0 2px 2px rgba(0,0,0,.6));z-index:2;transform-origin:50% 0;animation:dtick .9s ease-in-out infinite}
+@keyframes dtick{0%,100%{transform:rotate(0)}50%{transform:rotate(6deg)}}
+.dwres{font-size:15px;min-height:22px;color:#ffe6a0;text-align:center}
+.dspark{position:absolute;pointer-events:none;font-size:14px;z-index:5;animation:drise 1.4s ease-out forwards}
+@keyframes drise{from{opacity:1;transform:translate(0,0) scale(1)}to{opacity:0;transform:translate(var(--dx),-60px) scale(.5)}}
+.dmini{display:flex;align-items:center;gap:12px;cursor:pointer}
+.dmini .dmi{font-size:30px;animation:dshake 2.4s ease-in-out infinite}
+.dmini .dmb{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.dmini .dmb span{font-size:12px;opacity:.8}
+.dmdots{display:flex;gap:3px}.dmdots i{width:14px;height:5px;border-radius:3px;background:rgba(255,255,255,.15)}.dmdots i.on{background:#f2c14e}
+/* окно сундука */
+.chestov{position:fixed;inset:0;z-index:90;background:rgba(5,10,9,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;backdrop-filter:blur(3px);animation:dfade .3s}
+@keyframes dfade{from{opacity:0}}
+.chestov .cbox{font-size:96px;line-height:1;filter:drop-shadow(0 0 24px rgba(242,193,78,.5));cursor:pointer;user-select:none}
+.chestov .cbox.s1{animation:cshk .5s ease-in-out infinite}
+.chestov .cbox.s2{animation:cshk .22s ease-in-out infinite;filter:drop-shadow(0 0 40px rgba(255,220,120,.9))}
+@keyframes cshk{0%,100%{transform:rotate(0) scale(1)}25%{transform:rotate(-9deg) scale(1.06)}75%{transform:rotate(9deg) scale(1.06)}}
+.chestov .cflash{position:fixed;inset:0;background:radial-gradient(circle,#fff6d0 0,rgba(255,220,120,.6) 30%,transparent 70%);animation:cflash .7s ease-out forwards;pointer-events:none}
+@keyframes cflash{from{opacity:1}to{opacity:0}}
+.chestov .crays{position:absolute;width:520px;height:520px;max-width:140vw;max-height:140vw;background:repeating-conic-gradient(rgba(255,220,120,.16) 0 10deg,transparent 10deg 20deg);border-radius:50%;animation:crot 12s linear infinite;pointer-events:none;mask:radial-gradient(circle,#000 20%,transparent 70%);-webkit-mask:radial-gradient(circle,#000 20%,transparent 70%)}
+@keyframes crot{to{transform:rotate(360deg)}}
+.chestov .citem{position:relative;width:min(260px,80vw);border-radius:16px;padding:14px;background:#12302a;border:2px solid var(--rc,#7cc4ff);box-shadow:0 0 30px var(--rc,#7cc4ff);text-align:center;animation:cpop .6s cubic-bezier(.3,1.6,.5,1)}
+@keyframes cpop{from{transform:scale(.2) rotate(-12deg);opacity:0}}
+.chestov .citem .tprev{min-height:90px}
+.chestov .citem .tprev.duo{--cw:44px}
+.chestov .crar{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--rc)}
+.chestov .cname{font-size:20px;font-weight:700;margin:6px 0 2px}
+.chestov .ctitle{color:#ffe6a0;font-size:18px;text-align:center;position:relative}
+.chestov .row{position:relative}
+/* кейсы в казино */
+.cases{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.casecard{border-radius:14px;padding:12px;text-align:center;background:linear-gradient(160deg,rgba(124,196,255,.14),rgba(0,0,0,.25));border:1.5px solid rgba(255,255,255,.14);display:flex;flex-direction:column;gap:8px;align-items:center}
+.casecard.deck{background:linear-gradient(160deg,rgba(185,164,255,.16),rgba(0,0,0,.25))}
+.casecard .ci{font-size:46px;animation:dshake 2.8s ease-in-out infinite}
+.casecard.deck .ci{animation-delay:-1.2s}
+.casecard.on{border-color:#f2c14e;box-shadow:0 0 12px rgba(242,193,78,.4)}
+.cstrip{position:relative;overflow:hidden;border-radius:12px;background:rgba(0,0,0,.35);height:96px;margin:10px 0}
+.cstrip::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:3px;margin-left:-1.5px;background:#f2c14e;box-shadow:0 0 10px #f2c14e;z-index:2}
+.crow{display:flex;gap:6px;padding:8px 0;will-change:transform}
+.ctile{flex:none;width:84px;height:80px;border-radius:10px;background:rgba(255,255,255,.06);border-bottom:4px solid var(--rc);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;overflow:hidden}
+.ctile .tprev{min-height:48px;width:76px}
+.ctile .tprev.duo{--cw:22px;gap:2px}
+.ctile .bgprev img{border-radius:6px}
+.ctile span{font-size:9px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
+.codds{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:4px 10px;font-size:11px}
+.codds span{display:flex;justify-content:space-between;gap:6px;border-bottom:1px dashed rgba(255,255,255,.1)}
+.codds b{color:var(--rc)}
+.qpop{position:fixed;left:50%;top:calc(var(--tg-safe-top,0px) + 14px);transform:translateX(-50%);z-index:95;background:linear-gradient(135deg,#1f5a48,#123a33);border:2px solid #7ee0b5;border-radius:14px;padding:10px 16px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.5),0 0 18px rgba(126,224,181,.5);animation:qpin .5s cubic-bezier(.3,1.6,.5,1),qpout .4s ease-in 2.8s forwards;pointer-events:none;max-width:92vw}
+.qpop i{font-style:normal;font-size:28px;animation:dwob 1s ease-in-out infinite}
+.qpop b{display:block;font-size:14px}.qpop span{font-size:12px;color:#ffd27a}
+@keyframes qpin{from{transform:translate(-50%,-80px);opacity:0}}
+@keyframes qpout{to{transform:translate(-50%,-80px);opacity:0}}
+:root[data-anim="off"] .dsec *,:root[data-anim="off"] .dsec::before,:root[data-anim="off"] .dmini *,:root[data-anim="off"] .casecard *,:root[data-anim="off"] .daydot{animation:none!important}
 </style>
 </head>
 <body>
@@ -1048,6 +1153,7 @@ body.lightbg.tablemode .tbar-top .btn{background:rgba(0,0,0,.35)}
   <div class="brand"><span class="by">by Кащей</span><h1>Китайский <b>дурак</b></h1></div>
   <nav class="nav" aria-label="Меню">
     <button id="coinsBtn" class="coins" type="button" hidden title="Баланс, открыть магазин">💰 $0</button>
+    <button id="dayBtn" class="btn ghost" type="button" aria-label="Ежедневное" title="Ежедневное">🎁<span class="daydot" hidden></span></button>
     <button id="casinoBtn" class="btn ghost" type="button" aria-label="Казино">🎰</button>
     <button id="shopBtn" class="btn ghost" type="button" aria-label="Магазин">🛒</button>
     <button id="frBtn" class="btn ghost" type="button" aria-label="Друзья" title="Друзья">👥<span class="frdot" hidden></span></button>
@@ -1754,7 +1860,7 @@ const symImg=(s,cls)=>el("img",{src:SPR[s]||SPR.cherry,alt:SYMNAME[s]||s,class:c
 
 /* ---------- казино: общее ---------- */
 let casinoTab="xmult", casinoLock=false; const casinoNodes={};
-const CAS_TABS=[["xmult","💥 Бурмалда"],["slots","🍒 Кащей Слотс"],["lucky","⭐ Лаки 7"],["chest","🧰 Сундук Кащея"],["roulette","🎡 Рулетка"],["hilo","🃏 Выше/ниже"]];
+const CAS_TABS=[["xmult","💥 Бурмалда"],["cases","🎁 Кейсы"],["slots","🍒 Кащей Слотс"],["lucky","⭐ Лаки 7"],["chest","🧧 Китайский сундук"],["roulette","🎡 Рулетка"],["hilo","🃏 Выше/ниже"]];
 function betRow(id,onGo,label){
   const inp=el("input",{type:"number",id,min:"1",step:"1",value:String(Math.max(1,Math.min(10,profile?profile.coins:10))),"aria-label":"Ставка",inputmode:"numeric"});
   const clamp=v=>Math.max(1,Math.min(profile?profile.coins:1,Math.floor(v)||1));
@@ -2023,6 +2129,133 @@ function hiloNode(){
 
 /* ---------- экран казино ---------- */
 let casinoCfg={};
+/* ---------- ежедневное: серия входов, задания, колесо, сундуки ---------- */
+let dailyData=null, dailyLock=false, wheelRot=0;
+const WSEG={c3:["$3","#2a5a7a"],c5:["$5","#2e7a58"],c10:["$10","#2e7a58"],c20:["$20","#b9862c"],c50:["$50","#c9502a"],x2:["x2 задания","#6a3a9a"],chest:["Сундук","#9a3a3a"]};
+const WSEGC=["#2e7a58","#b9862c","#2a5a7a","#6a3a9a","#3a7a4a","#9a3a3a","#2a5a7a","#c9502a"];
+function dailyClaimable(d=dailyData){ return !!(d&&(d.streak.ready||d.wheel.ready||d.bonus.ready)); }
+function updDayDot(){ const dd=document.querySelector("#dayBtn .daydot"); if(dd) dd.hidden=!dailyClaimable(); }
+function rarity(p){ return p>=110?["Легендарное","#ffcf4a"]:p>=80?["Эпическое","#ff6fd8"]:p>=55?["Редкое","#b28bff"]:["Обычное","#7cc4ff"]; }
+function itemPrev(it){ if(it.type==="bg"){ const p=el("div",{class:"tprev bgprev"}); p.append(Bg.thumb(it.key)); return p; } return el("div",{class:"tprev duo","data-cards":it.key},cardEl("Ah"),cardEl("10s"),backEl()); }
+function dSparks(target,n=8,ch=["✦","✨","⭐","💰"]){ if(Prefs.get("anim")==="off") return; const host=target.closest(".panel")||document.body, r=target.getBoundingClientRect(), hr=host.getBoundingClientRect();
+  for(let i=0;i<n;i++){ const s=el("span",{class:"dspark",text:ch[i%ch.length]}); s.style.left=(r.left-hr.left+r.width/2+(Math.random()-.5)*r.width)+"px"; s.style.top=(r.top-hr.top+r.height/2)+"px"; s.style.setProperty("--dx",((Math.random()-.5)*90)+"px"); s.style.animationDelay=(i*40)+"ms"; host.append(s); setTimeout(()=>s.remove(),1800); } }
+function fmtLeft(ms){ const s=Math.max(0,Math.floor(ms/1000)); return `${Math.floor(s/3600)}:${String(Math.floor(s%3600/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`; }
+let dailyGotAt=0;
+
+function streakPanel(d){
+  const S=d.streak, cur=S.n; // забрано дней в круге
+  const days=el("div",{class:"ddays"},S.rewards.map((r,k)=>{ const big=r.chest==="big", ch=!!r.chest;
+    const done=k<cur, today=k===cur&&S.ready;
+    return el("div",{class:"dday"+(done?" done":"")+(today?" today":"")+(big?" big":"")+(ch&&!done?" chest":""),style:`--k:${k}`,title:r.name||""},`День ${k+1}`,el("i",{text:big?"🧧":ch?"🎁":"💰"}),el("b",{class:ch?"sm":"",text:ch?"Сундук":`$${r.coins}`})); }));
+  const btn=S.ready?el("button",{class:"btn dpulse",type:"button",onclick:e=>{ e.currentTarget.disabled=true; const t=days.children[cur]; if(t){ dSparks(t,10); t.animate([{transform:"scale(1)"},{transform:"scale(1.3) rotate(-6deg)"},{transform:"scale(1)"}],{duration:500,easing:"cubic-bezier(.3,1.6,.5,1)"}); } Sound.fx("coin"); haptic("medium"); sendMsg({t:"dailyClaim"}); }},`Забрать день ${cur+1}`)
+    :el("span",{class:"muted small",text:"Сегодня забрано · завтра следующий день"});
+  return el("div",{class:"panel dsec"},el("h2",{},"🔥 Серия входов"),days,
+    el("div",{class:"drow"},el("span",{class:"small"},el("span",{class:"dflame",text:"🔥"}),` Серия: ${cur+(S.ready?0:0)} из 7 · пропустишь день — начнёшь сначала`),btn),
+    el("p",{class:"muted small",style:"margin:8px 0 0;position:relative"},`На 5-й день мини-сундук, на 7-й — «${d.bigName}». В сундуках только фоны и колоды.`));
+}
+function questsPanel(d){
+  const tm=el("span",{class:"dtimer",text:fmtLeft(d.left-(Date.now()-dailyGotAt))});
+  const list=d.quests.map((q,k)=>el("div",{class:"dq"+(q.done?" ok":""),style:`--k:${k}`},el("div",{class:"dqi",style:`--k:${k}`,text:q.icon}),
+    el("div",{class:"dqb"},el("b",{},q.name+" ",el("span",{class:"dstars",text:"★".repeat(q.stars)+"☆".repeat(3-q.stars)})),el("span",{text:q.desc}),el("div",{class:"dbar"},el("i",{style:`width:${Math.min(100,q.p/q.need*100)}%`}))),
+    el("div",{class:"dqr"},(q.done?"✓ ":"")+`$${q.reward}`,el("small",{text:`${q.p}/${q.need}`}))));
+  const B=d.bonus;
+  const bonusBtn=B.ready?el("button",{class:"btn dpulse",type:"button",onclick:e=>{ e.currentTarget.disabled=true; sendMsg({t:"dailyBonus"}); }},"🎁 Открыть бонус-сундук")
+    :el("span",{class:"muted small"},el("span",{class:"dchestb",text:"🎁"}),B.claimed?" Бонус-сундук открыт сегодня":" Все три — бонус-сундук с фоном или колодой");
+  return el("div",{class:"panel dsec"},el("h2",{},"🎯 Задания дня",d.x2?el("span",{class:"dx2",text:"x2"}):null," ",el("small",{},"обновятся через ",tm)),
+    el("p",{class:"muted small",style:"margin:-4px 0 10px;position:relative"},"Считаются любые партии, и с ботами тоже. Награда приходит сразу."),...list,el("div",{class:"drow"},bonusBtn));
+}
+function wheelPanel(d){
+  const cv=el("canvas",{width:420,height:420}), g=cv.getContext("2d"), segs=d.wheel.segs, N=segs.length;
+  segs.forEach((s,i)=>{ const a0=i/N*2*Math.PI-Math.PI/2-Math.PI/N,a1=a0+2*Math.PI/N; g.beginPath(); g.moveTo(210,210); g.arc(210,210,208,a0,a1); g.closePath(); g.fillStyle=WSEGC[i%WSEGC.length]; g.fill(); g.strokeStyle="#0b1f1a"; g.lineWidth=4; g.stroke();
+    g.save(); g.translate(210,210); g.rotate((a0+a1)/2); g.fillStyle="#fff"; g.font="bold 24px sans-serif"; g.textAlign="right"; g.fillText((WSEG[s]||[s])[0],192,8); g.restore(); });
+  g.beginPath(); g.arc(210,210,32,0,7); g.fillStyle="#f2c14e"; g.fill(); g.font="28px sans-serif"; g.textAlign="center"; g.fillText("🐉",210,220);
+  const lights=el("div",{class:"dlights"}); for(let i=0;i<16;i++){ const a=i/16*2*Math.PI; lights.append(el("i",{style:`left:${105+113*Math.cos(a)-3.5}px;top:${105+113*Math.sin(a)-3.5}px;animation-delay:${i%2?.5:0}s`})); }
+  const wheel=el("div",{class:"dwheel"},el("div",{class:"dptr"}),lights,cv);
+  const res=el("div",{class:"dwres",text:d.wheel.ready?"Крути!":"Сегодня уже крутил — завтра снова"});
+  const btn=el("button",{class:"btn"+(d.wheel.ready?" dpulse":""),type:"button",disabled:!d.wheel.ready},d.wheel.ready?"Крутить бесплатно":"Завтра снова");
+  let spinning=false;
+  cv.style.transform=`rotate(${wheelRot}deg)`;
+  let last=performance.now();
+  (function idle(t){ if(!cv.isConnected) return; if(!spinning&&Prefs.get("anim")!=="off"){ wheelRot+=(t-last)*.006; cv.style.transform=`rotate(${wheelRot}deg)`; } last=t; requestAnimationFrame(idle); })(last);
+  btn.onclick=()=>{ if(spinning) return; spinning=true; dailyLock=true; btn.disabled=true; btn.classList.remove("dpulse"); res.textContent="Крутится…"; wheelWait=r=>{
+      const seg=r.seg, start=wheelRot, base=((360-seg*360/N)-(start%360)+720)%360, target=start+360*5+base, t0=performance.now(), dur=4200; let lastSeg=-1;
+      (function anim(t){ const p=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-p,4); wheelRot=start+(target-start)*e; cv.style.transform=`rotate(${wheelRot}deg)`; const sg=Math.floor(wheelRot/(360/N)); if(sg!==lastSeg){ lastSeg=sg; Sound.fx("reel"); }
+        if(p<1) return requestAnimationFrame(anim);
+        const nm=(WSEG[r.prize]||[r.prize])[0]; res.textContent=r.swap?`Выпало x2, но задания уже сделаны — держи $20!`:r.prize==="x2"?"x2 к наградам за задания сегодня!":r.prize==="chest"?"Сундук! Открываем…":`Выпало ${nm}!`;
+        dSparks(cv,12); Sound.fx("win"); haptic("heavy"); btn.textContent="Завтра снова"; spinning=false; setTimeout(()=>{ dailyLock=false; },600); })(t0); };
+    sendMsg({t:"dailySpin"}); setTimeout(()=>{ if(wheelWait){ wheelWait=null; spinning=false; dailyLock=false; btn.disabled=false; res.textContent="Сервер не ответил, попробуй ещё"; } },6000); };
+  return el("div",{class:"panel dsec"},el("h2",{},"🎡 Колесо удачи"),el("div",{class:"dwheelwrap"},wheel,el("div",{style:"display:flex;flex-direction:column;gap:8px;align-items:center;position:relative"},res,btn,el("span",{class:"muted small",text:"раз в день · бесплатно"}))));
+}
+let wheelWait=null;
+function dailyBody(){ const d=dailyData; if(!d) return el("div",{class:"dailyv"},el("div",{class:"panel"},el("p",{class:"muted",text:profile?"Загружаю…":"Ежедневные награды работают, когда игра открыта через Telegram."})));
+  return el("div",{class:"dailyv"},streakPanel(d),questsPanel(d),wheelPanel(d)); }
+function renderDaily(){ app.append(viewHead("🎁 Ежедневное"),dailyBody()); if(!dailyData) sendMsg({t:"dailyGet"}); }
+function dailyMini(){ const d=dailyData; if(!d) return el("div",{class:"dailymini",hidden:true});
+  const q=d.quests.filter(x=>x.done).length, n=d.streak.n+(d.streak.ready?0:0), hot=dailyClaimable(d);
+  const go=()=>{ view="daily"; Sound.fx("pick"); render(); scrollTo(0,0); };
+  return el("div",{class:"panel dsec dailymini"},el("div",{class:"dmini",onclick:go},el("span",{class:"dmi",text:"🎁"}),
+    el("div",{class:"dmb"},el("b",{text:"Ежедневное"}),el("div",{class:"dmdots"},Array.from({length:7},(_,k)=>el("i",{class:k<n?"on":""}))),el("span",{text:`Задания ${q}/3${d.wheel.ready?" · колесо ждёт":""}${d.streak.ready?" · награда за вход":""}`})),
+    el("button",{class:"btn small"+(hot?" dpulse":" ghost"),type:"button"},hot?"Забрать":"Открыть"))); }
+function refreshDaily(){ if(view==="daily"&&!dailyLock&&!room){ const o=document.querySelector(".dailyv"); if(o) o.replaceWith(dailyBody()); } else if(view==="daily"&&!dailyLock){ const o=document.querySelector(".dailyv"); if(o) o.replaceWith(dailyBody()); }
+  if(!room&&view==="main"){ const o=document.querySelector(".dailymini"); if(o) o.replaceWith(dailyMini()); } }
+setInterval(()=>{ const t=document.querySelector(".dtimer"); if(t&&dailyData){ const left=dailyData.left-(Date.now()-dailyGotAt); t.textContent=fmtLeft(left); if(left<=0&&!dailyLock) sendMsg({t:"dailyGet"}); } },1000);
+
+/* окно с сундуком: тряска → вспышка → вещь */
+function chestReveal(m){
+  const titles={streak:m.kind==="big"?(dailyData&&dailyData.bigName||"Китайский сундук"):"Мини-сундук",wheel:"Сундук с колеса",bonus:"Бонус-сундук за задания"};
+  const box=el("div",{class:"cbox s1",text:m.kind==="big"?"🧧":"🎁"});
+  const title=el("div",{class:"ctitle",text:titles[m.src]||"Сундук"});
+  const hint=el("div",{class:"muted small",text:"Нажми, чтобы открыть",style:"position:relative"});
+  const ov=el("div",{class:"chestov"},el("div",{class:"crays"}),title,box,hint);
+  document.body.append(ov); Sound.fx("pick");
+  let opened=false;
+  const open=()=>{ if(opened) return; opened=true; hint.remove(); box.className="cbox s2"; let n=0; const tk=setInterval(()=>{ Sound.fx("reel"); if(++n>8) clearInterval(tk); },110); haptic("medium");
+    setTimeout(()=>{ box.remove(); ov.append(el("div",{class:"cflash"})); Sound.fx("bigwin"); haptic("heavy");
+      if(m.item){ const [rn,rc]=rarity(m.item.price); const card=el("div",{class:"citem",style:`--rc:${rc}`},el("div",{class:"crar",text:rn}),itemPrev(m.item),el("div",{class:"cname",text:m.item.name}),el("div",{class:"muted small",text:(m.item.type==="bg"?"Фон":"Колода")+` · в магазине $${m.item.price}`}));
+        ov.append(card,el("div",{class:"row",style:"justify-content:center"},el("button",{class:"btn",type:"button",onclick:()=>{ sendMsg({t:"equip",id:m.item.id}); close(); }},"Надеть"),el("button",{class:"btn ghost",type:"button",onclick:close},"Потом"))); dSparks(card,14,["✦","✨","⭐"]); }
+      else { ov.append(el("div",{class:"citem",style:"--rc:#ffcf4a"},el("div",{class:"cname",text:`+$${m.coins}`}),el("div",{class:"muted small",text:"Все фоны и колоды уже собраны — держи деньги"})),el("button",{class:"btn",type:"button",onclick:close},"Ок")); }
+    },Prefs.get("anim")==="off"?50:1100); };
+  const close=()=>{ ov.remove(); render(); };
+  box.addEventListener("click",open); setTimeout(open,2200);
+}
+function questPop(m){ const p=el("div",{class:"qpop"},el("i",{text:m.icon}),el("div",{},el("b",{text:`Задание «${m.name}» выполнено!`}),el("span",{text:`+$${m.amount}${m.all?" · все три — открой бонус-сундук 🎁":""}`}))); document.body.append(p); Sound.fx("win"); haptic("medium"); setTimeout(()=>p.remove(),3400); }
+
+/* ---------- кейсы в казино ---------- */
+function casesNode(){
+  const C=casinoCfg.cases||{}; let kind="bg";
+  const byId=id=>catalog.find(i=>i.id===id);
+  const strip=el("div",{class:"cstrip"}), row=el("div",{class:"crow"}); strip.append(row);
+  const out=el("div",{class:"cout",text:"Выбери кейс и открывай. Повтор — вернём 30% цены вещи деньгами."});
+  const odds=el("details",{style:"margin-top:8px"});
+  const tile=it=>{ const [,rc]=rarity(it.price); return el("div",{class:"ctile",style:`--rc:${rc}`},itemPrev(it),el("span",{text:it.name})); };
+  const sample=()=>{ const o=(C[kind]||{}).odds||[]; let r=Math.random(); for(const x of o){ r-=x.p; if(r<0) return byId(x.id); } return byId(o[o.length-1].id); };
+  const fill=()=>{ row.style.transition="none"; row.style.transform="translateX(0)"; row.replaceChildren(...Array.from({length:12},()=>tile(sample()))); };
+  const oddsFill=()=>{ const o=((C[kind]||{}).odds||[]).slice().sort((a,b)=>b.p-a.p); odds.replaceChildren(el("summary",{class:"muted small",text:"Что внутри и шансы"}),el("div",{class:"codds"},o.map(x=>{ const it=byId(x.id); if(!it) return null; const [,rc]=rarity(it.price); return el("span",{style:`--rc:${rc}`},el("i",{style:"font-style:normal",text:it.name+(owns(it.id)?" ✓":"")}),el("b",{text:(x.p*100).toFixed(1)+"%"})); }))); };
+  const cards=el("div",{class:"cases"});
+  const drawCards=()=>cards.replaceChildren(...["bg","deck"].map(k=>{ const c=C[k]; if(!c) return null; return el("div",{class:"casecard "+k+(kind===k?" on":""),onclick:()=>{ if(casinoLock) return; kind=k; Sound.fx("pick"); drawCards(); fill(); oddsFill(); }},el("div",{class:"ci",text:k==="bg"?"🏞️":"🃏"}),el("b",{text:c.name}),
+    el("button",{class:"btn small",type:"button",onclick:e=>{ e.stopPropagation(); kind=k; drawCards(); oddsFill(); go(); }},`Открыть $${c.price}`)); }));
+  async function go(){
+    const c=C[kind]; if(!c||casinoLock) return; if(!profile||profile.coins<c.price) return toast("Не хватает денег");
+    casinoLock=true; spend(c.price); cards.querySelectorAll("button").forEach(b=>b.disabled=true); out.textContent="Крутим…"; out.className="cout";
+    try{
+      const r=await casinoSend({game:"case",kind});
+      const items=Array.from({length:40},()=>sample()); items[34]=r.item; row.style.transition="none"; row.style.transform="translateX(0)"; row.replaceChildren(...items.map(tile)); void row.offsetWidth;
+      const tw=90, W=strip.clientWidth, jitter=(Math.random()*.6-.3)*84, k=Prefs.get("anim")==="off"?0:Prefs.get("anim")==="fast"?.55:1;
+      row.style.transition=`transform ${4.6*k}s cubic-bezier(.08,.6,.1,1)`; row.style.transform=`translateX(${-(34*tw)+W/2-42+jitter}px)`;
+      let n=0; const tk=setInterval(()=>{ Sound.fx("reel"); if(++n>34) clearInterval(tk); },Math.max(40,120*k)); await wait(4700*k||20); clearInterval(tk);
+      const win=row.children[34]; if(win){ win.animate([{transform:"scale(1)"},{transform:"scale(1.15)"},{transform:"scale(1)"}],{duration:500}); }
+      const [rn]=rarity(r.item.price);
+      if(r.dup){ out.textContent=`${r.item.name} (${rn.toLowerCase()}) — уже есть, вернули $${r.win}`; out.className="cout"; settle(r.coins,r.win,c.price); }
+      else { out.replaceChildren(document.createTextNode(`Выпало: ${r.item.name} · ${rn}! `),el("button",{class:"btn small",type:"button",onclick:()=>{ sendMsg({t:"equip",id:r.item.id}); }},"Надеть")); out.className="cout win"; settle(r.coins,0,c.price); Sound.fx(r.item.price>=80?"bigwin":"win"); if(r.item.price>=110){ Fx.bigText("ЛЕГЕНДАРКА!"); Fx.run("coins"); } }
+      if(r.rigged) out.append(el("span",{class:"muted small",text:" (тест, вещь не выдана)"}));
+      oddsFill();
+    }catch(e){ toast(e.message); if(profile) Coins.animateTo(profile.coins+=c.price); }
+    casinoLock=false; cards.querySelectorAll("button").forEach(b=>b.disabled=false);
+  }
+  drawCards(); setTimeout(fill,0); oddsFill();
+  return el("div",{class:"machine cases-m"},el("div",{class:"mtitle"},el("b",{text:"КЕЙСЫ"}),el("span",{class:"muted small",text:"фоны и колоды · дорогие выпадают реже"})),cards,strip,out,odds);
+}
+
 function renderCasino(){
   app.append(viewHead("🎰 Казино"));
   if(!profile){ app.append(el("div",{class:"panel"},el("p",{class:"muted"},catalog.length?"Казино работает, когда игра открыта через Telegram.":"Подключаюсь к серверу…"))); return; }
@@ -2032,7 +2265,7 @@ function renderCasino(){
     profile.admin?el("label",{class:"chk rigchk"},(()=>{ const i=el("input",{type:"checkbox",checked:!!profile.rig}); i.addEventListener("change",()=>sendMsg({t:"rig",on:i.checked})); return i; })(),el("span",{text:"🔧 Подкрутка для теста (только ты как админ): всё выпадает по максимуму, деньги не списываются и не начисляются"})):null,
     profile.rig?el("div",{class:"rigbadge",text:"🔧 ТЕСТОВЫЙ РЕЖИМ — выигрыши не настоящие"}):null));
   app.append(el("div",{class:"tabs",role:"tablist"},CAS_TABS.map(([k,n])=>el("button",{type:"button",role:"tab","aria-selected":String(casinoTab===k),class:casinoTab===k?"on":"",onclick:()=>{ if(casinoLock) return toast("Дождись конца раунда"); casinoTab=k; Sound.fx("pick"); render(); }},n))));
-  if(!casinoNodes[casinoTab]) casinoNodes[casinoTab]=casinoTab==="xmult"?xmultNode():casinoTab==="slots"?slotsNode():casinoTab==="roulette"?rouletteNode():casinoTab==="hilo"?hiloNode():bigNode(casinoTab);
+  if(!casinoNodes[casinoTab]) casinoNodes[casinoTab]=casinoTab==="xmult"?xmultNode():casinoTab==="cases"?casesNode():casinoTab==="slots"?slotsNode():casinoTab==="roulette"?rouletteNode():casinoTab==="hilo"?hiloNode():bigNode(casinoTab);
   app.append(el("div",{class:"panel casino"},casinoNodes[casinoTab]));
 }
 
@@ -2072,7 +2305,7 @@ function renderShop(){
   const E=eco||{win:10,fool:-2,daily:5,middle:3};
   app.append(el("div",{class:"panel wallet"},
     el("div",{class:"bal"},el("span",{class:"muted small",text:"Твой баланс"}),el("b",{text:`💰 $${profile.coins}`})),
-    profile.dailyReady?el("button",{class:"btn",type:"button",onclick:()=>sendMsg({t:"daily"})},`🎁 Ежедневный бонус +$${E.daily}`):el("span",{class:"muted small",text:"🎁 Бонус уже забран, следующий завтра"}),
+    el("button",{class:"btn"+(dailyClaimable()?" dpulse":" ghost"),type:"button",onclick:()=>{ view="daily"; render(); scrollTo(0,0); }},"🎁 Ежедневные награды"),
     el("p",{class:"muted small",style:"flex-basis:100%"},`Победа +$${E.win}, средние места +$${E.middle}, дурак −$${Math.abs(E.fool)}. Считаются партии, где играют хотя бы двое живых.`)));
   app.append(el("div",{class:"tabs",role:"tablist"},SHOP_TABS.map(([k,n])=>el("button",{type:"button",role:"tab","aria-selected":String(shopTab===k),class:shopTab===k?"on":"",onclick:()=>{ shopTab=k; Sound.fx("pick"); render(); }},n))));
   if(shopTab==="promo"){
@@ -2169,6 +2402,11 @@ function connect(){
     } else if(m.t==="reward"){
       if(profile) profile.coins=m.coins; Coins.animateTo(m.coins); applyCosmetics(); Fx.coinPop(m.delta); if(m.delta>0) Sound.fx("coin"); if(m.reason) toast(m.reason+(m.delta?` ${m.delta>0?"+":"−"}$${Math.abs(m.delta)}`:""));
     } else if(m.t==="casinoRes"){ onCasinoRes(m);
+    } else if(m.t==="daily"){ dailyData=m; dailyGotAt=Date.now(); updDayDot(); refreshDaily();
+    } else if(m.t==="streakRes"){ Sound.fx("bigwin");
+    } else if(m.t==="wheelRes"){ if(wheelWait){ const f=wheelWait; wheelWait=null; f(m); }
+    } else if(m.t==="chestOpen"){ chestReveal(m);
+    } else if(m.t==="questDone"){ questPop(m);
     } else if(m.t==="toast"){ toast(m.msg);
     } else if(m.t==="typing"){ if(m.from!==me.id) showTyping(m.from);
     } else if(m.t==="chat"){ document.querySelectorAll(`.typing[data-for="${CSS.escape(m.from)}"]`).forEach(x=>x.remove()); chatB[m.from]={text:m.text,at:Date.now()}; if(m.from!==me.id) Sound.fx("pick"); showBubbles();
@@ -2238,6 +2476,7 @@ function render(){
 }
 function renderInner(){
   if(view==="casino"&&casinoLock) return; // не трогаем экран, пока крутятся барабаны
+  if(view==="daily"&&dailyLock) return;   // крутится колесо
   if(tenseLock&&view==="main") return;  // идёт напряжённый момент
   app.replaceChildren();
   if(view==="settings"){ renderSettings(); return; }
@@ -2246,6 +2485,7 @@ function renderInner(){
   if(view==="online"){ app.append(viewHead("🌐 Онлайн"),onlineBody()); return; }
   if(view==="cg"){ document.body.classList.remove("tablemode"); renderCG(); return; }
   if(view==="shop"){ renderShop(); return; }
+  if(view==="daily"){ renderDaily(); return; }
   if(view==="casino"){ renderCasino(); return; }
   const tableMode=!!(room&&room.status!=="lobby"&&!fatal);
   document.body.classList.toggle("tablemode",tableMode);
@@ -2272,12 +2512,13 @@ function renderMenu(){
   app.append(feedPanel());
   app.append(el("div",{class:"panel"},
     el("h2",{},`Привет, ${me.name}!`),
-    profile?el("div",{class:"row"},el("span",{class:"coins",text:`💰 $${profile.coins}`}),profile.dailyReady?el("button",{class:"btn small",type:"button",onclick:()=>sendMsg({t:"daily"})},"🎁 Забрать бонус"):null,el("button",{class:"btn ghost small",type:"button",onclick:()=>{view="shop";render();}},"🛒 Магазин"),el("button",{class:"btn ghost small",type:"button",onclick:()=>{view="casino";render();}},"🎰 Казино")):null,
+    profile?el("div",{class:"row"},el("span",{class:"coins",text:`💰 $${profile.coins}`}),el("button",{class:"btn ghost small",type:"button",onclick:()=>{view="shop";render();}},"🛒 Магазин"),el("button",{class:"btn ghost small",type:"button",onclick:()=>{view="casino";render();}},"🎰 Казино")):null,
     el("p",{class:"muted small"},"Создай комнату и позови друга, или войди по коду, который тебе прислали."),
     el("div",{class:"row"},
       el("button",{class:"btn",type:"button",onclick:()=>sendMsg({t:"create"})},"Создать комнату"),
       codeIn,
       el("button",{class:"btn ghost",type:"button",onclick:()=>{const c=codeIn.value.trim().toUpperCase(); if(/^[A-Z0-9]{6}$/.test(c)){ codeIn.value=""; return sendMsg({t:"addFriend",code:c}); } if(!/^[A-Z0-9]{4}$/.test(c)) return toast("Код комнаты — 4 символа, код друга — 6"); sendMsg({t:"enter",code:c});}},"Войти"))));
+  app.append(dailyMini());
   app.append(continuePanel());
   app.append(modesPanel());
   app.append(el("div",{class:"panel"},
@@ -2296,8 +2537,9 @@ const Tour=(()=>{
   const btnWith=t=>()=>[...document.querySelectorAll("#app button")].find(b=>b.textContent.trim()===t);
   const STEPS=[
     {t:"Добро пожаловать за стол Кащея!",d:"Покажу за минуту, что тут где. Можно пропустить и вернуться к обучению потом в настройках.",fs:true},
-    {el:()=>document.getElementById("coinsBtn"),t:"💰 Баланс",d:"Игровые деньги. Дают за победы, ежедневный бонус и промокоды. Тратятся в магазине и казино."},
-    {el:()=>document.getElementById("casinoBtn"),t:"🎰 Казино",d:"Слоты, рулетка, «Выше/ниже» и Бурмалда с иксами. Всё на игровые деньги."},
+    {el:()=>document.getElementById("coinsBtn"),t:"💰 Баланс",d:"Игровые деньги. Дают за победы, ежедневные награды и промокоды. Тратятся в магазине и казино."},
+    {el:()=>document.getElementById("dayBtn"),t:"🎁 Ежедневное",d:"Заходи каждый день: серия входов, три необычных задания (выполняются и с ботами) и бесплатное колесо. В сундуках — фоны и колоды."},
+    {el:()=>document.getElementById("casinoBtn"),t:"🎰 Казино",d:"Слоты, рулетка, кейсы с фонами и колодами, «Выше/ниже» и Бурмалда с иксами. Всё на игровые деньги."},
     {el:()=>document.getElementById("shopBtn"),t:"🛒 Магазин",d:"Фоны стола, колоды, цвет ника, титулы, реакции и эффекты победы."},
     {el:()=>document.getElementById("frBtn"),t:"👥 Друзья",d:"Добавляй друзей по коду, пиши им и зови за стол одной кнопкой. Зелёная точка — кто-то в сети."},
     {el:()=>document.getElementById("setBtn"),t:"⚙ Настройки",d:"Ник и фото, звук и музыка, анимации, подсказки и «Напряжённый момент»."},
@@ -3130,6 +3372,7 @@ function renderSeat(st,myTurn){
 }
 
 buildAudioBar();
+document.getElementById("dayBtn").addEventListener("click",()=>{ if(casinoLock) return toast("Дождись конца раунда"); view=view==="daily"?"main":"daily"; Sound.fx("pick"); if(view==="daily") sendMsg({t:"dailyGet"}); render(); scrollTo(0,0); });
 document.getElementById("casinoBtn").addEventListener("click",()=>{ if(casinoLock) return; view=view==="casino"?"main":"casino"; Sound.fx("pick"); render(); scrollTo(0,0); });
 document.getElementById("shopBtn").addEventListener("click",()=>{ if(casinoLock) return toast("Дождись конца раунда"); view=view==="shop"?"main":"shop"; Sound.fx("pick"); render(); scrollTo(0,0); });
 document.getElementById("coinsBtn").addEventListener("click",()=>{ if(casinoLock) return; view="shop"; Sound.fx("pick"); render(); scrollTo(0,0); });

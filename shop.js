@@ -91,7 +91,8 @@ const BY_ID = Object.fromEntries(ITEMS.map(i => [i.id, i]));
 const DEFAULT_EQUIP = { bg: "bg:felt", deck: "deck:classic", color: "color:gold", title: "title:none", winfx: "winfx:fireworks", frame: "frame:none" };
 const COLOR_ORDER = ITEMS.filter(i => i.type === "color").map(i => i.key);
 
-const today = () => new Date().toISOString().slice(0, 10);
+// день меняется в полночь по Москве
+const today = (ts = Date.now()) => new Date(ts + 3 * 3600e3).toISOString().slice(0, 10);
 
 function ensureEco(u) {
   if (typeof u.coins !== "number") u.coins = ECONOMY.start;
