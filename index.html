@@ -691,6 +691,39 @@ body.tablemode #dust{display:block}
 @keyframes xhit{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
 .buyrow{display:flex;justify-content:center}
 .btn.buyx{background:linear-gradient(#7f77dd,#534ab7);color:#fff;border:0}
+
+/* ======== КИТАЙСКИЕ ИГРЫ ======== */
+.cgpanel{border:1px solid rgba(242,193,78,.45)}
+.cghud{position:relative;display:flex;align-items:center;gap:10px;justify-content:space-between;background:rgba(10,8,30,.7);border:2px solid #7f77dd;border-radius:14px;padding:6px 12px;z-index:2;transition:border-color .4s}
+.cghud.reached{border-color:#7ee0b5;box-shadow:0 0 14px rgba(126,224,181,.5)}
+.cgfl{font-family:var(--display);font-weight:700;color:#ffe6a0}
+.cgsc{font-size:13px;color:#cecbf6}.cgsc b{font-family:"Press Start 2P",var(--display);font-size:16px;color:#fff}
+.cgjs{display:flex;gap:4px}.cgj{width:30px;height:38px;border-radius:6px;background:#26215c;border:1.5px solid #afa9ec;display:grid;place-items:center;font-size:16px}
+.cgwave span{display:inline-block;animation:cgwv 1.6s ease-in-out infinite}
+@keyframes cgwv{50%{transform:translateY(-4px) rotate(3deg)}}
+.cgpop{position:fixed;transform:translate(-50%,-100%);display:flex;align-items:center;gap:6px;z-index:48;pointer-events:none;font-family:"Press Start 2P",var(--display)}
+.cgpop .cgc{background:#378add;color:#fff;border-radius:8px;padding:6px 9px;font-size:14px}
+.cgpop .cgm{background:#e24b4a;color:#fff;border-radius:8px;padding:6px 9px;font-size:14px}
+.cgpop i{font-style:normal;color:#fff;font-size:14px}
+.cgpop.done{font-size:18px;color:#ffe6a0;text-shadow:0 2px 0 #000;animation:cgup .65s ease-out forwards}
+.cgpop.hot{color:#ffd27a;text-shadow:0 0 12px #ff8a1e,0 2px 0 #000}
+@keyframes cgup{0%{transform:translate(-50%,-100%) scale(1.5)}30%{transform:translate(-50%,-100%) scale(1)}100%{transform:translate(-50%,-260%);opacity:0}}
+.cgscreen{flex:1;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;padding:16px 0;text-shadow:0 2px 6px rgba(0,0,0,.7)}
+.cgtitle{font-family:var(--display);font-weight:800;font-size:clamp(22px,6vw,32px);color:#ffe6a0}
+.cgsub{color:#e9efe9;max-width:30em;margin:0}
+.cgpick{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.cgjcard{width:104px;min-height:150px;border-radius:12px;background:#26215c;border:2px solid #afa9ec;color:#eeedfe;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 8px;animation:cgdeal .5s cubic-bezier(.3,1.6,.5,1) backwards;transition:transform .2s}
+.cgjcard:hover{transform:translateY(-8px) rotate(-3deg)}
+.cgjico{font-size:30px}.cgjcard b{font-size:14px}.cgjtxt{font-size:11px;line-height:1.3;color:#cecbf6}
+@keyframes cgdeal{from{transform:translateY(60px) rotate(15deg);opacity:0}}
+.cglines{display:flex;flex-direction:column;gap:6px;width:min(320px,90%)}
+.cgline{display:flex;justify-content:space-between;background:rgba(0,0,0,.35);border-radius:10px;padding:8px 12px;animation:cgin .3s cubic-bezier(.3,1.6,.5,1)}
+.cgline b{color:#ffd27a}
+@keyframes cgin{from{transform:translateX(-40px);opacity:0}}
+.cgtotal{font-size:18px;color:#e9efe9}.cgtotal b{font-family:"Press Start 2P",var(--display);font-size:24px;color:#fff}
+.cgtotal.ok b{color:#7ee0b5}.cgtotal.bad b{color:#ff8b7b}
+.cgbtns{justify-content:center}
+/* ======== /КИТАЙСКИЕ ИГРЫ ======== */
 </style>
 </head>
 <body>
@@ -1611,7 +1644,7 @@ function pumpStates(){
 }
 function applyState(nr,at){
       const prevTurn=room&&room.status==="play"&&room.players[room.turn]&&room.players[room.turn].id;
-      const prevR=room; room=nr; soundsFor(prevR,room);
+      const prevR=room; room=nr; soundsFor(prevR,room); cgOnState(prevR,room);
       if(pendingInvite&&room.status==="lobby"&&room.host===me.id&&!room.practice){ const id=pendingInvite; pendingInvite=null; setTimeout(()=>sendMsg({t:"inviteFriend",id}),200); }
       deadlineAt=room.turnLeft>0?at+room.turnLeft:null;
       const iFinishedNow=prevR&&prevR.code===room.code&&!prevR.finished.includes(me.id)&&room.finished.includes(me.id);
@@ -1723,6 +1756,7 @@ function renderInner(){
   if(view==="settings"){ renderSettings(); return; }
   if(view==="friends"){ app.append(viewHead("👥 Друзья"),friendsPanel()); return; }
   if(view==="dm"){ renderDm(); return; }
+  if(view==="cg"){ document.body.classList.remove("tablemode"); renderCG(); return; }
   if(view==="shop"){ renderShop(); return; }
   if(view==="casino"){ renderCasino(); return; }
   const tableMode=!!(room&&room.status!=="lobby"&&!fatal);
@@ -1741,7 +1775,7 @@ function renderInner(){
   if(room.status==="lobby") return renderWaiting();
   renderTable();
 }
-function exitRoom(){ sendMsg({t:"exit"}); room=null; store.del("durak.room"); render(); }
+function exitRoom(){ sendMsg({t:"exit"}); room=null; store.del("durak.room"); if(cg.active&&view!=="cg") cgQuit(); render(); }
 
 function renderMenu(){
   const codeIn=el("input",{id:"joincode",maxlength:"6",placeholder:"КОД","aria-label":"Код комнаты",style:"width:6.5em;text-transform:uppercase;letter-spacing:.15em"});
@@ -1754,6 +1788,7 @@ function renderMenu(){
       el("button",{class:"btn",type:"button",onclick:()=>sendMsg({t:"create"})},"Создать комнату"),
       codeIn,
       el("button",{class:"btn ghost",type:"button",onclick:()=>{const c=codeIn.value.trim().toUpperCase(); if(/^[A-Z0-9]{6}$/.test(c)){ codeIn.value=""; return sendMsg({t:"addFriend",code:c}); } if(!/^[A-Z0-9]{4}$/.test(c)) return toast("Код комнаты — 4 символа, код друга — 6"); sendMsg({t:"enter",code:c});}},"Войти"))));
+  app.append(cgMenuPanel());
   app.append(el("div",{class:"panel"},
     el("h2",{},"Тренировка с ботами"),
     el("p",{class:"muted small"},"Партия только для тебя. Боты ходят сами."),
@@ -1909,7 +1944,7 @@ function showBubbles(){
 }
 let chatBar=null;
 function chatSync(){
-  const on=!!(room&&me&&room.players.some(p=>p.id===me.id)&&!tenseOn);
+  const on=!!(room&&me&&room.players.some(p=>p.id===me.id)&&!tenseOn&&view!=="cg"&&!(cgOn()));
   document.body.classList.toggle("chaton",on);
   if(!on){ if(chatBar) chatBar.hidden=true; return; }
   if(!chatBar){
@@ -1996,6 +2031,129 @@ function showInvite(m){
   document.body.append(b); setTimeout(()=>b.remove(),25000);
 }
 setInterval(()=>{ if(conn==="ok"&&me&&(view==="friends"||(!room&&view==="main")||(room&&room.status==="lobby"))) sendMsg({t:"friends"}); },20000);
+/* ======================= КИТАЙСКИЕ ИГРЫ (пробный режим, весь в этом блоке) ======================= */
+const CG_JOKERS=[
+  {id:"pair",name:"Пара",ico:"👯",txt:"+×2, если кладёшь 2+ карты"},
+  {id:"red",name:"Красный",ico:"♥",txt:"+15 очков за каждую ♥ и ♦"},
+  {id:"two",name:"Двоечник",ico:"2️⃣",txt:"+×3 за двойку"},
+  {id:"fire",name:"Поджигатель",ico:"🔥",txt:"+×2 за каждое сжигание"},
+  {id:"small",name:"Мелочь",ico:"🪙",txt:"Карты 3–6 дают вдвое больше очков"},
+  {id:"king",name:"Король",ico:"👑",txt:"+20 очков за K и A"},
+  {id:"glass",name:"Стеклодув",ico:"🔮",txt:"+×2 за восьмёрку"},
+  {id:"greed",name:"Жадина",ico:"💰",txt:"+40 очков, когда бот забирает стопку"},
+  {id:"blind",name:"Слепой",ico:"🙈",txt:"+100 очков, если закрытая карта подошла"},
+  {id:"finish",name:"Финишёр",ico:"🏁",txt:"Итог партии ×1.5, если вышел первым"},
+];
+const cgTarget=f=>Math.round(90*Math.pow(f,1.45)/10)*10;
+const cgBots=f=>Math.min(3,f);
+let cg={active:false,floor:1,jokers:[],score:0,combo:0,key:"",takeSeq:null,blindSeq:null,picking:null,over:null};
+const cgBest=()=>{ try{ return +localStorage.getItem("durak.cgBest")||0; }catch(_){ return 0; } };
+const cgOn=()=>cg.active&&room&&room.practice;
+const cgHas=id=>cg.jokers.some(j=>j.id===id);
+const cgVal=r=>r==="2"?15:r==="J"?11:r==="Q"?12:r==="K"?13:r==="A"?14:+r;
+function cgTone(f,d,g,ty){ try{ Sound.fx("pick"); }catch(_){ } }
+function cgStart(){ cg={active:true,floor:1,jokers:[],score:0,combo:0,key:"",takeSeq:null,blindSeq:null,picking:cgOffer(),over:null}; Bg.set("swirl"); view="cg"; render(); }
+function cgOffer(){ const pool=CG_JOKERS.filter(j=>!cgHas(j.id)); const out=[]; while(out.length<3&&pool.length) out.push(pool.splice(Math.random()*pool.length|0,1)[0]); return out; }
+function cgFloorGo(){ if(room){ sendMsg({t:"exit"}); room=null; store.del("durak.room"); } cg.score=0; cg.combo=0; cg.key=""; cg.takeSeq=null; cg.blindSeq=null; cg.over=null; cg.picking=null; view="main"; sendMsg({t:"practice",bots:cgBots(cg.floor)}); }
+function cgQuit(){ cg.active=false; cg.picking=null; cg.over=null; applyCosmetics(); }
+// считаем очки за мой ход
+function cgScore(cards,burned,streak){
+  let chips=0,mult=cards.length; const parts=[];
+  cards.forEach(c=>{ const r=rk(c); let v=cgVal(r); if(cgHas("small")&&+r>=3&&+r<=6) v*=2; if(cgHas("king")&&(r==="K"||r==="A")) v+=20; if(cgHas("red")&&(su(c)==="h"||su(c)==="d")) v+=15; chips+=v; });
+  const r=rk(cards[0]);
+  if(r==="2"){ mult+=1; if(cgHas("two")) { mult+=3; parts.push("two"); } }
+  if(r==="8"){ mult+=1; if(cgHas("glass")) { mult+=2; parts.push("glass"); } }
+  if(burned){ mult+=2+Math.max(0,(streak||1)-1); if(cgHas("fire")){ mult+=2; parts.push("fire"); } }
+  if(cards.length>=2&&cgHas("pair")){ mult+=2; parts.push("pair"); }
+  if(cgHas("red")&&cards.some(c=>su(c)==="h"||su(c)==="d")) parts.push("red");
+  if(cgHas("small")&&+r>=3&&+r<=6) parts.push("small");
+  if(cgHas("king")&&(r==="K"||r==="A")) parts.push("king");
+  return {chips,mult,total:chips*mult,parts};
+}
+function cgOnState(prev,st){
+  if(!cgOn()||!prev||prev.code!==st.code) return;
+  const L=st.last, key=L?L.pid+":"+L.cards.join(",")+":"+st.burned:"";
+  if(L&&L.pid===me.id&&key!==cg.key&&(st.pile.length!==prev.pile.length||st.burned!==prev.burned||!prev.last||prev.last.cards.join()!==L.cards.join())){
+    cg.key=key; cg.combo++;
+    const sc=cgScore(L.cards,st.burned>prev.burned,st.burnStreak);
+    setTimeout(()=>cgPop(sc),120);
+  }
+  if(st.lastTake&&st.lastTake.seq!==cg.takeSeq){ cg.takeSeq=st.lastTake.seq;
+    if(st.lastTake.pid===me.id) cg.combo=0;
+    else if(cgHas("greed")) setTimeout(()=>cgBonus(40,"greed","Жадина +40"),300); }
+  if(st.lastBlind&&st.lastBlind.seq!==cg.blindSeq){ cg.blindSeq=st.lastBlind.seq; if(st.lastBlind.pid===me.id&&st.lastBlind.ok&&cgHas("blind")) setTimeout(()=>cgBonus(100,"blind","Слепой +100"),2600); }
+  if(prev.status!=="over"&&st.status==="over") setTimeout(()=>cgFinish(st),1400);
+}
+function cgNote(f){ try{ const c=Sound.ctx&&Sound.ctx(); }catch(_){ } }
+function cgPluck(n){ // звук выше с каждым ходом подряд
+  try{ const AC=window.__cgAC||(window.__cgAC=new (window.AudioContext||window.webkitAudioContext)()); AC.resume(); const t=AC.currentTime, o=AC.createOscillator(), a=AC.createGain(), vol=(+localStorage.getItem("durak.sfx")||70)/100*.08;
+    o.type="square"; o.frequency.value=330*Math.pow(1.122,Math.min(n,14)); a.gain.setValueAtTime(0,t); a.gain.linearRampToValueAtTime(vol,t+.005); a.gain.exponentialRampToValueAtTime(.0005,t+.12); o.connect(a).connect(AC.destination); o.start(t); o.stop(t+.15); }catch(_){ }
+}
+function cgPop(sc){
+  const pile=document.querySelector(".pile"); const r=pile?pile.getBoundingClientRect():{left:innerWidth/2-30,top:innerHeight/2-40,width:60,height:80};
+  cgPluck(cg.combo); const cen=document.querySelector(".center"); if(cen&&Prefs.get("anim")!=="off") cen.animate([{transform:"translate(0,0)"},{transform:`translate(${-2-cg.combo*.4}px,1px)`},{transform:`translate(${2+cg.combo*.4}px,-1px)`},{transform:"none"}],{duration:200});
+  const box=el("div",{class:"cgpop"},el("span",{class:"cgc",text:"0"}),el("i",{text:"×"}),el("span",{class:"cgm",text:"1"}));
+  box.style.left=(r.left+r.width/2)+"px"; box.style.top=(r.top-14)+"px"; document.body.append(box);
+  sc.parts.forEach((id,i)=>setTimeout(()=>cgJokerKick(id),180+i*220));
+  const c=box.querySelector(".cgc"), m=box.querySelector(".cgm"); const T=Prefs.get("anim")==="fast"?.6:1;
+  cgCount(c,0,sc.chips,300*T).then(()=>{ m.textContent=sc.mult; m.animate([{transform:"scale(1.6)"},{transform:"scale(1)"}],{duration:260,easing:"cubic-bezier(.3,1.6,.5,1)"});
+    setTimeout(()=>{ box.classList.add("done"); box.replaceChildren(el("b",{text:"+"+sc.total})); if(sc.total>=100) box.classList.add("hot");
+      setTimeout(()=>{ box.remove(); cgAdd(sc.total); },650*T); },320*T); });
+}
+function cgBonus(v,id,label){ cgJokerKick(id); const hud=document.querySelector(".cghud .cgsc"); if(hud){ const r=hud.getBoundingClientRect(); const p=el("div",{class:"cgpop done",text:label}); p.style.left=(r.left+r.width/2)+"px"; p.style.top=(r.bottom+6)+"px"; document.body.append(p); setTimeout(()=>p.remove(),900); } cgAdd(v); }
+function cgAdd(v){ const from=cg.score; cg.score+=v; const n=document.querySelector(".cghud .cgsv"); if(n){ cgCount(n,from,cg.score,400); const h=document.querySelector(".cghud"); h.animate([{transform:"scale(1)"},{transform:"scale(1.06)"},{transform:"scale(1)"}],{duration:250}); const t=cgTarget(cg.floor); h.classList.toggle("reached",cg.score>=t); } }
+function cgCount(elm,a,b,ms){ return new Promise(res=>{ const st=performance.now(); const f=now=>{ const k=Math.min(1,(now-st)/ms); elm.textContent=Math.round(a+(b-a)*k); if(k<1) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); }); }
+function cgJokerKick(id){ const j=document.querySelector(`.cgj[data-id="${id}"]`); if(!j) return; j.animate([{transform:"none"},{transform:"translateY(-10px) rotate(-10deg) scale(1.2)"},{transform:"rotate(6deg)"},{transform:"none"}],{duration:450,easing:"cubic-bezier(.3,1.6,.5,1)"}); cgPluck(8); }
+function cgWave(t,cls){ return el("div",{class:"cgwave "+(cls||"")},[...t].map((ch,i)=>{ const sp=el("span",{text:ch===" "?"\u00a0":ch}); sp.style.animationDelay=(-i*.1)+"s"; return sp; })); }
+function cgHud(){
+  const t=cgTarget(cg.floor);
+  return el("div",{class:"cghud"+(cg.score>=t?" reached":"")},
+    el("div",{class:"cgfl"},cgWave("Этаж "+cg.floor)),
+    el("div",{class:"cgsc"},el("b",{class:"cgsv",text:String(cg.score)}),el("span",{text:" / "+t})),
+    el("div",{class:"cgjs"},cg.jokers.map(j=>el("span",{class:"cgj","data-id":j.id,title:j.name+": "+j.txt},j.ico))));
+}
+function cgFinish(st){
+  const place=st.finished.indexOf(me.id), fool=st.loser===me.id, n=st.players.length;
+  const lines=[["Очки за ходы",cg.score]]; let total=cg.score;
+  if(!fool){ const k=place===0?1.5:1.2; lines.push([place===0?"Вышел первым ×1.5":"Не дурак ×1.2","×"+k]); total=Math.round(total*k);
+    if(place===0&&cgHas("finish")){ lines.push(["Финишёр ×1.5","×1.5"]); total=Math.round(total*1.5); } }
+  const target=cgTarget(cg.floor), pass=!fool&&total>=target;
+  cg.over={lines,total,target,pass,fool};
+  if(pass){ try{ if(cg.floor>cgBest()) localStorage.setItem("durak.cgBest",String(cg.floor)); }catch(_){ } cg.picking=cgOffer(); }
+  view="cg"; render();
+}
+function renderCG(){
+  Bg.set("swirl");
+  const box=el("div",{class:"cgscreen"});
+  if(cg.over){
+    const o=cg.over;
+    box.append(el("div",{class:"cgtitle",text:o.pass?`Этаж ${cg.floor} пройден!`:(o.fool?"Ты дурак — забег окончен":"Не хватило очков — забег окончен")}));
+    const list=el("div",{class:"cglines"}); box.append(list);
+    const tot=el("div",{class:"cgtotal"},el("span",{text:"Итог: "}),el("b",{text:"0"}),el("span",{class:"muted",text:" / цель "+o.target}));
+    box.append(tot);
+    o.lines.forEach((l,i)=>setTimeout(()=>{ const row=el("div",{class:"cgline"},el("span",{text:l[0]}),el("b",{text:String(l[1])})); list.append(row); cgPluck(4+i*2); },300+i*350));
+    setTimeout(()=>{ cgCount(tot.querySelector("b"),0,o.total,900).then(()=>{ tot.classList.add(o.pass?"ok":"bad"); if(o.pass){ Fx.run("confetti"); Sound.fx("bigwin"); } else Sound.fx("lose"); }); },300+o.lines.length*350);
+    if(o.pass) box.append(el("p",{class:"cgsub",text:"Выбери джокера на следующий этаж"}),cgPickRow(true));
+    else box.append(el("p",{class:"cgsub",text:`Дошёл до этажа ${cg.floor}. Рекорд: ${cgBest()}`}),el("div",{class:"row cgbtns"},el("button",{class:"btn",type:"button",onclick:()=>{ cgStart(); }},"Новый забег"),el("button",{class:"btn ghost",type:"button",onclick:()=>{ cgQuit(); view="main"; render(); }},"В меню")));
+  } else if(cg.picking){
+    box.append(cgWave("Китайские игры","cgtitle"),
+      el("p",{class:"cgsub",text:"Проходи этажи против ботов: не будь дураком и набери нужные очки. Кладёшь карты — копишь очки, особые карты и сжигания дают множитель. Джокеры усиливают счёт."}),
+      el("p",{class:"cgsub",text:"Выбери первого джокера"}),cgPickRow(false),
+      el("button",{class:"btn ghost small",type:"button",onclick:()=>{ cgQuit(); view="main"; render(); }},"Назад"));
+  }
+  app.append(box);
+}
+function cgPickRow(next){
+  return el("div",{class:"cgpick"},cg.picking.map((j,i)=>{ const b=el("button",{class:"cgjcard",type:"button",onclick:()=>{ cg.jokers.push(j); if(cg.jokers.length>5) cg.jokers.shift(); Sound.fx("coin"); if(next) cg.floor++; cgFloorGo(); }},
+      el("span",{class:"cgjico",text:j.ico}),el("b",{text:j.name}),el("span",{class:"cgjtxt",text:j.txt}));
+    b.style.animationDelay=(i*120)+"ms"; return b; }));
+}
+function cgMenuPanel(){
+  return el("div",{class:"panel cgpanel"},el("h2",{},"🀄 Китайские игры ",el("span",{class:"tag",text:"проба"})),
+    el("p",{class:"muted small",text:"Забег по этажам против ботов: очки × множитель, джокеры и растущая цель. Рекорд: этаж "+cgBest()}),
+    el("button",{class:"btn",type:"button",onclick:cgStart},"Начать забег"));
+}
+/* ===================== /КИТАЙСКИЕ ИГРЫ ===================== */
 /* ---------- конец партии: «Ещё партию?» ---------- */
 function mmss(ms){ const s=Math.max(0,Math.ceil(ms/1000)); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
 function rematchSheet(st){
@@ -2133,7 +2291,8 @@ function renderTable(){
     el("div",{class:"pilebox"},pile,el("div",{class:"status"+(F.turnChanged?" pop":"")},statusText),timerBar(st),el("div",{class:"need",text:need})),
     el("div",{class:"side"},discardEl(st.burned),el("span",{},"Бита: ",el("b",{text:st.burned})))));
 
-  if(st.status==="over") app.append(rematchSheet(st));
+  if(cgOn()) app.append(cgHud());
+  if(st.status==="over"&&!cgOn()) app.append(rematchSheet(st));
   if(exitSheet&&st.status==="play") app.append(el("div",{class:"sheet"},el("b",{text:st.finished[0]===me.id?"Ты вышел первым! 🎉":"Ты не дурак! 🎉"}),el("span",{class:"muted small",text:"Партия ещё идёт — можешь досмотреть, кто станет дураком"}),
     el("div",{class:"row"},el("button",{class:"btn",type:"button",onclick:()=>{ exitSheet=false; Sound.fx("pick"); render(); }},"👀 Смотреть"),el("button",{class:"btn ghost",type:"button",onclick:()=>{ exitSheet=false; exitRoom(); }},"Уйти в меню"))));
   const myHandArr=Array.isArray(st.hands[me.id])?st.hands[me.id]:[];
